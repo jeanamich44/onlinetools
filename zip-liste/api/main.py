@@ -27,7 +27,7 @@ def generate_zip(data: QRRequest):
     if not data.lines:
         raise HTTPException(status_code=400, detail="Empty list")
 
-    if len(data.lines) > 200:
+    if len(data.lines) > 4000:
         raise HTTPException(status_code=400, detail="Too many lines")
 
     uid = str(uuid.uuid4())
