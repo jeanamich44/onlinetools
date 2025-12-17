@@ -11,7 +11,7 @@
 <div class="container">
     <h1>Zip Liste</h1>
     <p class="subtitle">
-        Transforme une liste de textes en QR codes compressés dans un fichier ZIP.
+        Liste → QR codes → ZIP
     </p>
 
     <textarea placeholder="1 ligne = 1 QR code"></textarea>
@@ -19,16 +19,27 @@
 
     <button>Générer le ZIP</button>
 
-    <p class="hint">Maximum 4000 lignes</p>
+    <div id="message"></div>
 </div>
 
 <script>
 const textarea = document.querySelector("textarea");
 const button = document.querySelector("button");
 const counter = document.getElementById("counter");
+const messageBox = document.getElementById("message");
 
 const MAX_LINES = 4000;
 const API_URL = "https://onlinetools-production.up.railway.app/generate-zip";
+
+function showMessage(text, type = "error") {
+    messageBox.textContent = text;
+    messageBox.className = type;
+    messageBox.style.opacity = "1";
+
+    setTimeout(() => {
+        messageBox.style.opacity = "0";
+    }, 5000);
+}
 
 textarea.addEventListener("input", () => {
     const lines = textarea.value
@@ -47,12 +58,12 @@ button.addEventListener("click", async () => {
         .filter(l => l !== "");
 
     if (lines.length === 0) {
-        alert("La liste est vide");
+        showMessage("Erreur : liste vide");
         return;
     }
 
     if (lines.length > MAX_LINES) {
-        alert("Maximum 4000 lignes");
+        showMessage("Erreur : limite dépassée (4000 lignes max)");
         return;
     }
 
@@ -85,8 +96,10 @@ button.addEventListener("click", async () => {
 
         URL.revokeObjectURL(url);
 
+        showMessage("ZIP généré avec succès", "success");
+
     } catch (err) {
-        alert(err.message);
+        showMessage("Erreur : " + err.message);
     } finally {
         button.disabled = false;
         button.textContent = "Générer le ZIP";

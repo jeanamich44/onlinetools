@@ -25,15 +25,15 @@ body {
 
 h1 {
     text-align: center;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-size: 1.8rem;
 }
 
 .subtitle {
     text-align: center;
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: #9ca3af;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 textarea {
@@ -56,8 +56,8 @@ textarea:focus {
 #counter {
     margin-top: 6px;
     font-size: 0.8rem;
-    color: #9ca3af;
     text-align: right;
+    color: #9ca3af;
 }
 
 button {
@@ -78,9 +78,18 @@ button:disabled {
     cursor: not-allowed;
 }
 
-.hint {
+#message {
+    margin-top: 10px;
+    font-size: 0.85rem;
     text-align: center;
-    font-size: 0.8rem;
-    color: #9ca3af;
-    margin-top: 12px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#message.error {
+    color: #ef4444;
+}
+
+#message.success {
+    color: #22c55e;
 }
