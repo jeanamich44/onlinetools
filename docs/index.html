@@ -15,13 +15,30 @@
     </p>
 
     <textarea placeholder="1 ligne = 1 QR code"></textarea>
+    <div id="counter">0 / 4000 lignes</div>
+
     <button>Générer le ZIP</button>
-    <p class="hint">Exemple : 60 lignes → 60 QR codes (Max: 4000)</p>
+
+    <p class="hint">Maximum 4000 lignes</p>
 </div>
 
 <script>
-const button = document.querySelector("button");
 const textarea = document.querySelector("textarea");
+const button = document.querySelector("button");
+const counter = document.getElementById("counter");
+
+const MAX_LINES = 4000;
+const API_URL = "https://onlinetools-production.up.railway.app/generate-zip";
+
+textarea.addEventListener("input", () => {
+    const lines = textarea.value
+        .split("\n")
+        .map(l => l.trim())
+        .filter(l => l !== "");
+
+    counter.textContent = `${lines.length} / ${MAX_LINES} lignes`;
+    counter.style.color = lines.length > MAX_LINES ? "#ef4444" : "#9ca3af";
+});
 
 button.addEventListener("click", async () => {
     const lines = textarea.value
@@ -34,17 +51,29 @@ button.addEventListener("click", async () => {
         return;
     }
 
+    if (lines.length > MAX_LINES) {
+        alert("Maximum 4000 lignes");
+        return;
+    }
+
     button.disabled = true;
     button.textContent = "Génération en cours...";
 
     try {
-        const response = await fetch("https://onlinetools-production.up.railway.app/generate-zip", {
+        const response = await fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ lines })
         });
 
-        if (!response.ok) throw new Error();
+        if (!response.ok) {
+            let msg = "Erreur serveur";
+            try {
+                const err = await response.json();
+                if (err.detail) msg = err.detail;
+            } catch {}
+            throw new Error(msg);
+        }
 
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
@@ -56,8 +85,8 @@ button.addEventListener("click", async () => {
 
         URL.revokeObjectURL(url);
 
-    } catch {
-        alert("Erreur serveur");
+    } catch (err) {
+        alert(err.message);
     } finally {
         button.disabled = false;
         button.textContent = "Générer le ZIP";

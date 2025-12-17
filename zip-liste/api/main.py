@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import qrcode
 import zipfile
@@ -9,8 +10,6 @@ import shutil
 
 app = FastAPI()
 
-from fastapi.middleware.cors import CORSMiddleware
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -18,6 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+MAX_LINES = 4000
 
 class QRRequest(BaseModel):
     lines: list[str]
@@ -25,14 +25,14 @@ class QRRequest(BaseModel):
 @app.post("/generate-zip")
 def generate_zip(data: QRRequest):
     if not data.lines:
-        raise HTTPException(status_code=400, detail="Empty list")
+        raise HTTPException(status_code=400, detail="Liste vide")
 
-    if len(data.lines) > 4000:
-        raise HTTPException(status_code=400, detail="Too many lines")
+    if len(data.lines) > MAX_LINES:
+        raise HTTPException(status_code=400, detail="Maximum 4000 lignes")
 
     uid = str(uuid.uuid4())
-    temp_dir = f"tmp_{uid}"
-    zip_path = f"{uid}.zip"
+    temp_dir = f"/tmp/{uid}"
+    zip_path = f"/tmp/{uid}.zip"
 
     os.makedirs(temp_dir)
 
@@ -42,10 +42,7 @@ def generate_zip(data: QRRequest):
 
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
         for file in os.listdir(temp_dir):
-            zipf.write(
-                os.path.join(temp_dir, file),
-                arcname=file
-            )
+            zipf.write(os.path.join(temp_dir, file), arcname=file)
 
     shutil.rmtree(temp_dir)
 
