@@ -4,6 +4,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import Optional
 
 # =========================
 # INIT API
@@ -50,17 +51,18 @@ DEFAULTS = {
 # =========================
 
 class PDFRequest(BaseModel):
-    sexe: str = "m"
-    banque: str | None = None
-    guichet: str | None = None
-    compte: str | None = None
-    cle: str | None = None
-    iban: str | None = None
-    bic: str | None = None
-    nom_prenom: str | None = None
-    adresse: str | None = None
-    cp_ville: str | None = None
-    domiciliation: str | None = None
+    sexe: Optional[str] = "m"
+    banque: Optional[str] = None
+    guichet: Optional[str] = None
+    compte: Optional[str] = None
+    cle: Optional[str] = None
+    iban: Optional[str] = None
+    bic: Optional[str] = None
+    nom_prenom: Optional[str] = None
+    adresse: Optional[str] = None
+    cp_ville: Optional[str] = None
+    domiciliation: Optional[str] = None
+
 
 # =========================
 # API
