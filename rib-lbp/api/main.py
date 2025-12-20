@@ -1,17 +1,15 @@
 import fitz
-import os
 import uuid
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional
 
 # =========================
 # INIT API
 # =========================
 
-app = FastAPI(title="RIB LBP Generator")
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,20 +19,17 @@ app.add_middleware(
 )
 
 # =========================
-# PATHS (SAFE)
+# CONSTANTES
 # =========================
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-PDF_TEMPLATE = os.path.join(BASE_DIR, ".BASE.pdf")
-FONT_PATH = os.path.join(BASE_DIR, "arialbd.ttf")
-
+PDF_TEMPLATE = ".BASE.pdf"
+FONT_FILE = "arialbd.ttf"
 FONT_NAME = "ArialBold"
 FONT_SIZE = 9
 COLOR = (0, 0, 0)
 
 # =========================
-# DEFAULT VALUES
+# DEFAULTS
 # =========================
 
 DEFAULTS = {
@@ -55,36 +50,17 @@ DEFAULTS = {
 # =========================
 
 class PDFRequest(BaseModel):
-    sexe: Optional[str] = "m"
-    banque: Optional[str] = None
-    guichet: Optional[str] = None
-    compte: Optional[str] = None
-    cle: Optional[str] = None
-    iban: Optional[str] = None
-    bic: Optional[str] = None
-    nom_prenom: Optional[str] = None
-    adresse: Optional[str] = None
-    cp_ville: Optional[str] = None
-    domiciliation: Optional[str] = None
-
-
-# =========================
-# HELPERS
-# =========================
-
-def require_file(path: str, label: str):
-    if not os.path.exists(path):
-        raise HTTPException(
-            status_code=500,
-            detail=f"{label} manquant sur le serveur"
-        )
-
-def format_iban(iban: str) -> str:
-    clean = iban.replace(" ", "").upper()
-    return " ".join(clean[i:i+4] for i in range(0, len(clean), 4))
-
-def format_bic(bic: str) -> str:
-    return " ".join(list(bic.replace(" ", "").upper()))
+    sexe: str = "m"
+    banque: str | None = None
+    guichet: str | None = None
+    compte: str | None = None
+    cle: str | None = None
+    iban: str | None = None
+    bic: str | None = None
+    nom_prenom: str | None = None
+    adresse: str | None = None
+    cp_ville: str | None = None
+    domiciliation: str | None = None
 
 # =========================
 # API
@@ -93,33 +69,31 @@ def format_bic(bic: str) -> str:
 @app.post("/generate-pdf")
 def generate_pdf(data: PDFRequest):
 
-    # === CHECK FILES (ICI, PAS AU BOOT) ===
-    require_file(PDF_TEMPLATE, "PDF de base")
-    require_file(FONT_PATH, "Police")
-
-    titre = "MR" if (data.sexe or "m").lower() == "m" else "MME"
+    titre = "MR" if data.sexe.lower() == "m" else "MME"
 
     values = {
         "banque": (data.banque or DEFAULTS["banque"]).upper(),
         "guichet": (data.guichet or DEFAULTS["guichet"]).upper(),
         "compte": (data.compte or DEFAULTS["compte"]).upper(),
         "cle": (data.cle or DEFAULTS["cle"]).upper(),
-        "iban": format_iban(data.iban or DEFAULTS["iban"]),
-        "bic": format_bic(data.bic or DEFAULTS["bic"]),
+        "iban": " ".join(
+            (data.iban or DEFAULTS["iban"]).replace(" ", "").upper()[i:i+4]
+            for i in range(0, len((data.iban or DEFAULTS["iban"]).replace(" ", "")), 4)
+        ),
+        "bic": " ".join((data.bic or DEFAULTS["bic"]).replace(" ", "").upper()),
         "nom prenom": f"{titre} {(data.nom_prenom or DEFAULTS['nom_prenom']).upper()}",
         "adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
         "cp ville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
         "domiciliation": (data.domiciliation or DEFAULTS["domiciliation"]).upper(),
     }
 
-    uid = uuid.uuid4().hex
-    output_path = f"/tmp/rib_{uid}.pdf"
+    output_path = f"/tmp/{uuid.uuid4()}.pdf"
 
     try:
         doc = fitz.open(PDF_TEMPLATE)
 
         for page in doc:
-            page.insert_font(fontname=FONT_NAME, fontfile=FONT_PATH)
+            page.insert_font(fontname=FONT_NAME, fontfile=FONT_FILE)
 
             for key, text in values.items():
                 for rect in page.search_for(f"*{key}"):
@@ -141,5 +115,5 @@ def generate_pdf(data: PDFRequest):
     return FileResponse(
         output_path,
         media_type="application/pdf",
-        filename="rib.pdf"
+        filename="rib_lbp.pdf",
     )
