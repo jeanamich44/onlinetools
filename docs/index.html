@@ -2,110 +2,42 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Zip Liste</title>
+    <title>OnlineTools</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="style.css">
+    <!-- CSS dédié à l'accueil -->
+    <link rel="stylesheet" href="./home.css">
 </head>
 <body>
 
-<div class="container">
-    <h1>Zip Liste</h1>
-    <p class="subtitle">
-        Liste → QR codes → ZIP
-    </p>
+<header class="header">
+    <div class="header-inner">
+        <div class="logo">OnlineTools</div>
+        <nav class="nav">
+            <a href="index.html">Home</a>
+            <a href="zip-liste.html">Tools</a>
+            <a href="#">Contact</a>
+        </nav>
+    </div>
+</header>
 
-    <textarea placeholder="1 ligne = 1 QR code"></textarea>
-    <div id="counter">0 / 4000 lignes</div>
+<main class="content">
+    <section class="intro">
+        <h1>OnlineTools</h1>
+        <p>Simple, single-task, browser-based tools.</p>
+    </section>
 
-    <button>Générer le ZIP</button>
+    <section class="tools">
+        <a class="tool" href="zip-liste.html">
+            <h2>ZIP QR Codes</h2>
+            <p>Transform a list into QR codes and download them as a ZIP.</p>
+        </a>
 
-    <div id="message"></div>
-</div>
-
-<script>
-const textarea = document.querySelector("textarea");
-const button = document.querySelector("button");
-const counter = document.getElementById("counter");
-const messageBox = document.getElementById("message");
-
-const MAX_LINES = 4000;
-const API_URL = "https://onlinetools-production.up.railway.app/generate-zip";
-
-function showMessage(text, type = "error") {
-    messageBox.textContent = text;
-    messageBox.className = type;
-    messageBox.style.opacity = "1";
-
-    setTimeout(() => {
-        messageBox.style.opacity = "0";
-    }, 5000);
-}
-
-textarea.addEventListener("input", () => {
-    const lines = textarea.value
-        .split("\n")
-        .map(l => l.trim())
-        .filter(l => l !== "");
-
-    counter.textContent = `${lines.length} / ${MAX_LINES} lignes`;
-    counter.style.color = lines.length > MAX_LINES ? "#ef4444" : "#9ca3af";
-});
-
-button.addEventListener("click", async () => {
-    const lines = textarea.value
-        .split("\n")
-        .map(l => l.trim())
-        .filter(l => l !== "");
-
-    if (lines.length === 0) {
-        showMessage("Erreur : liste vide");
-        return;
-    }
-
-    if (lines.length > MAX_LINES) {
-        showMessage("Erreur : limite dépassée (4000 lignes max)");
-        return;
-    }
-
-    button.disabled = true;
-    button.textContent = "Génération en cours...";
-
-    try {
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ lines })
-        });
-
-        if (!response.ok) {
-            let msg = "Erreur serveur";
-            try {
-                const err = await response.json();
-                if (err.detail) msg = err.detail;
-            } catch {}
-            throw new Error(msg);
-        }
-
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "qr_codes.zip";
-        a.click();
-
-        URL.revokeObjectURL(url);
-
-        showMessage("ZIP généré avec succès", "success");
-
-    } catch (err) {
-        showMessage("Erreur : " + err.message);
-    } finally {
-        button.disabled = false;
-        button.textContent = "Générer le ZIP";
-    }
-});
-</script>
+        <a class="tool" href="rib-lbp.html">
+            <h2>RIB LBP</h2>
+            <p>Generate Banque Postale RIB PDFs from a base template.</p>
+        </a>
+    </section>
+</main>
 
 </body>
 </html>

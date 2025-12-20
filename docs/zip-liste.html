@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Zip Liste</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>Zip Liste</h1>
+    <p class="subtitle">1 ligne = 1 QR code</p>
+
+    <textarea id="input"></textarea>
+    <div class="counter">0 / 4000 lignes</div>
+
+    <button id="generate">Générer le ZIP</button>
+    <div id="message"></div>
+
+    <a class="back" href="index.html">Retour</a>
+</div>
+
+<script>
+const textarea = document.getElementById("input");
+const counter = document.querySelector(".counter");
+const button = document.getElementById("generate");
+const message = document.getElementById("message");
+const API_URL = "https://onlinetools-production.up.railway.app/generate-zip";
+const MAX_LINES = 4000;
+
+function showMessage(text, type="error") {
+    message.textContent = text;
+    message.className = type;
+    message.style.opacity = "1";
+    setTimeout(() => message.style.opacity = "0", 5000);
+}
+
+textarea.addEventListener("input", () => {
+    const lines = textarea.value.split("\n").filter(l => l.trim() !== "");
+    counter.textContent = `${lines.length} / ${MAX_LINES} lignes`;
+});
+
+button.onclick = async () => {
+    const lines = textarea.value.split("\n").filter(l => l.trim() !== "");
+
+    if (lines.length === 0) {
+        showMessage("Erreur : liste vide");
+        return;
+    }
+
+    if (lines.length > MAX_LINES) {
+        showMessage("Erreur : limite dépassée");
+        return;
+    }
+
+    button.disabled = true;
+
+    try {
+        const res = await fetch(API_URL, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({lines})
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || "Erreur serveur");
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "qr_codes.zip";
+        a.click();
+        URL.revokeObjectURL(url);
+
+        showMessage("ZIP généré", "success");
+    } catch (e) {
+        showMessage(e.message);
+    } finally {
+        button.disabled = false;
+    }
+};
+</script>
+
+</body>
+</html>
