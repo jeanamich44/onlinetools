@@ -4,9 +4,14 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional
 import uuid
+import os
 
-from script.sg import generate_sg_pdf
 from script.lbp import generate_lbp_pdf
+from script.sg import generate_sg_pdf
+
+# =========================
+# INIT
+# =========================
 
 app = FastAPI()
 
@@ -15,10 +20,16 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_credentials=True,
 )
 
+# =========================
+# SCHEMA
+# =========================
+
 class PDFRequest(BaseModel):
-    type_pdf: str
+    type_pdf: str  # "lbp" | "sg"
+
     sexe: Optional[str] = "m"
     banque: Optional[str] = None
     guichet: Optional[str] = None
@@ -35,15 +46,32 @@ class PDFRequest(BaseModel):
     agence_adresse: Optional[str] = None
     agence_cp_ville: Optional[str] = None
 
+# =========================
+# API
+# =========================
+
 @app.post("/generate-pdf")
 def generate_pdf(data: PDFRequest):
-    output = f"/tmp/{uuid.uuid4()}.pdf"
+    output_path = f"/tmp/{uuid.uuid4()}.pdf"
 
-    if data.type_pdf == "lbp":
-        generate_lbp_pdf(data, output)
-    elif data.type_pdf == "sg":
-        generate_sg_pdf(data, output)
-    else:
-        raise HTTPException(400, "type_pdf inconnu")
+    try:
+        if data.type_pdf == "lbp":
+            generate_lbp_pdf(data, output_path)
 
-    return FileResponse(output, media_type="application/pdf", filename="rib.pdf")
+        elif data.type_pdf == "sg":
+            generate_sg_pdf(data, output_path)
+
+        else:
+            raise HTTPException(status_code=400, detail="type_pdf invalide")
+
+        if not os.path.exists(output_path):
+            raise HTTPException(status_code=500, detail="PDF non généré")
+
+        return FileResponse(
+            output_path,
+            media_type="application/pdf",
+            filename="rib.pdf",
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
