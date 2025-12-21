@@ -1,9 +1,11 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional
+import uuid
 
+from script.sg import generate_sg_pdf
 from script.lbp import generate_lbp_pdf
 
 app = FastAPI()
@@ -11,14 +13,12 @@ app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 class PDFRequest(BaseModel):
     type_pdf: str
-
     sexe: Optional[str] = "m"
     banque: Optional[str] = None
     guichet: Optional[str] = None
@@ -31,20 +31,19 @@ class PDFRequest(BaseModel):
     cp_ville: Optional[str] = None
     domiciliation: Optional[str] = None
 
+    agence: Optional[str] = None
+    agence_adresse: Optional[str] = None
+    agence_cp_ville: Optional[str] = None
+
 @app.post("/generate-pdf")
-def generate_pdf(payload: PDFRequest):
-    data = payload.dict()
+def generate_pdf(data: PDFRequest):
+    output = f"/tmp/{uuid.uuid4()}.pdf"
 
-    if payload.type_pdf == "lbp":
-        try:
-            pdf_path = generate_lbp_pdf(data)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+    if data.type_pdf == "lbp":
+        generate_lbp_pdf(data, output)
+    elif data.type_pdf == "sg":
+        generate_sg_pdf(data, output)
     else:
-        raise HTTPException(status_code=400, detail="Type de PDF non supporté")
+        raise HTTPException(400, "type_pdf inconnu")
 
-    return FileResponse(
-        pdf_path,
-        media_type="application/pdf",
-        filename="document.pdf",
-    )
+    return FileResponse(output, media_type="application/pdf", filename="rib.pdf")
