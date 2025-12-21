@@ -134,3 +134,87 @@ button:disabled {
     color: #9ca3af;
     text-decoration: none;
 }
+
+/* =========================
+   PAGE LBP
+========================= */
+
+.page-lbp {
+  background: radial-gradient(circle at top, #1b1e3c, #0a0c1a);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: #fff;
+}
+
+/* CARD */
+.page-lbp .card {
+  width: 420px;
+  background: linear-gradient(180deg, #171a34, #0f1226);
+  padding: 28px;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.6);
+}
+
+/* TITRES */
+.page-lbp h1 {
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.page-lbp .subtitle {
+  text-align: center;
+  font-size: 14px;
+  color: #aab;
+  margin-bottom: 22px;
+}
+
+/* INPUTS */
+.page-lbp input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #0c0f25;
+  color: #fff;
+}
+
+.page-lbp input::placeholder {
+  color: #777;
+}
+
+/* BOUTON */
+.page-lbp button {
+  width: 100%;
+  padding: 13px;
+  margin-top: 10px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, #6a6aff, #7c7cff);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.page-lbp button:hover {
+  opacity: 0.9;
+}
+
+/* MESSAGE */
+#message {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+/* RETOUR */
+.page-lbp .back {
+  display: block;
+  margin-top: 16px;
+  text-align: center;
+  color: #aaa;
+  text-decoration: none;
+}
