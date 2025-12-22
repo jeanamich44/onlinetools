@@ -8,6 +8,7 @@ import os
 
 from script.lbp import generate_lbp_pdf
 from script.sg import generate_sg_pdf
+from script.bfb import generate_bfb_pdf   # ⬅️ NOUVEAU
 
 # =========================
 # INIT
@@ -28,7 +29,7 @@ app.add_middleware(
 # =========================
 
 class PDFRequest(BaseModel):
-    type_pdf: str  # "lbp" | "sg"
+    type_pdf: str  # "lbp" | "sg" | "bfb"
 
     sexe: Optional[str] = "m"
     banque: Optional[str] = None
@@ -60,6 +61,9 @@ def generate_pdf(data: PDFRequest):
 
         elif data.type_pdf == "sg":
             generate_sg_pdf(data, output_path)
+
+        elif data.type_pdf == "bfb":   # ⬅️ NOUVEAU
+            generate_bfb_pdf(data, output_path)
 
         else:
             raise HTTPException(status_code=400, detail="type_pdf invalide")
