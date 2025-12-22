@@ -2,49 +2,47 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8" />
-<title>RIB – BforBank</title>
-<link rel="stylesheet" href="style.css">
+<title>RIB – Revolut</title>
+<link rel="stylesheet" href="../css/style.css">
 </head>
 
 <body>
 
 <div class="container">
-  <h1>RIB BforBank</h1>
-  <p class="subtitle">Génération PDF – BforBank</p>
+  <h1>RIB Revolut</h1>
+  <p class="subtitle">Génération PDF – Revolut</p>
 
-  <form id="bfbForm">
+  <form id="revolutForm">
     <input name="nom_prenom" placeholder="Nom Prénom">
     <input name="adresse" placeholder="Adresse">
-    <input name="cp_ville" placeholder="CP Ville">
+    <input name="cp" placeholder="Code Postal">
+    <input name="ville" placeholder="Ville">
+    <input name="depart" placeholder="Département / Délégation">
 
-    <input name="iban" placeholder="IBAN (FR)">
-
-    <input name="banque" placeholder="Code banque (si IBAN non FR)">
+    <input name="banque" placeholder="Code banque">
     <input name="guichet" placeholder="Code guichet">
     <input name="compte" placeholder="Compte">
     <input name="cle" placeholder="Clé">
+    <input name="iban" placeholder="IBAN">
 
     <button type="submit">Générer PDF</button>
   </form>
 
   <div id="message"></div>
 
-  <a class="back" href="rib-generator.html">Retour</a>
+  <a class="back" href="./rib-generator.html">Retour</a>
 </div>
 
 <script>
 const API_URL = "https://rib-pdf-production.up.railway.app/generate-pdf";
-const form = document.getElementById("bfbForm");
+const form = document.getElementById("revolutForm");
 const message = document.getElementById("message");
 
 form.onsubmit = async (e) => {
   e.preventDefault();
 
-  message.textContent = "Génération en cours...";
-  message.className = "";
-
   const data = Object.fromEntries(new FormData(form));
-  data.type_pdf = "bfb";
+  data.type_pdf = "revolut";
 
   try {
     const res = await fetch(API_URL, {
@@ -53,25 +51,16 @@ form.onsubmit = async (e) => {
       body: JSON.stringify(data)
     });
 
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.detail || "Erreur serveur");
-    }
+    if (!res.ok) throw new Error("Erreur serveur");
 
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement("a");
     a.href = url;
-    a.download = "rib_bforbank.pdf";
+    a.download = "rib_revolut.pdf";
     a.click();
-
-    message.textContent = "PDF généré avec succès";
-    message.className = "success";
-
-  } catch (err) {
-    message.textContent = err.message;
-    message.className = "error";
+  } catch (e) {
+    message.textContent = e.message;
   }
 };
 </script>

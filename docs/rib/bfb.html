@@ -1,51 +1,50 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>RIB Société Générale</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<title>RIB – BforBank</title>
+<link rel="stylesheet" href="../css/style.css">
 </head>
+
 <body>
 
 <div class="container">
-  <h1>RIB SG</h1>
-  <p class="subtitle">Génération PDF – Société Générale</p>
+  <h1>RIB BforBank</h1>
+  <p class="subtitle">Génération PDF – BforBank</p>
 
-  <form id="sgForm">
-    <input name="sexe" placeholder="M / F">
-    <input name="banque" placeholder="Code Banque">
-    <input name="guichet" placeholder="Code Guichet">
-    <input name="compte" placeholder="Compte">
-    <input name="cle" placeholder="Clé">
-    <input name="iban" placeholder="IBAN">
-    <input name="bic" placeholder="BIC">
-
+  <form id="bfbForm">
     <input name="nom_prenom" placeholder="Nom Prénom">
     <input name="adresse" placeholder="Adresse">
     <input name="cp_ville" placeholder="CP Ville">
 
-    <input name="agence" placeholder="Agence">
-    <input name="agence_adresse" placeholder="Adresse Agence">
-    <input name="agence_cp_ville" placeholder="CP Ville Agence">
+    <input name="iban" placeholder="IBAN (FR)">
+
+    <input name="banque" placeholder="Code banque (si IBAN non FR)">
+    <input name="guichet" placeholder="Code guichet">
+    <input name="compte" placeholder="Compte">
+    <input name="cle" placeholder="Clé">
 
     <button type="submit">Générer PDF</button>
   </form>
 
   <div id="message"></div>
 
-  <a class="back" href="rib-generator.html">Retour</a>
+  <a class="back" href="./rib-generator.html">Retour</a>
 </div>
 
 <script>
 const API_URL = "https://rib-pdf-production.up.railway.app/generate-pdf";
-const form = document.getElementById("sgForm");
+const form = document.getElementById("bfbForm");
 const message = document.getElementById("message");
 
 form.onsubmit = async (e) => {
   e.preventDefault();
 
+  message.textContent = "Génération en cours...";
+  message.className = "";
+
   const data = Object.fromEntries(new FormData(form));
-  data.type_pdf = "sg"; // 🔑 IMPORTANT
+  data.type_pdf = "bfb";
 
   try {
     const res = await fetch(API_URL, {
@@ -54,18 +53,25 @@ form.onsubmit = async (e) => {
       body: JSON.stringify(data)
     });
 
-    if (!res.ok) throw new Error("Erreur serveur");
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.detail || "Erreur serveur");
+    }
 
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
     a.href = url;
-    a.download = "RIB_SG.pdf";
+    a.download = "rib_bforbank.pdf";
     a.click();
+
+    message.textContent = "PDF généré avec succès";
+    message.className = "success";
 
   } catch (err) {
     message.textContent = err.message;
+    message.className = "error";
   }
 };
 </script>
