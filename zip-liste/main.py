@@ -5,8 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import time
 
-from mrz import generate_mrz, generate_random_data
-from qr_zip_algo import generate_qr_zip
+from script.mrz import generate_mrz, generate_random_data
+from script.qr_zip import generate_qr_zip
 
 app = FastAPI()
 

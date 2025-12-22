@@ -1,4 +1,3 @@
-# qr_zip_algo.py
 import os
 import uuid
 import zipfile
