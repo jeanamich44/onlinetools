@@ -20,7 +20,7 @@ DEFAULTS = {
     "guichet": "00500",
     "compte": "30021598310",
     "cle": "07",
-    "agence": "AGENCE TOULOUSE 31",
+    "agence": "TOULOUSE 31",
 }
 
 def format_iban(iban: str):
