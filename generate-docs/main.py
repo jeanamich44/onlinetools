@@ -57,6 +57,8 @@ class PDFRequest(BaseModel):
     domiciliation: Optional[str] = None
 
     agence: Optional[str] = None
+    agence_adresse: Optional[str] = None
+    agence_cp_ville: Optional[str] = None
     bank: Optional[str] = None
 
 
