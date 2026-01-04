@@ -41,6 +41,7 @@ class PDFRequest(BaseModel):
     nom_prenom: Optional[str] = None
     adresse: Optional[str] = None
     cp_ville: Optional[str] = None
+    telephone: Optional[str] = None
 
     # Champs détaillés
     cp: Optional[str] = None
