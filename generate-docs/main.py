@@ -87,6 +87,9 @@ def generate_pdf(data: PDFRequest):
         elif data.type_pdf == "ca":
             generate_ca_pdf(data, output_path)
 
+        elif data.type_pdf == "cm":
+            generate_ca_pdf(data, output_path)
+
         else:
             raise HTTPException(status_code=400, detail="type_pdf invalide")
 
