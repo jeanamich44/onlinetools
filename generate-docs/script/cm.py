@@ -1,15 +1,26 @@
-import fitz
 import os
 import re
+import fitz
+
+# =========================
+# PATHS (ONLINE)
+# =========================
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 PDF_TEMPLATE = os.path.join(BASE_DIR, "base", "CM.pdf")
-FONT_ARIAL_REG = os.path.join(BASE_DIR, "font", "arial.ttf")
-FONT_ARIAL_BOLD = os.path.join(BASE_DIR, "font", "arialbd.ttf")
+FONT_ARIAL_REG_PATH = os.path.join(BASE_DIR, "font", "arial.ttf")
+FONT_ARIAL_BOLD_PATH = os.path.join(BASE_DIR, "font", "arialbd.ttf")
 
-COLOR_BLACK = (0, 0, 0)
+FONT_REG_NAME = "ARIAL_REG"
+FONT_BOLD_NAME = "ARIAL_BOLD"
+
 FONT_SIZE = 8
+COLOR = (0, 0, 0)
+
+# =========================
+# DEFAULT VALUES
+# =========================
 
 DEFAULTS = {
     "banque": "10278",
@@ -36,27 +47,36 @@ BOLD_KEYS = {
     "*agence1",
 }
 
+# =========================
+# UTILS (IDENTIQUE LOCAL)
+# =========================
+
 def format_iban(v):
     v = re.sub(r"\s+", "", v).upper()
     return "       ".join(v[i:i+4] for i in range(0, len(v), 4))
 
-def insert(page, key, text, font_path):
+def fontname_for(key):
+    return FONT_BOLD_NAME if key in BOLD_KEYS else FONT_REG_NAME
+
+# =========================
+# OVERWRITE (IDENTIQUE LOCAL)
+# =========================
+
+def overwrite(page, key, text):
     rects = page.search_for(key)
     for r in rects:
-        pad = 0.5
-        page.add_redact_annot(
-            fitz.Rect(r.x0 - pad, r.y0 - pad, r.x1 + pad, r.y1 + pad),
-            fill=(1, 1, 1),
-        )
-        page.apply_redactions()
-
+        page.draw_rect(r, fill=(1, 1, 1), width=0)
         page.insert_text(
             (r.x0, r.y1 - 1.4),
             text,
             fontsize=FONT_SIZE,
-            fontfile=font_path,
-            color=COLOR_BLACK,
+            fontname=fontname_for(key),
+            color=COLOR,
         )
+
+# =========================
+# MAIN GENERATOR (ONLINE)
+# =========================
 
 def generate_cm_pdf(data, output_path):
     values = {
@@ -78,9 +98,11 @@ def generate_cm_pdf(data, output_path):
     doc = fitz.open(PDF_TEMPLATE)
 
     for page in doc:
-        for key, val in values.items():
-            font = FONT_ARIAL_BOLD if key in BOLD_KEYS else FONT_ARIAL_REG
-            insert(page, key, val, font)
+        page.insert_font(FONT_REG_NAME, FONT_ARIAL_REG_PATH)
+        page.insert_font(FONT_BOLD_NAME, FONT_ARIAL_BOLD_PATH)
+
+        for k, v in values.items():
+            overwrite(page, k, v)
 
     doc.save(output_path)
     doc.close()
