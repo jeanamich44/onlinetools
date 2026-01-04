@@ -9,7 +9,6 @@ FONT_ARIAL_REG = os.path.join(BASE_DIR, "font", "arial.ttf")
 FONT_ARIAL_BOLD = os.path.join(BASE_DIR, "font", "arialbd.ttf")
 
 COLOR_BLACK = (0, 0, 0)
-
 FONT_SIZE = 8
 
 DEFAULTS = {
@@ -19,7 +18,7 @@ DEFAULTS = {
     "cle": "45",
     "iban": "FR761027802100001234567845",
     "agence1": "AGENCE TOULOUSE CENTRE",
-    "agence2": "CREDIT MUTUEL",
+    "agence2": "AGENCE TOULOUSE CENTRE",
     "agenceadresse": "14 RUE ALSACE LORRAINE",
     "agencecpville": "31000 TOULOUSE",
     "telephone": "01 49 08 51 33",
@@ -37,31 +36,26 @@ BOLD_KEYS = {
     "*agence1",
 }
 
-def format_iban(iban: str):
-    iban = re.sub(r"\s+", "", iban).upper()
-    return "       ".join(iban[i:i+4] for i in range(0, len(iban), 4))
+def format_iban(v):
+    v = re.sub(r"\s+", "", v).upper()
+    return "       ".join(v[i:i+4] for i in range(0, len(v), 4))
 
-def insert_text(page, key, text, font_path):
-    for r in page.search_for(key):
-        pad = 0.6
-        red = fitz.Rect(r.x0 - pad, r.y0 - pad, r.x1 + pad, r.y1 + pad)
-        page.add_redact_annot(red, fill=(1, 1, 1))
+def insert(page, key, text, font_path):
+    rects = page.search_for(key)
+    for r in rects:
+        pad = 0.5
+        page.add_redact_annot(
+            fitz.Rect(r.x0 - pad, r.y0 - pad, r.x1 + pad, r.y1 + pad),
+            fill=(1, 1, 1),
+        )
         page.apply_redactions()
 
-        write = fitz.Rect(
-            r.x0,
-            r.y0 - 0.25 * r.height,
-            page.rect.x1 - 36,
-            r.y1 + 0.25 * r.height,
-        )
-
-        page.insert_textbox(
-            write,
+        page.insert_text(
+            (r.x0, r.y1 - 1.4),
             text,
             fontsize=FONT_SIZE,
             fontfile=font_path,
             color=COLOR_BLACK,
-            align=0,
         )
 
 def generate_cm_pdf(data, output_path):
@@ -84,12 +78,9 @@ def generate_cm_pdf(data, output_path):
     doc = fitz.open(PDF_TEMPLATE)
 
     for page in doc:
-        page.insert_font("ARIAL_REG", FONT_ARIAL_REG)
-        page.insert_font("ARIAL_BOLD", FONT_ARIAL_BOLD)
-
         for key, val in values.items():
             font = FONT_ARIAL_BOLD if key in BOLD_KEYS else FONT_ARIAL_REG
-            insert_text(page, key, val, font)
+            insert(page, key, val, font)
 
     doc.save(output_path)
     doc.close()
