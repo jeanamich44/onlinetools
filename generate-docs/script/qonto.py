@@ -12,8 +12,8 @@ FONT_ARIAL_BOLD_PATH = os.path.join(BASE_DIR, "font", "arialbd.ttf")
 FONT_REG = "ARIAL_REG"
 FONT_BOLD = "ARIAL_BOLD"
 
-COLOR_MAIN = (29/255, 29/255, 27/255)
-COLOR_SECOND = (99/255, 99/255, 96/255)
+COLOR_MAIN = (29 / 255, 29 / 255, 27 / 255)
+COLOR_SECOND = (99 / 255, 99 / 255, 96 / 255)
 
 DEFAULTS = {
     "iban": "FR7630004008001234567890152",
@@ -28,7 +28,7 @@ DEFAULTS = {
 
 def format_iban(v):
     v = re.sub(r"\s+", "", v or "").upper()
-    return " ".join(v[i:i+4] for i in range(0, len(v), 4))
+    return " ".join(v[i:i + 4] for i in range(0, len(v), 4))
 
 def wipe_and_write(page, rect, text, font, size, color):
     page.draw_rect(rect, fill=(1, 1, 1), width=0)
@@ -49,10 +49,10 @@ def add_watermark(page, text="PREVIEW - NON PAYÉ"):
             fontsize=28,
             fontname=FONT_BOLD,
             color=(0.7, 0.7, 0.7),
-            fill_opacity=0.15
+            fill_opacity=0.15,
         )
 
-def generate_qonto_preview(data):
+def generate_qonto_preview(data, *_):
     values = {
         "*iban": format_iban(data.iban or DEFAULTS["iban"]),
         "*banque": data.banque or DEFAULTS["banque"],
