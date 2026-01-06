@@ -1,6 +1,7 @@
 import fitz
 import os
 import re
+import io
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -13,7 +14,6 @@ FONT_BOLD = "ARIAL_BOLD"
 
 COLOR_MAIN = (29/255, 29/255, 27/255)
 COLOR_SECOND = (99/255, 99/255, 96/255)
-COLOR_WATERMARK = (0.85, 0.15, 0.15)
 
 DEFAULTS = {
     "iban": "FR7630004008001234567890152",
@@ -40,20 +40,19 @@ def wipe_and_write(page, rect, text, font, size, color):
         color=color,
     )
 
-def add_preview_watermark(page):
-    text = "PREVIEW — NON UTILISABLE"
-    page.insert_textbox(
-        page.rect,
-        text,
-        fontsize=80,
-        fontname=FONT_BOLD,
-        color=COLOR_WATERMARK,
-        rotate=45,
-        align=1,
-        overlay=True,
-    )
+def add_watermark(page, text="PREVIEW - NON PAYÉ"):
+    rect = page.rect
+    for y in range(60, int(rect.height), 120):
+        page.insert_text(
+            (40, y),
+            text,
+            fontsize=28,
+            fontname=FONT_BOLD,
+            color=(0.7, 0.7, 0.7),
+            fill_opacity=0.15
+        )
 
-def generate_qonto_preview_pdf(data, output_path):
+def generate_qonto_preview(data):
     values = {
         "*iban": format_iban(data.iban or DEFAULTS["iban"]),
         "*banque": data.banque or DEFAULTS["banque"],
@@ -114,7 +113,11 @@ def generate_qonto_preview_pdf(data, output_path):
                     color,
                 )
 
-        add_preview_watermark(page)
+        add_watermark(page)
 
-    doc.save(output_path, garbage=4, deflate=True, clean=True)
+    buffer = io.BytesIO()
+    doc.save(buffer, garbage=4, deflate=True, clean=True)
     doc.close()
+    buffer.seek(0)
+
+    return buffer
