@@ -44,7 +44,7 @@ def add_watermark(page):
     for y in range(80, h, 140):
         page.insert_text(
             (40, y),
-            "PREVIEW - NON PAYÉ",
+            "PREVIEW – NON PAYÉ",
             fontsize=28,
             fontname=FONT_BOLD,
             color=(0.75, 0.75, 0.75),
@@ -62,8 +62,6 @@ def generate_qonto_preview(data, output_path):
         "*adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
         "*cpville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
     }
-
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     doc = fitz.open(PDF_TEMPLATE)
 
