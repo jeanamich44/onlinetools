@@ -12,8 +12,8 @@ FONT_ARIAL_BOLD_PATH = os.path.join(BASE_DIR, "font", "arialbd.ttf")
 FONT_REG = "ARIAL_REG"
 FONT_BOLD = "ARIAL_BOLD"
 
-COLOR_MAIN = (29 / 255, 29 / 255, 27 / 255)
-COLOR_SECOND = (99 / 255, 99 / 255, 96 / 255)
+COLOR_MAIN = (29/255, 29/255, 27/255)
+COLOR_SECOND = (99/255, 99/255, 96/255)
 
 DEFAULTS = {
     "iban": "FR7630004008001234567890152",
@@ -28,7 +28,7 @@ DEFAULTS = {
 
 def format_iban(v):
     v = re.sub(r"\s+", "", v or "").upper()
-    return " ".join(v[i:i + 4] for i in range(0, len(v), 4))
+    return " ".join(v[i:i+4] for i in range(0, len(v), 4))
 
 def wipe_and_write(page, rect, text, font, size, color):
     page.draw_rect(rect, fill=(1, 1, 1), width=0)
@@ -40,19 +40,19 @@ def wipe_and_write(page, rect, text, font, size, color):
         color=color,
     )
 
-def add_watermark(page, text="PREVIEW - NON PAYÉ"):
+def add_watermark(page):
     rect = page.rect
-    for y in range(60, int(rect.height), 120):
+    for y in range(80, int(rect.height), 140):
         page.insert_text(
             (40, y),
-            text,
+            "PREVIEW – NON PAYÉ",
             fontsize=28,
             fontname=FONT_BOLD,
-            color=(0.7, 0.7, 0.7),
-            fill_opacity=0.15,
+            color=(0.75, 0.75, 0.75),
+            fill_opacity=0.12,
         )
 
-def generate_qonto_preview(data, *_):
+def generate_qonto_preview(data):
     values = {
         "*iban": format_iban(getattr(data, "iban", None) or DEFAULTS["iban"]),
         "*banque": getattr(data, "banque", None) or DEFAULTS["banque"],
@@ -79,13 +79,13 @@ def generate_qonto_preview(data, *_):
             wipe_and_write(page, name_rects[1], values["*nomprenom"], FONT_REG, 9, COLOR_MAIN)
 
         MAP = {
-            "*iban":   (FONT_REG, 10.5, COLOR_MAIN, ""),
-            "*banque": (FONT_REG, 6, COLOR_SECOND, "Banque  "),
-            "*guichet":(FONT_REG, 6, COLOR_SECOND, "Guichet  "),
-            "*compte": (FONT_REG, 6, COLOR_SECOND, "Compte  "),
-            "*cle":    (FONT_REG, 6, COLOR_SECOND, "Clé  "),
-            "*adresse":(FONT_REG, 9, COLOR_MAIN, ""),
-            "*cpville":(FONT_REG, 9, COLOR_MAIN, ""),
+            "*iban":    (FONT_REG, 10.5, COLOR_MAIN, ""),
+            "*banque":  (FONT_REG, 6, COLOR_SECOND, "Banque  "),
+            "*guichet": (FONT_REG, 6, COLOR_SECOND, "Guichet  "),
+            "*compte":  (FONT_REG, 6, COLOR_SECOND, "Compte  "),
+            "*cle":     (FONT_REG, 6, COLOR_SECOND, "Clé  "),
+            "*adresse": (FONT_REG, 9, COLOR_MAIN, ""),
+            "*cpville": (FONT_REG, 9, COLOR_MAIN, ""),
         }
 
         for key, (font, size, color, prefix) in MAP.items():
@@ -95,6 +95,8 @@ def generate_qonto_preview(data, *_):
         add_watermark(page)
 
     buffer = io.BytesIO()
-    doc.save(buffer)
+    doc.save(buffer, garbage=4, deflate=True, clean=True)
     doc.close()
+    buffer.seek(0)
+
     return buffer.getvalue()
