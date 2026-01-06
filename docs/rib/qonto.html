@@ -56,7 +56,7 @@ inner.style.alignItems = "center";
 inner.style.justifyContent = "space-between";
 inner.style.padding = "12px 24px";
 
-/* RESET + STYLE BOUTON PANIER */
+/* STYLE BOUTON PANIER */
 cartBtn.style.all = "unset";
 cartBtn.style.display = "inline-flex";
 cartBtn.style.alignItems = "center";
@@ -115,10 +115,21 @@ form.onsubmit = async (e) => {
   }
 };
 
-/* ===== AJOUT PANIER + NOTIF ===== */
+/* ===== AJOUT AU PANIER (AVEC DONNÉES FORMULAIRE) ===== */
 document.getElementById("addCart").onclick = () => {
+  const formData = Object.fromEntries(new FormData(form));
+
+  const cartItem = {
+    id: crypto.randomUUID(),
+    type_pdf: "qonto",
+    name: "RIB Qonto",
+    price: 5,
+    payload: formData,
+    createdAt: new Date().toISOString(),
+  };
+
   const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-  cart.push({ id: "rib_qonto", name: "RIB Qonto", price: 5 });
+  cart.push(cartItem);
   localStorage.setItem("cart", JSON.stringify(cart));
 
   const notif = document.createElement("div");
