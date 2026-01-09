@@ -52,7 +52,7 @@ def wipe_and_write(page, rect, text, font, size, color, y_override=None):
 
 
 @app.post("/generate")
-def generate(data: PDFRequest):
+def generate_assurance_pdf(data: PDFRequest):
     out_id = uuid.uuid4().hex
     out_pdf = f"/tmp/{out_id}.pdf"
     out_png = f"/tmp/{out_id}.png"
