@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>ASSURANCE – Génération</title>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="top-bar">
+  <div class="top-bar-inner">
+    <span class="logo" id="logo">OnlineTools</span>
+    <button id="cartBtn">🛒 Panier</button>
+  </div>
+</header>
+
+<div class="container">
+  <h1>Document Assurance</h1>
+  <p class="subtitle">Prévisualisation et génération</p>
+
+  <form id="assuranceForm">
+    <input name="nom_prenom" placeholder="Nom Prénom">
+    <input name="adresse" placeholder="Adresse">
+    <input name="cp_ville" placeholder="CP Ville">
+    <input name="nclient" placeholder="N° Client">
+    <input name="ncontrat" placeholder="N° Contrat">
+    <input name="norias" placeholder="N° ORIAS">
+    <input name="plaque" placeholder="Plaque véhicule">
+    <input name="typevehicule" placeholder="Type véhicule">
+
+    <button type="submit">Prévisualiser PDF</button>
+    <button type="button" id="addCart">Ajouter au panier – 6 €</button>
+  </form>
+
+  <div id="message"></div>
+  <a class="back" href="../index.html">Retour</a>
+</div>
+
+<script>
+/* ===== HEADER FIX ===== */
+const bar = document.querySelector(".top-bar");
+const inner = document.querySelector(".top-bar-inner");
+const cartBtn = document.getElementById("cartBtn");
+const logo = document.getElementById("logo");
+
+bar.style.position = "fixed";
+bar.style.top = "0";
+bar.style.left = "0";
+bar.style.width = "100%";
+bar.style.zIndex = "1000";
+
+inner.style.display = "flex";
+inner.style.alignItems = "center";
+inner.style.justifyContent = "space-between";
+inner.style.padding = "12px 24px";
+inner.style.maxWidth = "1200px";
+inner.style.margin = "0 auto";
+
+logo.style.marginRight = "auto";
+logo.style.cursor = "pointer";
+logo.onclick = () => window.location.href = "../index.html";
+
+/* BOUTON PANIER */
+cartBtn.style.all = "unset";
+cartBtn.style.display = "inline-flex";
+cartBtn.style.alignItems = "center";
+cartBtn.style.background = "#2563eb";
+cartBtn.style.color = "#fff";
+cartBtn.style.padding = "8px 16px";
+cartBtn.style.borderRadius = "8px";
+cartBtn.style.cursor = "pointer";
+cartBtn.style.fontSize = "14px";
+
+cartBtn.onclick = () => {
+  window.location.href = "../cart/cart.html";
+};
+
+/* ===== API PDF ===== */
+const API_URL = "https://generate-docs-production.up.railway.app/generate-pdf";
+const form = document.getElementById("assuranceForm");
+const message = document.getElementById("message");
+
+form.onsubmit = async (e) => {
+  e.preventDefault();
+  message.textContent = "Génération en cours…";
+
+  const data = Object.fromEntries(new FormData(form));
+  data.type_pdf = "assurance";
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) throw new Error("Erreur serveur");
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+
+    message.textContent = "Prévisualisation générée";
+  } catch (err) {
+    message.textContent = err.message;
+  }
+};
+
+/* ===== AJOUT PANIER 6 € ===== */
+document.getElementById("addCart").onclick = () => {
+  const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+  cart.push({
+    id: "assurance",
+    name: "Document Assurance",
+    price: 6,
+    data: Object.fromEntries(new FormData(form))
+  });
+  localStorage.setItem("cart", JSON.stringify(cart));
+
+  const notif = document.createElement("div");
+  notif.textContent = "Ajouté au panier ✓";
+  notif.style.position = "fixed";
+  notif.style.top = "72px";
+  notif.style.right = "24px";
+  notif.style.background = "#16a34a";
+  notif.style.color = "#fff";
+  notif.style.padding = "10px 16px";
+  notif.style.borderRadius = "8px";
+  notif.style.zIndex = "2000";
+  document.body.appendChild(notif);
+
+  setTimeout(() => notif.remove(), 2000);
+};
+</script>
+
+</body>
+</html>
