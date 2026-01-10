@@ -1,11 +1,14 @@
-# script/assurance.py — SCRIPT ONLINE (SIGNATURE COMPATIBLE BACKEND)
-
+# main.py
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
+from pydantic import BaseModel
 import fitz
 import datetime
 import os
+import uuid
 
+app = FastAPI()
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 PDF_TEMPLATE = os.path.join(BASE_DIR, "base", "ASSURANCE.pdf")
 FONT_ARIAL_REG = os.path.join(BASE_DIR, "font", "arial.ttf")
 FONT_ARIAL_BOLD = os.path.join(BASE_DIR, "font", "arialbd.ttf")
@@ -15,6 +18,18 @@ FONT_BOLD = "ARIAL_BOLD"
 
 COLOR_RED = (231/255, 52/255, 76/255)
 COLOR_BLACK = (0, 0, 0)
+
+
+class PDFRequest(BaseModel):
+    nomprenom: str | None = None
+    adresse: str | None = None
+    cpville: str | None = None
+    nclient: str | None = None
+    ncontrat: str | None = None
+    norias: str | None = None
+    plaque: str | None = None
+    typevehicule: str | None = None
+    export: str | None = "png"  # pdf | png
 
 
 def format_nomprenom(v: str):
@@ -36,7 +51,12 @@ def wipe_and_write(page, rect, text, font, size, color, y_override=None):
     )
 
 
-def generate_assurance_pdf(data, output_path):
+@app.post("/generate")
+def generate(data: PDFRequest):
+    out_id = uuid.uuid4().hex
+    out_pdf = f"/tmp/{out_id}.pdf"
+    out_png = f"/tmp/{out_id}.png"
+
     date_val = datetime.date.today() - datetime.timedelta(days=1)
 
     DATA = {
@@ -98,5 +118,14 @@ def generate_assurance_pdf(data, output_path):
                     y_override=base_y,
                 )
 
-    doc.save(output_path, garbage=4, deflate=True, clean=True)
+    if data.export == "pdf":
+        doc.save(out_pdf, garbage=4, deflate=True, clean=True)
+        doc.close()
+        return FileResponse(out_pdf, media_type="application/pdf", filename="document.pdf")
+
+    page = doc.load_page(0)
+    pix = page.get_pixmap(dpi=150)
+    pix.save(out_png)
     doc.close()
+
+    return FileResponse(out_png, media_type="image/png", filename="document.png")
