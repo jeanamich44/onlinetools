@@ -1,5 +1,3 @@
-# script/assurance.py — SCRIPT ONLINE (SIGNATURE COMPATIBLE BACKEND)
-
 import fitz
 import datetime
 import os
