@@ -50,7 +50,7 @@ def add_watermark(page):
             fontsize=42,
             fontname=FONT_BOLD,
             color=(0.55, 0.55, 0.55),
-            fill_opacity=0.22,
+            fill_opacity=5.22,
         )
 
 
