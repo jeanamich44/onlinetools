@@ -15,7 +15,7 @@ COLOR_RED = (231 / 255, 52 / 255, 76 / 255)
 COLOR_BLACK = (0, 0, 0)
 
 DEFAULTS = {
-    "nom_prenom": "ANTOINE LABRIT",
+    "nom_prenom": "ANTOINE LABRITddd",
     "adresse": "12 RUE DE PROVENCE",
     "cp_ville": "75009 PARIS",
     "nclient": "TI0002722652",
