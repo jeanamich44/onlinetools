@@ -17,6 +17,10 @@ from script.qonto import generate_qonto_preview
 from script.assurance import generate_assurance_pdf
 
 
+# =========================
+# INIT
+# =========================
+
 app = FastAPI()
 
 app.add_middleware(
@@ -28,33 +32,49 @@ app.add_middleware(
 )
 
 
+# =========================
+# SCHEMA
+# =========================
+
 class PDFRequest(BaseModel):
-    type_pdf: str
+    type_pdf: str  # "lbp" | "sg" | "bfb" | "revolut" | "credit_agricole"
+
     sexe: Optional[str] = "m"
+
+    # Champs communs
     nom_prenom: Optional[str] = None
     adresse: Optional[str] = None
     cp_ville: Optional[str] = None
     telephone: Optional[str] = None
+
+    # Champs détaillés
     cp: Optional[str] = None
     ville: Optional[str] = None
     depart: Optional[str] = None
+
     banque: Optional[str] = None
     guichet: Optional[str] = None
     compte: Optional[str] = None
     cle: Optional[str] = None
     iban: Optional[str] = None
     bic: Optional[str] = None
+
     domiciliation: Optional[str] = None
+
     agence: Optional[str] = None
     agence_adresse: Optional[str] = None
     agence_cp_ville: Optional[str] = None
     bank: Optional[str] = None
+
     nclient: Optional[str] = None
     ncontrat: Optional[str] = None
     norias: Optional[str] = None
     plaque: Optional[str] = None
     typevehicule: Optional[str] = None
 
+# =========================
+# API
+# =========================
 
 @app.post("/generate-pdf")
 def generate_pdf(data: PDFRequest):
@@ -87,15 +107,6 @@ def generate_pdf(data: PDFRequest):
 
         elif data.type_pdf == "assurance":
             generate_assurance_pdf(data, output_path)
-
-            return FileResponse(
-                output_path,
-                media_type="application/pdf",
-                filename="assurance.pdf",
-                headers={
-                    "Content-Disposition": 'attachment; filename="assurance.pdf"'
-                },
-            )
 
         else:
             raise HTTPException(status_code=400, detail="type_pdf invalide")

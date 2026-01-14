@@ -5,19 +5,19 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 PDF_TEMPLATE = os.path.join(BASE_DIR, "base", "ASSURANCE.pdf")
-FONT_REG_FILE = os.path.join(BASE_DIR, "font", "arial.ttf")
-FONT_BOLD_FILE = os.path.join(BASE_DIR, "font", "arialbd.ttf")
+FONT_FILE = os.path.join(BASE_DIR, "font", "arialbd.ttf")
 
-FONT_REG = "ArialReg"
-FONT_BOLD = "ArialBold"
+FONT_NAME = "ArialBold"
+FONT_SIZE_MAIN = 10
+FONT_SIZE_SMALL = 9
 
 COLOR_RED = (231 / 255, 52 / 255, 76 / 255)
 COLOR_BLACK = (0, 0, 0)
 
 DEFAULTS = {
-    "nom_prenom": "ANTOINE LABRITddd",
+    "nomprenom": "ANTOINE LABRIT",
     "adresse": "12 RUE DE PROVENCE",
-    "cp_ville": "75009 PARIS",
+    "cpville": "75009 PARIS",
     "nclient": "TI0002722652",
     "ncontrat": "MOT001227011",
     "norias": "17005124",
@@ -30,9 +30,9 @@ def generate_assurance_pdf(data, output_path):
     date_val = datetime.date.today() - datetime.timedelta(days=1)
 
     values = {
-        "nomprenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
+        "nomprenom": (data.nom_prenom or DEFAULTS["nomprenom"]).upper(),
         "adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
-        "cpville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
+        "cpville": (data.cp_ville or DEFAULTS["cpville"]).upper(),
         "nclient": (data.nclient or DEFAULTS["nclient"]).upper(),
         "ncontrat": (data.ncontrat or DEFAULTS["ncontrat"]).upper(),
         "norias": (data.norias or DEFAULTS["norias"]).upper(),
@@ -47,8 +47,7 @@ def generate_assurance_pdf(data, output_path):
     doc = fitz.open(PDF_TEMPLATE)
 
     for page in doc:
-        page.insert_font(fontname=FONT_REG, fontfile=FONT_REG_FILE)
-        page.insert_font(fontname=FONT_BOLD, fontfile=FONT_BOLD_FILE)
+        page.insert_font(fontname=FONT_NAME, fontfile=FONT_FILE)
 
         for key, text in values.items():
             for rect in page.search_for(f"*{key}"):
@@ -56,8 +55,8 @@ def generate_assurance_pdf(data, output_path):
                 page.insert_text(
                     (rect.x0, rect.y1 - 2),
                     text,
-                    fontsize=9 if key in ("jj", "m", "aaaa") else 10,
-                    fontname=FONT_BOLD if key in ("jj", "m", "aaaa") else FONT_REG,
+                    fontsize=FONT_SIZE_SMALL if key in ("jj", "m", "aaaa") else FONT_SIZE_MAIN,
+                    fontname=FONT_NAME,
                     color=COLOR_RED if key == "nomprenom" else COLOR_BLACK,
                 )
 
