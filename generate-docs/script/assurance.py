@@ -26,18 +26,11 @@ DEFAULTS = {
 }
 
 
-def format_nomprenom(v: str):
-    parts = v.strip().split()
-    if len(parts) == 1:
-        return parts[0].upper()
-    return f"{parts[0].upper()} {' '.join(parts[1:]).upper()}"
-
-
 def generate_assurance_pdf(data, output_path):
     date_val = datetime.date.today() - datetime.timedelta(days=1)
 
     values = {
-        "nomprenom": format_nomprenom(data.nom_prenom or DEFAULTS["nom_prenom"]),
+        "nomprenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
         "adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
         "cpville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
         "nclient": (data.nclient or DEFAULTS["nclient"]).upper(),
@@ -57,25 +50,15 @@ def generate_assurance_pdf(data, output_path):
         page.insert_font(fontname=FONT_REG, fontfile=FONT_REG_FILE)
         page.insert_font(fontname=FONT_BOLD, fontfile=FONT_BOLD_FILE)
 
-        jj_rects = page.search_for("*jj")
-        m_rects = page.search_for("*m")
-        aaaa_rects = page.search_for("*aaaa")
-
-        base_y = None
-        for lst in (jj_rects, m_rects, aaaa_rects):
-            if lst:
-                base_y = lst[0].y1 - 2
-                break
-
         for key, text in values.items():
             for rect in page.search_for(f"*{key}"):
                 page.draw_rect(rect, fill=(1, 1, 1), width=0)
                 page.insert_text(
-                    (rect.x0, base_y if key in ("jj", "m", "aaaa") else rect.y1 - 2),
+                    (rect.x0, rect.y1 - 2),
                     text,
                     fontsize=9 if key in ("jj", "m", "aaaa") else 10,
                     fontname=FONT_BOLD if key in ("jj", "m", "aaaa") else FONT_REG,
-                    color=COLOR_BLACK if key != "nomprenom" else COLOR_RED,
+                    color=COLOR_RED if key == "nomprenom" else COLOR_BLACK,
                 )
 
     doc.save(output_path)
