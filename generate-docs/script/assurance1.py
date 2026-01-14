@@ -11,7 +11,7 @@ FONT_ARIAL_BOLD = os.path.join(BASE_DIR, "font", "arialbd.ttf")
 FONT_REG = "ARIAL_REG"
 FONT_BOLD = "ARIAL_BOLD"
 
-COLOR_RED = (231 / 255, 52 / 255, 76 / 255)
+COLOR_RED = (231/255, 52/255, 76/255)
 COLOR_BLACK = (0, 0, 0)
 
 
@@ -96,19 +96,5 @@ def generate_assurance_pdf(data, output_path):
                     y_override=base_y,
                 )
 
-    doc.set_metadata(
-        {
-            "title": "assurance",
-            "producer": "pdf-generator",
-            "creator": "pdf-generator",
-        }
-    )
-
-    doc.save(
-        output_path,
-        garbage=4,
-        deflate=True,
-        clean=True,
-        incremental=False,
-    )
+    doc.save(output_path, garbage=4, deflate=True, clean=True)
     doc.close()
