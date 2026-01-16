@@ -1,74 +1,156 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8">
   <title>RIB Société Générale</title>
   <link rel="stylesheet" href="../css/style.css">
 </head>
+
 <body>
 
-<div class="container">
-  <h1>RIB SG</h1>
-  <p class="subtitle">Génération PDF – Société Générale</p>
+  <!-- HEADER -->
+  <header class="top-bar">
+    <div class="top-bar-inner">
+      <span class="logo" id="logo">OnlineTools</span>
+      <button id="cartBtn">🛒 Panier</button>
+    </div>
+  </header>
 
-  <form id="sgForm">
-    <input name="sexe" placeholder="M / F">
-    <input name="banque" placeholder="Code Banque">
-    <input name="guichet" placeholder="Code Guichet">
-    <input name="compte" placeholder="Compte">
-    <input name="cle" placeholder="Clé">
-    <input name="iban" placeholder="IBAN">
-    <input name="bic" placeholder="BIC">
+  <div class="container">
+    <h1>RIB SG</h1>
+    <p class="subtitle">Génération PDF – Société Générale</p>
 
-    <input name="nom_prenom" placeholder="Nom Prénom">
-    <input name="adresse" placeholder="Adresse">
-    <input name="cp_ville" placeholder="CP Ville">
+    <form id="sgForm">
+      <input name="sexe" placeholder="M / F">
+      <input name="banque" placeholder="Code Banque">
+      <input name="guichet" placeholder="Code Guichet">
+      <input name="compte" placeholder="Compte">
+      <input name="cle" placeholder="Clé">
+      <input name="iban" placeholder="IBAN">
+      <input name="bic" placeholder="BIC">
 
-    <input name="agence" placeholder="Agence">
-    <input name="agence_adresse" placeholder="Adresse Agence">
-    <input name="agence_cp_ville" placeholder="CP Ville Agence">
+      <input name="nom_prenom" placeholder="Nom Prénom">
+      <input name="adresse" placeholder="Adresse">
+      <input name="cp_ville" placeholder="CP Ville">
 
-    <button type="submit">Générer PDF</button>
-  </form>
+      <input name="agence" placeholder="Agence">
+      <input name="agence_adresse" placeholder="Adresse Agence">
+      <input name="agence_cp_ville" placeholder="CP Ville Agence">
 
-  <div id="message"></div>
+      <button type="submit">Générer PDF</button>
+      <button type="button" id="addCart">Ajouter au panier – 5 €</button>
+    </form>
 
-  <a class="back" href="./rib-generator.html">Retour</a>
-</div>
+    <div id="message"></div>
+    <a class="back" href="./rib-generator.html">Retour</a>
+  </div>
 
-<script>
-const API_URL = "https://generate-docs-production.up.railway.app/generate-pdf";
-const form = document.getElementById("sgForm");
-const message = document.getElementById("message");
+  <script>
+    /* ===== HEADER FIX ===== */
+    const bar = document.querySelector(".top-bar");
+    const inner = document.querySelector(".top-bar-inner");
+    const cartBtn = document.getElementById("cartBtn");
 
-form.onsubmit = async (e) => {
-  e.preventDefault();
+    bar.style.position = "fixed";
+    bar.style.top = "0";
+    bar.style.left = "0";
+    bar.style.width = "100%";
+    bar.style.zIndex = "1000";
 
-  const data = Object.fromEntries(new FormData(form));
-  data.type_pdf = "sg"; // 🔑 IMPORTANT
+    inner.style.display = "flex";
+    inner.style.alignItems = "center";
+    inner.style.justifyContent = "space-between";
+    inner.style.padding = "12px 24px";
+    logo.onclick = () => window.location.href = "../index.html";
 
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    });
+    /* STYLE BOUTON PANIER */
+    cartBtn.style.all = "unset";
+    cartBtn.style.display = "inline-flex";
+    cartBtn.style.alignItems = "center";
+    cartBtn.style.gap = "8px";
+    cartBtn.style.background = "#2563eb";
+    cartBtn.style.color = "#fff";
+    cartBtn.style.padding = "8px 14px";
+    cartBtn.style.borderRadius = "8px";
+    cartBtn.style.cursor = "pointer";
+    cartBtn.style.fontSize = "14px";
+    cartBtn.style.fontWeight = "500";
+    cartBtn.style.whiteSpace = "nowrap";
+    cartBtn.style.marginLeft = "auto";
 
-    if (!res.ok) throw new Error("Erreur serveur");
+    cartBtn.onclick = () => {
+      window.location.href = "../cart/cart.html";
+    };
 
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
+    /* ===== API PDF ===== */
+    const API_URL = "https://generate-docs-production.up.railway.app/generate-pdf";
+    const form = document.getElementById("sgForm");
+    const message = document.getElementById("message");
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "RIB_SG.pdf";
-    a.click();
+    form.onsubmit = async (e) => {
+      e.preventDefault();
 
-  } catch (err) {
-    message.textContent = err.message;
-  }
-};
-</script>
+      const data = Object.fromEntries(new FormData(form));
+      data.type_pdf = "sg"; // 🔑 IMPORTANT
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        if (!res.ok) throw new Error("Erreur serveur");
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "RIB_SG.pdf";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+      } catch (err) {
+        message.textContent = err.message;
+      }
+    };
+
+    /* ===== AJOUT AU PANIER (AVEC DONNÉES FORMULAIRE) ===== */
+    document.getElementById("addCart").onclick = () => {
+      const formData = Object.fromEntries(new FormData(form));
+
+      const cartItem = {
+        id: crypto.randomUUID(),
+        type_pdf: "sg",
+        name: "RIB Société Générale",
+        price: 5,
+        payload: formData,
+        createdAt: new Date().toISOString(),
+      };
+
+      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
+      cart.push(cartItem);
+      localStorage.setItem("cart", JSON.stringify(cart));
+
+      const notif = document.createElement("div");
+      notif.textContent = "Ajouté au panier ✓";
+      notif.style.position = "fixed";
+      notif.style.top = "70px";
+      notif.style.right = "24px";
+      notif.style.background = "#16a34a";
+      notif.style.color = "#fff";
+      notif.style.padding = "10px 16px";
+      notif.style.borderRadius = "8px";
+      notif.style.zIndex = "2000";
+      document.body.appendChild(notif);
+
+      setTimeout(() => notif.remove(), 2000);
+    };
+  </script>
 
 </body>
+
 </html>
