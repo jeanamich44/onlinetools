@@ -217,7 +217,7 @@ button:disabled {
     padding: 32px;
 }
 
-.bank-list {
+.bank-liste {
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -249,6 +249,67 @@ button:disabled {
 }
 
 .back-link {
+    display: block;
+    margin-top: 28px;
+    text-align: center;
+    color: #9ca3af;
+    text-decoration: none;
+}
+
+.back-link:hover {
+    color: #e5e7eb;
+}
+
+/* =========================
+   Facture GENERATOR
+========================= */
+
+.facture-generator-page {
+    background: #0f1115;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.facture-generator {
+    width: 100%;
+    max-width: 420px;
+    padding: 32px;
+}
+
+.facture-liste {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.facture-item {
+    display: block;
+    padding: 16px 18px;
+    border-radius: 12px;
+    background: #161a22;
+    border: 1px solid #2a2f3a;
+    text-decoration: none;
+    color: #e5e7eb;
+}
+
+.facture-item:hover {
+    background: #1b2030;
+}
+
+.facture-name {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.facture-desc {
+    font-size: 13px;
+    color: #9ca3af;
+    margin-top: 2px;
+}
+
+.facture-link {
     display: block;
     margin-top: 28px;
     text-align: center;
