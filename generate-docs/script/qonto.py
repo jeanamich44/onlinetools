@@ -53,8 +53,6 @@ def add_watermark(page):
             fill_opacity=5.22,
         )
 
-
-
 def generate_qonto_preview(data, output_path):
     values = {
         "*iban": format_iban(data.iban or DEFAULTS["iban"]),
