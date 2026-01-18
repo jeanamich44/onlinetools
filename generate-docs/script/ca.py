@@ -6,6 +6,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 PDF_TEMPLATE = os.path.join(BASE_DIR, "base", "CA.pdf")
 FONT_FILE = os.path.join(BASE_DIR, "font", "opensans-semibold.ttf")
+FONT_ARIAL_BOLD = os.path.join(BASE_DIR, "font", "arialbd.ttf")
 
 FONT_SIZE = 9.6
 COLOR = (0, 0, 0)
@@ -22,6 +23,22 @@ DEFAULTS = {
     "cle": "07",
     "agence": "TOULOUSE 31",
 }
+
+
+def add_watermark(page):
+    rect = page.rect
+    text = "PREVIEW – NON PAYÉ"
+
+    for y in range(80, int(rect.height), 160):
+        page.insert_text(
+            (40, y),
+            text,
+            fontsize=42,
+            fontfile=FONT_ARIAL_BOLD,
+            color=(0.55, 0.55, 0.55),
+            fill_opacity=0.5,
+        )
+
 
 def format_iban(iban: str):
     iban = re.sub(r"\s+", "", iban).upper()
@@ -89,6 +106,39 @@ def generate_ca_pdf(data, output_path):
 
         for key in ["*banque", "*guichet", "*compte", "*cle", "*iban", "*agence"]:
             insert(page, key, values[key])
+
+    doc.save(output_path, garbage=4, deflate=True)
+    doc.close()
+
+
+def generate_ca_preview(data, output_path):
+    agence_value = data.agence or data.bank or DEFAULTS["agence"]
+
+    values = {
+        "*nomprenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
+        "*adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
+        "*cpville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
+        "*banque": (data.banque or DEFAULTS["banque"]),
+        "*guichet": (data.guichet or DEFAULTS["guichet"]),
+        "*compte": (data.compte or DEFAULTS["compte"]),
+        "*cle": (data.cle or DEFAULTS["cle"]),
+        "*iban": format_iban(data.iban or DEFAULTS["iban"]),
+        "*agence": agence_value.upper(),
+    }
+
+    doc = fitz.open(PDF_TEMPLATE)
+
+    for page in doc:
+        anchor_end_x = None
+
+        anchor_end_x = insert(page, "*nomprenom", values["*nomprenom"])
+        insert(page, "*adresse", values["*adresse"], anchor_end_x)
+        insert(page, "*cpville", values["*cpville"], anchor_end_x)
+
+        for key in ["*banque", "*guichet", "*compte", "*cle", "*iban", "*agence"]:
+            insert(page, key, values[key])
+        
+        add_watermark(page)
 
     doc.save(output_path, garbage=4, deflate=True)
     doc.close()

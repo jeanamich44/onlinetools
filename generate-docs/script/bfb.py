@@ -22,6 +22,22 @@ DEFAULTS = {
     "iban": "FR7630004008001234567890152",
 }
 
+
+def add_watermark(page):
+    rect = page.rect
+    text = "PREVIEW – NON PAYÉ"
+
+    for y in range(80, int(rect.height), 160):
+        page.insert_text(
+            (40, y),
+            text,
+            fontsize=42,
+            fontfile=FONT_ARIAL_BOLD,
+            color=(0.55, 0.55, 0.55),
+            fill_opacity=0.5,
+        )
+
+
 def format_iban(iban: str):
     iban = re.sub(r"\s+", "", iban).upper()
     return " ".join(iban[i:i+4] for i in range(0, len(iban), 4))
@@ -104,6 +120,56 @@ def generate_bfb_pdf(data, output_path):
         for key, val in values.items():
             if key in STYLES:
                 insert_text(page, key, val, STYLES[key])
+
+    doc.save(output_path)
+    doc.close()
+
+
+def generate_bfb_preview(data, output_path):
+    iban_raw = data.iban or DEFAULTS["iban"]
+    iban_fmt = format_iban(iban_raw)
+
+    auto = parse_french_iban(iban_raw)
+
+    values = {
+        "*nom prenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
+        "*nnom prenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
+        "*adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
+        "*cp ville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
+        "*iban": iban_fmt,
+    }
+
+    if auto:
+        values["*banque"] = auto["banque"]
+        values["*guichet"] = auto["guichet"]
+        values["*compte"] = auto["compte"]
+        values["*cle"] = auto["cle"]
+    else:
+        values["*banque"] = data.banque or DEFAULTS["banque"]
+        values["*guichet"] = data.guichet or DEFAULTS["guichet"]
+        values["*compte"] = data.compte or DEFAULTS["compte"]
+        values["*cle"] = data.cle or DEFAULTS["cle"]
+
+    STYLES = {
+        "*nom prenom": {"size": 9, "font": FONT_ARIAL_REG, "color": COLOR_MAIN},
+        "*nnom prenom": {"size": 7.5, "font": FONT_ARIAL_BOLD, "color": COLOR_SECOND},
+        "*adresse": {"size": 9, "font": FONT_ARIAL_REG, "color": COLOR_MAIN},
+        "*cp ville": {"size": 9, "font": FONT_ARIAL_REG, "color": COLOR_MAIN},
+        "*banque": {"size": 6, "font": FONT_ARIAL_REG, "color": COLOR_SECOND, "offset_y": 2.0},
+        "*guichet": {"size": 6, "font": FONT_ARIAL_REG, "color": COLOR_SECOND, "offset_y": 2.0},
+        "*compte": {"size": 6, "font": FONT_ARIAL_REG, "color": COLOR_SECOND, "offset_y": 2.0},
+        "*cle": {"size": 6, "font": FONT_ARIAL_REG, "color": COLOR_SECOND, "offset_y": 2.0},
+        "*iban": {"size": 10.5, "font": FONT_ARIAL_REG, "color": COLOR_MAIN},
+    }
+
+    doc = fitz.open(PDF_TEMPLATE)
+
+    for page in doc:
+        for key, val in values.items():
+            if key in STYLES:
+                insert_text(page, key, val, STYLES[key])
+        
+        add_watermark(page)
 
     doc.save(output_path)
     doc.close()

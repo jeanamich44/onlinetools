@@ -6,15 +6,15 @@ from typing import Optional
 import uuid
 import os
 
-from script.lbp import generate_lbp_pdf
-from script.sg import generate_sg_pdf
-from script.bfb import generate_bfb_pdf
-from script.revolut import generate_revolut_pdf
-from script.ca import generate_ca_pdf
-from script.cm import generate_cm_pdf
-from script.cic import generate_cic_pdf
-from script.qonto import generate_qonto_preview
-from script.assurance import generate_assurance_pdf
+from script.lbp import generate_lbp_pdf, generate_lbp_preview
+from script.sg import generate_sg_pdf, generate_sg_preview
+from script.bfb import generate_bfb_pdf, generate_bfb_preview
+from script.revolut import generate_revolut_pdf, generate_revolut_preview
+from script.ca import generate_ca_pdf, generate_ca_preview
+from script.cm import generate_cm_pdf, generate_cm_preview
+from script.cic import generate_cic_pdf, generate_cic_preview
+from script.qonto import generate_qonto_pdf, generate_qonto_preview
+from script.assurance import generate_assurance_pdf, generate_assurance_preview
 
 
 # =========================
@@ -38,6 +38,7 @@ app.add_middleware(
 
 class PDFRequest(BaseModel):
     type_pdf: str  # "lbp" | "sg" | "bfb" | "revolut" | "credit_agricole"
+    preview: Optional[bool] = False
 
     sexe: Optional[str] = "m"
 
@@ -82,31 +83,58 @@ def generate_pdf(data: PDFRequest):
 
     try:
         if data.type_pdf == "lbp":
-            generate_lbp_pdf(data, output_path)
+            if data.preview:
+                generate_lbp_preview(data, output_path)
+            else:
+                generate_lbp_pdf(data, output_path)
 
         elif data.type_pdf == "sg":
-            generate_sg_pdf(data, output_path)
+            if data.preview:
+                generate_sg_preview(data, output_path)
+            else:
+                generate_sg_pdf(data, output_path)
 
         elif data.type_pdf == "bfb":
-            generate_bfb_pdf(data, output_path)
+            if data.preview:
+                generate_bfb_preview(data, output_path)
+            else:
+                generate_bfb_pdf(data, output_path)
 
         elif data.type_pdf == "revolut":
-            generate_revolut_pdf(data, output_path)
+            if data.preview:
+                generate_revolut_preview(data, output_path)
+            else:
+                generate_revolut_pdf(data, output_path)
 
         elif data.type_pdf == "ca":
-            generate_ca_pdf(data, output_path)
+            if data.preview:
+                generate_ca_preview(data, output_path)
+            else:
+                generate_ca_pdf(data, output_path)
 
         elif data.type_pdf == "cm":
-            generate_cm_pdf(data, output_path)
+            if data.preview:
+                generate_cm_preview(data, output_path)
+            else:
+                generate_cm_pdf(data, output_path)
 
         elif data.type_pdf == "cic":
-            generate_cic_pdf(data, output_path)
+            if data.preview:
+                generate_cic_preview(data, output_path)
+            else:
+                generate_cic_pdf(data, output_path)
 
         elif data.type_pdf == "qonto":
-            generate_qonto_preview(data, output_path)
+            if data.preview:
+                generate_qonto_preview(data, output_path)
+            else:
+                generate_qonto_pdf(data, output_path)
 
         elif data.type_pdf == "assurance":
-            generate_assurance_pdf(data, output_path)
+            if data.preview:
+                generate_assurance_preview(data, output_path)
+            else:
+                generate_assurance_pdf(data, output_path)
 
         else:
             raise HTTPException(status_code=400, detail="type_pdf invalide")
