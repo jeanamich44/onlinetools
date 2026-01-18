@@ -27,6 +27,8 @@ body {
 
 .logo {
     font-weight: 600;
+    text-decoration: none;
+    color: #e5e7eb;
 }
 
 .nav a {

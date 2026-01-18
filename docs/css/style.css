@@ -12,8 +12,45 @@ body {
     min-height: 100vh;
     background: #0f1115;
     display: flex;
+    flex-direction: column;
+    /* Modified for Navbar */
     align-items: center;
-    justify-content: center;
+    /* justify-content: center;  Removed to let content sit naturally below nav */
+    color: #e5e7eb;
+}
+
+/* HEADER (Copied from home.css) */
+.header {
+    width: 100%;
+    background: #161a22;
+    border-bottom: 1px solid #2a2f3a;
+    margin-bottom: 40px;
+    /* Spacing from content */
+}
+
+.header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 14px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-weight: 600;
+    text-decoration: none;
+    color: #e5e7eb;
+}
+
+.nav a {
+    margin-left: 18px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    color: #9ca3af;
+}
+
+.nav a:hover {
     color: #e5e7eb;
 }
 
