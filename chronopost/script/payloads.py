@@ -6,7 +6,8 @@ from colorama import Fore, Style, init
 init(autoreset=True)
 
 BASE_PAYLOAD = (
-    "downloadTokenValue=1768677443294"
+	# === META / CONFIG ===
+    "downloadTokenValue=1768849101561"
     "&typeImpression=PDF"
     "&mediaCommunication=APPLET"
     "&iv4Context=47220cd6138831e87b89bc06aa246440"
@@ -19,27 +20,31 @@ BASE_PAYLOAD = (
     "&hiddenAccountOption=false"
     "&account=47107_15972103"
     "&product=1_N_0_30_26_150_16_150_0.1_150_58.1_300_true_true_false_false_false_false_false_false_false_false_false_false_false_true"
+
+    # === EXPÉDITEUR (SENDER) ===
     "&senderSearch="
-    "&hiddenSenderType=1"
-    "&senderType=1"
+    "&hiddenSenderType="
+    "&senderType="
     "&senderCompanyName="
-    "&senderLastname=-"
-    "&senderFirstname=-"
-    "&senderHandphone=0602843841"
-    "&senderEmail=grecoh@outlook.fr"
+    "&senderLastname="
+    "&senderFirstname="
+    "&senderHandphone="
+    "&senderEmail="
     "&senderCountry=FR"
-    "&senderCP=75013"
-    "&senderCity=PARIS"
+    "&senderCP="
+    "&senderCity="
     "&senderCityText="
-    "&senderAddress=3+rue+Henri+Pape"
+    "&senderAddress="
     "&senderAddress2="
     "&senderRef="
-    "&hiddenSenderCity=PARIS"
+    "&hiddenSenderCity="
     "&hiddenSenderCountry=FR"
-    "&saveSenderForNextShipment=on"
+    "&saveSenderForNextShipment=off"
+
+    # === DESTINATAIRE (RECEIVER) ===
     "&receiverSearch="
-    "&hiddenReceiverType=1"
-    "&receiverType=1"
+    "&hiddenReceiverType="
+    "&receiverType="
     "&receiverCompanyName="
     "&receiverLastname="
     "&receiverFirstname="
@@ -64,41 +69,55 @@ BASE_PAYLOAD = (
     "&codeRelais="
     "&hiddenReceiverCity="
     "&hiddenReceiverCountry=FR"
+
+    # === COLIS / EXPÉDITION ===
     "&NbOfPackages=1"
     "&typeColis=2"
-    "&packageWeight=3"
-    "&shippingRef="
-    "&shippingDate=17%2F01%2F2026"
-    "&dlcshippingDate=17%2F01%2F2026"
-    "&shippingRep="
+    "&packageWeight="
     "&packageLength="
     "&packageWidth="
     "&packageHeight="
+    "&packageValue=1"
+    "&packageDescriptionText="
+    "&shippingRef="
+    "&shippingDate="
+    "&dlcshippingDate="
+    "&shippingRep="
+    "&shippingType=M"
+    "&shippingToEurope=true"
+
+    # === CONTENU / RÉGLEMENTATION ===
+    "&shippingContent="
     "&shippingContentEn="
     "&shippingContentRestricted="
     "&shippingContentAutoCompleted=false"
     "&shippingContentOK=true"
     "&shippingContentRequired=true"
-    "&shippingType=M"
-    "&shippingToEurope="
-    "&shippingContent="
-    "&packageDescriptionText="
-    "&packageValue=1"
     "&insurancePrice="
+
+    # === NOTIFICATION / SUIVI ===
+    "&shipmentTracking="
+    "&shipmentTrackingBy=EMAIL"
+    "&notifyTheReceiver="
+    "&notifyTheReceiverBy=EMAIL"
+
+    # === NOTIFICATION / TIERS ===
     "&sendToThirdPerson=on"
+    "&sendToThirdPersonInfo="
     "&ltAutoEnable=TRUE"
     "&textInformThird=Envoyer+automatiquement+par+e-mail+la+lettre+de+transport"
     "&textInformThirdLtAuto=Recevoir+le+n%C2%B0+de+r%C3%A9servation+pour+d%C3%A9poser+mon+colis+sans+imprimer+d'%C3%A9tiquette+de+transport+%3A"
     "&textInformThirdHelp=Recevoir+le+n%C2%B0+de+r%C3%A9servation+pour+d%C3%A9poser+mon+colis+sans+imprimer+d'%C3%A9tiquette+de+transport+%3A"
-    "&textInformThirdHelpLtAuto=Emballages+disponibles+%C3%A0+la+vente+au+prix+de+2%2C00e+TTC+en+bureau+de+poste.+Demandez-les+aupr%C3%A8s+du+conseiller+client%C3%A8le."
+    "&textInformThirdHelpLtAuto=Emballages+disponibles+%C3%A0+la+vente+au+prix+de+2%2C00%E2%82%AC+TTC+en+bureau+de+poste.+Demandez-les+aupr%C3%A8s+du+conseiller+client%C3%A8le."
     "&textSendToThirdPersonInfo=Coordonn%C3%A9es+pour+recevoir+la+lettre+de+transport+par+e-mail+%3A"
     "&textSendToThirdPersonInfoLtAuto=Coordonn%C3%A9es+pour+recevoir+le+num%C3%A9ro+de+r%C3%A9servation+(e-mail+ou+SMS)+%3A"
     "&postOfficeOrPickupPoint=2"
-    "&sendToThirdPersonInfo="
+
+    # === RETOUR ===
     "&returnProduct=1_N_0_30_26_150_16_150_0.1_150_58.1_300_true_true_false_false_false_false_false_false_false_false_false_false_false"
     "&returnTotalWeight="
     "&returnShippingRef="
-    "&returnShippingDate=17%2F01%2F2026"
+    "&returnShippingDate="
 )
 
 def normalize_city(v):
@@ -107,7 +126,29 @@ def normalize_city(v):
 def normalize_address(v):
     return v.strip().replace(" ", "+")
 
-def ask(label, default=None, required=False, validator=None):
+def ask(label, default=None, required=False, validator=None, data=None, key=None):
+    # If data dictionary is provided and key exists, try to use it
+    if data is not None and key is not None:
+        val = data.get(key)
+        # If value is missing or empty, handle default/required
+        if not val:
+            if default is not None:
+                val = default
+            elif required:
+                # In API mode, missing required field is an error
+                raise ValueError(f"Missing required field: {key}")
+            else:
+                 val = "" # optional field empty
+        
+        # Validate if validator exists
+        if validator and val: # only validate if we have a value
+             if not validator(val):
+                  raise ValueError(f"Invalid value for {key}: {val}")
+        
+        # Return the value (or default/empty string)
+        return str(val) if val is not None else ""
+
+    # Fallback to interactive mode if no data dict provided
     while True:
         prompt = f"{Fore.CYAN}{label}{Style.RESET_ALL}"
         if default:
@@ -127,39 +168,195 @@ def ask(label, default=None, required=False, validator=None):
 def phone_validator(v):
     return len(v) >= 8
 
-def build_payload():
+def build_payload(data=None):
     payload = dict(p.split("=", 1) for p in BASE_PAYLOAD.split("&"))
 
-    payload["senderLastname"] = ask("senderLastname", "-")
-    payload["senderFirstname"] = ask("senderFirstname", "-")
-    payload["senderHandphone"] = ask("senderHandphone", "0602843841", validator=phone_validator)
-    payload["senderEmail"] = ask("senderEmail", "grecoh@outlook.fr", validator=lambda v: "@" in v)
-    payload["senderCP"] = ask("senderCP", "75013", validator=lambda v: v.isdigit())
+    # Helper to clean up the ask calls
+    def get_val(key, label, default=None, required=False, validator=None):
+        return ask(label, default, required, validator, data=data, key=key)
 
-    sender_city = normalize_city(ask("senderCity", "PARIS"))
+    # ============================================================
+    # === EXPÉDITEUR (SENDER) ===
+    # ============================================================
+
+    payload["senderType"] = get_val(
+        "senderType", "type expediteur",
+        payload.get("senderType"),
+        required=True,
+        validator=lambda v: v in ("0", "1")
+    )
+
+    payload["hiddenSenderType"] = payload["senderType"]
+
+    payload["senderCompanyName"] = get_val(
+        "senderCompanyName", "nom de societe expediteur",
+        payload.get("senderCompanyName")
+    )
+
+    payload["senderLastname"] = get_val("senderLastname", "nom expediteur", payload.get("senderLastname"))
+    payload["senderFirstname"] = get_val("senderFirstname", "prenom expediteur", payload.get("senderFirstname"))
+    payload["senderHandphone"] = get_val(
+        "senderHandphone", "telephone expediteur",
+        payload.get("senderHandphone"),
+        validator=phone_validator
+    )
+    payload["senderEmail"] = get_val(
+        "senderEmail", "mail expediteur",
+        payload.get("senderEmail"),
+        validator=lambda v: "@" in v
+    )
+    payload["senderCP"] = get_val(
+        "senderCP", "code postal expediteur",
+        payload.get("senderCP"),
+        validator=lambda v: v.isdigit()
+    )
+
+    sender_city = normalize_city(get_val("senderCity", "ville expediteur", payload.get("senderCity")))
     payload["senderCity"] = sender_city
     payload["hiddenSenderCity"] = sender_city
-    payload["senderAddress"] = normalize_address(ask("senderAddress", "3 rue Henri Pape"))
 
-    payload["receiverLastname"] = ask("receiverLastname", "jean", required=True)
-    payload["receiverFirstname"] = ask("receiverFirstname", "jean", required=True)
-    payload["receiverHandphone"] = ask("receiverHandphone", "0602843841", required=True, validator=phone_validator)
-    payload["receiverEmail"] = ask("receiverEmail", "jean@gmail.com", required=True, validator=lambda v: "@" in v)
-    payload["receiverCP"] = ask("receiverCP", "75009", required=True, validator=lambda v: v.isdigit())
+    payload["senderAddress"] = normalize_address(
+        get_val("senderAddress", "adresse expediteur", payload.get("senderAddress"))
+    )
 
-    receiver_city = normalize_city(ask("receiverCity","PARIS", required=True))
+    payload["senderAddress2"] = normalize_address(
+        get_val(
+            "senderAddress2", "suite adresse expediteur",
+            payload.get("senderAddress2"),
+            validator=lambda v: len(v) <= 20
+        )
+    )
+
+    payload["senderRef"] = get_val(
+        "senderRef", "reference expediteur",
+        payload.get("senderRef"),
+        validator=lambda v: len(v) <= 20
+    )
+
+    # ============================================================
+    # === DESTINATAIRE (RECEIVER) ===
+    # ============================================================
+
+    payload["receiverType"] = get_val(
+        "receiverType", "type destinataire",
+        payload.get("receiverType"),
+        required=True,
+        validator=lambda v: v in ("0", "1")
+    )
+
+    payload["hiddenReceiverType"] = payload["receiverType"]
+
+    payload["receiverCompanyName"] = get_val(
+        "receiverCompanyName", "nom de societe destinataire",
+        payload.get("receiverCompanyName")
+    )
+
+    payload["receiverLastname"] = get_val("receiverLastname", "nom destinataire", payload.get("receiverLastname"))
+    payload["receiverFirstname"] = get_val("receiverFirstname", "prenom destinataire", payload.get("receiverFirstname"))
+    payload["receiverHandphone"] = get_val(
+        "receiverHandphone", "telephone destinataire",
+        payload.get("receiverHandphone"),
+        validator=phone_validator
+    )
+    payload["receiverEmail"] = get_val(
+        "receiverEmail", "mail destinataire",
+        payload.get("receiverEmail"),
+        validator=lambda v: "@" in v
+    )
+    payload["receiverCP"] = get_val(
+        "receiverCP", "code postal destinataire",
+        payload.get("receiverCP"),
+        validator=lambda v: v.isdigit()
+    )
+
+    receiver_city = normalize_city(get_val("receiverCity", "ville destinataire", payload.get("receiverCity")))
     payload["receiverCity"] = receiver_city
     payload["receiverCityText"] = receiver_city
     payload["hiddenReceiverCity"] = receiver_city
-    payload["receiverAddress"] = normalize_address(ask("receiverAddress", "14 rue de provence", required=True))
 
-    payload["packageWeight"] = ask("packageWeight", "3", validator=lambda v: v.isdigit())
+    payload["receiverAddress"] = normalize_address(
+        get_val("receiverAddress", "adresse destinataire", payload.get("receiverAddress"))
+    )
 
-    today = quote_plus(datetime.now().strftime("%d/%m/%Y"))
-    payload["shippingDate"] = today
-    payload["dlcshippingDate"] = today
+    payload["receiverAddress2"] = normalize_address(
+        get_val(
+            "receiverAddress2", "suite adresse destinataire",
+            payload.get("receiverAddress2"),
+            validator=lambda v: len(v) <= 20
+        )
+    )
+
+    payload["receiverAddress3"] = get_val(
+        "receiverAddress3", "code batiment",
+        payload.get("receiverAddress3"),
+        validator=lambda v: len(v) <= 8
+    )
+
+    payload["receiverRef"] = get_val(
+        "receiverRef", "reference destinataire",
+        payload.get("receiverRef"),
+        validator=lambda v: len(v) <= 20
+    )
+
+    # ============================================================
+    # === COLIS / EXPÉDITION ===
+    # ============================================================
+
+    payload["packageWeight"] = get_val(
+        "packageWeight", "poid",
+        payload.get("packageWeight"),
+        validator=lambda v: v.isdigit()
+    )
+
+    payload["shippingRef"] = get_val(
+        "shippingRef", "nom de envoie",
+        payload.get("shippingRef"),
+        validator=lambda v: len(v) <= 15
+    )
+
+    # Date logic: usage input or default to today
+    user_date = get_val("shippingDate", "Date d'envoi", None)
+    if user_date:
+        payload["shippingDate"] = quote_plus(user_date)
+        payload["dlcshippingDate"] = quote_plus(user_date)
+    else:
+        today = quote_plus(datetime.now().strftime("%d/%m/%Y"))
+        payload["shippingDate"] = today
+        payload["dlcshippingDate"] = today
+
+    # ============================================================
+    # === NOTIFICATION / SUIVI ===
+    # ============================================================
+
+    payload["shipmentTracking"] = get_val(
+        "shipmentTracking", "suivi mail expediteur",
+        payload.get("shipmentTracking"),
+        required=True,
+        validator=lambda v: v in ("on", "off")
+    )
+
+    payload["notifyTheReceiver"] = get_val(
+        "notifyTheReceiver", "suivi mail destinataire",
+        payload.get("notifyTheReceiver"),
+        required=True,
+        validator=lambda v: v in ("on", "off")
+    )
+
+    # ============================================================
+    # === NOTIFICATION / TIERS ===
+    # ============================================================
+
+    payload["sendToThirdPersonInfo"] = get_val(
+        "sendToThirdPersonInfo", "mail de reception Bordereau / Label",
+        payload.get("sendToThirdPersonInfo"),
+        required=True,
+        validator=lambda v: "@" in v
+    )
+
+    # ============================================================
+    # === RETOUR ===
+    # ============================================================
+
     payload["returnShippingDate"] = today
-
-    payload["sendToThirdPersonInfo"] = ask("sendToThirdPersonInfo","amich5845@gmail.com", required=True, validator=lambda v: "@" in v)
 
     return "&".join(f"{k}={payload[k]}" for k in payload)

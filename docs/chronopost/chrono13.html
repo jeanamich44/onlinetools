@@ -7,9 +7,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/home.css">
     <link rel="stylesheet" href="../css/chronopost-forms.css">
+    <style>
+        .error-message {
+            color: #ef4444;
+            font-size: 0.9em;
+            margin-top: 5px;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .success-message {
+            color: #22c55e;
+            font-size: 1.2em;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 </head>
 
 <body>
+
+    <div id="overlay">
+        <div class="spinner"></div>
+    </div>
+    <div id="statusMessage" style="position:fixed; top:80px; width:100%; text-align:center; z-index:900;"></div>
 
     <header class="header">
         <div class="header-inner">
@@ -27,7 +87,7 @@
 
         <h1 class="page-title">Chrono 13 - Livraison demain avant 13h</h1>
 
-        <form action="#" method="POST">
+        <form id="chronoForm" onsubmit="handleSubmit(event)">
 
             <div class="sections-grid">
                 <!-- Section 2: Expéditeur -->
@@ -39,53 +99,64 @@
                     <div class="section-content">
                         <div class="radio-group" style="margin-bottom: 20px;">
                             <label>Type *</label>
-                            <label><input type="radio" name="exp_type" value="pro"> Professionnel</label>
-                            <label><input type="radio" name="exp_type" value="part" checked> Particulier</label>
+                            <label><input type="radio" name="senderType" value="0"> Professionnel</label>
+                            <label><input type="radio" name="senderType" value="1" checked> Particulier</label>
                         </div>
 
                         <div class="form-row">
+                            <div class="form-group" id="senderCompanyDiv" style="display:none;">
+                                <label>Nom de société</label>
+                                <input type="text" name="senderCompanyName">
+                            </div>
+                            <input type="hidden" name="senderCountry" value="FR">
                             <div class="form-group">
                                 <label>Nom *</label>
-                                <input type="text" name="exp_nom" required>
-                            </div>
-                            <div class="form-group">
-                                <label>Pays *</label>
-                                <select name="exp_pays">
-                                    <option value="FR">FRANCE</option>
-                                </select>
+                                <input type="text" name="senderLastname" required>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Prénom *</label>
-                                <input type="text" name="exp_prenom" required>
+                                <input type="text" name="senderFirstname" required>
                             </div>
                             <div class="form-group">
                                 <label>Code Postal *</label>
-                                <input type="text" name="exp_cp" required>
+                                <input type="text" name="senderCP" required pattern="\d+">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Téléphone</label>
-                                <input type="tel" name="exp_tel">
+                                <input type="tel" name="senderHandphone" minlength="8" required placeholder="06..."
+                                    value="">
                             </div>
                             <div class="form-group">
                                 <label>Ville *</label>
-                                <input type="text" name="exp_ville" required>
+                                <input type="text" name="senderCity" required>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label>E-mail *</label>
-                                <input type="email" name="exp_email" required>
+                                <input type="email" name="senderEmail" required>
                             </div>
                             <div class="form-group">
                                 <label>Adresse *</label>
-                                <input type="text" name="exp_adresse" required>
+                                <input type="text" name="senderAddress" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Complément adresse</label>
+                                <input type="text" name="senderAddress2" maxlength="20">
+                            </div>
+                            <div class="form-group">
+                                <label>Référence Expéditeur</label>
+                                <input type="text" name="senderRef" maxlength="20">
                             </div>
                         </div>
 
@@ -105,66 +176,73 @@
                     <div class="section-content">
                         <div class="radio-group" style="margin-bottom: 20px;">
                             <label>Type *</label>
-                            <label><input type="radio" name="dest_type" value="pro" checked> Professionnel</label>
-                            <label><input type="radio" name="dest_type" value="part"> Particulier</label>
+                            <label><input type="radio" name="receiverType" value="0" checked> Professionnel</label>
+                            <label><input type="radio" name="receiverType" value="1"> Particulier</label>
                         </div>
 
                         <div class="form-row">
-                            <div class="form-group">
+                            <div class="form-group" id="receiverCompanyDiv">
                                 <label>Raison Sociale *</label>
-                                <input type="text" name="dest_raison">
+                                <input type="text" name="receiverCompanyName">
                             </div>
-                            <div class="form-group">
-                                <label>Pays *</label>
-                                <select name="dest_pays">
-                                    <option value="FR">FRANCE</option>
-                                </select>
-                            </div>
+                            <input type="hidden" name="receiverCountry" value="FR">
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Nom *</label>
-                                <input type="text" name="dest_nom" required>
+                                <input type="text" name="receiverLastname" required>
                             </div>
                             <div class="form-group">
                                 <label>Code Postal *</label>
-                                <input type="text" name="dest_cp" required>
+                                <input type="text" name="receiverCP" required pattern="\d+">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Prénom</label>
-                                <input type="text" name="dest_prenom">
+                                <input type="text" name="receiverFirstname" required>
                             </div>
                             <div class="form-group">
                                 <label>Ville *</label>
-                                <input type="text" name="dest_ville" required>
+                                <input type="text" name="receiverCity" required>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Téléphone</label>
-                                <input type="tel" name="dest_tel">
+                                <input type="tel" name="receiverHandphone" minlength="8" required>
                             </div>
                             <div class="form-group">
                                 <label>Adresse *</label>
-                                <input type="text" name="dest_adresse" required>
+                                <input type="text" name="receiverAddress" required>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label>E-mail *</label>
-                                <input type="email" name="dest_email" required>
+                                <input type="email" name="receiverEmail" required>
                             </div>
                             <div class="form-group">
-                                <label>Digicode / Interphone</label>
-                                <input type="text" name="dest_digicode">
+                                <label>Complément adresse</label>
+                                <input type="text" name="receiverAddress2" maxlength="20">
                             </div>
                         </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Code Bâtiment</label>
+                                <input type="text" name="receiverAddress3" maxlength="8">
+                            </div>
+                            <div class="form-group">
+                                <label>Référence Destinataire</label>
+                                <input type="text" name="receiverRef" maxlength="20">
+                            </div>
+                        </div>
+
 
                         <div class="checkbox-group">
                             <label><input type="checkbox" name="dest_save"> Conserver ce destinataire pour mes prochains
@@ -182,23 +260,26 @@
                     </div>
                     <div class="section-content">
                         <div class="form-row">
+                            <!-- Removed number of packages as payload seems to handle 1 by default structure? 
+                                 payloads.py has "&NbOfPackages=1". We can keep it visual or force it. 
+                                 Let's simplistic mapping packageWeight -->
                             <div class="form-group">
-                                <label>Nombre de colis *</label>
-                                <input type="number" name="colis_nb" value="1" min="1">
+                                <label>Poids (kg/g? - entier) *</label>
+                                <input type="number" name="packageWeight" required step="1" placeholder="Ex: 500">
                             </div>
                             <div class="form-group">
-                                <label>Poids unitaire (kg) *</label>
-                                <input type="number" name="colis_poids" step="0.1" required>
+                                <label>Nom de l'envoi</label>
+                                <input type="text" name="shippingRef" maxlength="15">
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label>Nom de l'envoi</label>
-                            <input type="text" name="colis_ref">
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date de l'envoi</label>
+                                <input type="date" name="shippingDate_input">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Date de l'envoi *</label>
-                            <input type="date" name="colis_date" required>
-                        </div>
+
                         <div class="checkbox-group">
                             <label><input type="checkbox" name="colis_save"> Conserver ces caractéristiques</label>
                         </div>
@@ -208,27 +289,28 @@
                 <!-- Section 5: Options -->
                 <div class="form-section">
                     <div class="section-header">
-                        <span><span class="section-number">5</span> Options</span>
+                        <span><span class="section-number">5</span> Options & Notifications</span>
                     </div>
                     <div class="section-content">
+                        <!-- Insurance handled via insurancePrice in payload? Not fully implemented in payloads.py yet?
+                             payloads.py has "insurancePrice=". If I pass it, it might work. 
+                             Keeping simpler for now as per payloads.py mapping. -->
+
                         <div class="checkbox-group">
-                            <label><input type="checkbox" name="opt_assurance"> Assurer mon colis</label>
+                            <label><input type="checkbox" name="shipmentTracking_box" checked> Suivi mail
+                                expéditeur</label>
+                            <input type="hidden" name="shipmentTracking" value="on">
                         </div>
                         <div class="checkbox-group">
-                            <label><input type="checkbox" name="opt_suivi_mail"> Recevoir le suivi par mail</label>
-                        </div>
-                        <div class="checkbox-group">
-                            <label><input type="checkbox" name="opt_dest_mail"> Avertir le destinataire par mail</label>
+                            <label><input type="checkbox" name="notifyTheReceiver_box" checked> Suivi mail
+                                destinataire</label>
+                            <input type="hidden" name="notifyTheReceiver" value="on">
                         </div>
 
-                        <div style="margin-top: 15px;">
-                            <label style="display:block; margin-bottom:5px; font-size:0.9rem; color:#e5e7eb;">Créer une
-                                lettre de transport retour:</label>
-                            <div class="radio-group">
-                                <label><input type="radio" name="opt_retour" value="none" checked> Non</label>
-                                <label><input type="radio" name="opt_retour" value="identique"> Identique</label>
-                                <label><input type="radio" name="opt_retour" value="diff"> Différente</label>
-                            </div>
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label>Mail Tiers (Réception Bordereau) *</label>
+                            <input type="email" name="sendToThirdPersonInfo" required
+                                placeholder="Votre email pour recevoir le PDF">
                         </div>
                     </div>
                 </div>
@@ -241,6 +323,111 @@
         </form>
     </main>
     <script src="../js/chronopost-autocomplete.js"></script>
+    <script>
+        // Handle checkbox to hidden input sync
+        document.querySelectorAll('input[type="checkbox"]').forEach(box => {
+            box.addEventListener('change', e => {
+                const hidden = e.target.parentElement.nextElementSibling;
+                if (hidden && hidden.type === 'hidden') {
+                    hidden.value = e.target.checked ? 'on' : 'off';
+                }
+            });
+        });
+
+        // Visibility toggling for Company Name based on Type (Pro=0, Part=1)
+        function toggleCompanyField(typeRadioName, divId) {
+            const radios = document.getElementsByName(typeRadioName);
+            const div = document.getElementById(divId);
+            const handle = () => {
+                // If Pro (0) is checked, show. Else hide.
+                const isPro = document.querySelector(`input[name="${typeRadioName}"][value="0"]`).checked;
+                div.style.display = isPro ? 'block' : 'none';
+            };
+            radios.forEach(r => r.addEventListener('change', handle));
+            handle(); // init
+        }
+
+        toggleCompanyField('senderType', 'senderCompanyDiv');
+        toggleCompanyField('receiverType', 'receiverCompanyDiv');
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            // Date processing: YYYY-MM-DD -> dd/MM/yyyy
+            // The input name is shippingDate_input, we need to set 'shippingDate' in data
+            if (data.shippingDate_input) {
+                const [y, m, d] = data.shippingDate_input.split('-');
+                data.shippingDate = `${d}/${m}/${y}`;
+            } else {
+                // If empty, delete the input key so backend defaults to today
+                // or just leave it empty if backend checks truthiness
+                // But better not send 'shippingDate_input' key to backend?
+                // Backend expects 'shippingDate'
+                // If we don't set it, get_val returns None -> backend defaults to Today.
+            }
+            // Cleanup input key not needed by backend
+            delete data.shippingDate_input;
+
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = '';
+            statusDiv.className = '';
+
+            document.getElementById('overlay').style.visibility = 'visible';
+
+            try {
+                // Adjust this URL to your deployed server or localhost
+                const API_URL = "http://localhost:8000/generate-chronopost";
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: data })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.status === 'success') {
+                    console.log("Response:", result);
+                    statusDiv.textContent = "Génération réussie ! Durée: " + result.duration.toFixed(2) + "s";
+                    statusDiv.className = "success-message";
+
+                    // Decode Base64
+                    const binaryString = window.atob(result.content);
+                    const len = binaryString.length;
+                    const bytes = new Uint8Array(len);
+                    for (let i = 0; i < len; i++) {
+                        bytes[i] = binaryString.charCodeAt(i);
+                    }
+
+                    // Create Blob
+                    const blob = new Blob([bytes], { type: 'application/pdf' });
+                    const url = window.URL.createObjectURL(blob);
+
+                    // Download
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = "bordereau_chronopost.pdf";
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+
+                } else {
+                    throw new Error(result.message || "Erreur inconnue");
+                }
+
+            } catch (error) {
+                console.error(error);
+                statusDiv.textContent = "Erreur: " + error.message;
+                statusDiv.className = "error-message";
+            } finally {
+                document.getElementById('overlay').style.visibility = 'hidden';
+            }
+        }
+    </script>
 </body>
 
 </html>
