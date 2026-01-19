@@ -38,12 +38,12 @@ class QRRequest(BaseModel):
 
 @app.post("/generate-mrz")
 def generate_mrz_endpoint(req: MRZRequest):
-    if req.mode == "aleatoire":
+    if req.mode.lower() == "aleatoire":
         data = generate_random_data()
         mrz = generate_mrz(data)
         return {"mrz": [f"{mrz['line1']}\n{mrz['line2']}"]}
 
-    if req.mode == "manuel":
+    if req.mode.lower() == "manuel":
         data = {
             "nom": req.nom,
             "prenom": req.prenom,
