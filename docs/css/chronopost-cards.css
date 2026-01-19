@@ -1,0 +1,121 @@
+/* Chronopost Card Styles - Dark Theme Adaptation */
+
+.layout-offres {
+    padding: 20px;
+}
+
+.offers-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    justify-content: center;
+}
+
+.offre-wrapper {
+    background: #161a22;
+    border: 1px solid #2a2f3a;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.offre-wrapper:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-color: #3b82f6;
+}
+
+.views-field-field-image-de-l-offre img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+}
+
+.wrapper-delais-destination {
+    padding: 15px 20px 5px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.wrapper-delais-destination ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.delai {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.delai[data-tag-color="bleu-clair"] {
+    background-color: #00A1E3;
+    /* Chronopost Light Blue */
+}
+
+.delai[data-tag-color="bleu-fonce"] {
+    background-color: #0c4c96;
+    /* Chronopost Dark Blue */
+}
+
+.delai[data-tag-color="gris-fonce"] {
+    background-color: #4b5563;
+}
+
+.wrapper-delais-destination li {
+    font-size: 0.85rem;
+    color: #9ca3af;
+    background: #1f2937;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+.views-field-field-titre-de-l-offre {
+    padding: 10px 20px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #e5e7eb;
+    min-height: 60px;
+}
+
+.views-field-field-descriptif-de-l-offre {
+    padding: 0 20px 20px;
+    font-size: 0.9rem;
+    color: #9ca3af;
+    line-height: 1.5;
+    flex-grow: 1;
+}
+
+.wrapper-link-offer {
+    padding: 20px;
+    margin: 0;
+    background: #1f2937;
+    border-top: 1px solid #2a2f3a;
+    text-align: center;
+}
+
+.offer-link {
+    display: block;
+    width: 100%;
+    padding: 10px 0;
+    background-color: #005BBB;
+    /* Chronopost Blue */
+    color: white;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.offer-link:hover {
+    background-color: #004494;
+}

@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chrono 10 - Générer Bordereau</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/home.css">
+    <link rel="stylesheet" href="../css/chronopost-forms.css">
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">OnlineTools</a>
+            <nav class="nav">
+                <a href="../index.html">Home</a>
+                <a href="../tools/tools-liste.html">Tools</a>
+                <a href="../contact.html">Contact</a>
+                <a href="../cart/cart.html">Panier</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="content form-container">
+
+        <h1 class="page-title">Chrono 10 - Livraison demain avant 10h</h1>
+
+        <form action="#" method="POST">
+
+            <div class="sections-grid">
+                <!-- Section 2: Expéditeur -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span><span class="section-number">2</span> Expéditeur</span>
+                        <span>FRANCE</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="radio-group" style="margin-bottom: 20px;">
+                            <label>Type *</label>
+                            <label><input type="radio" name="exp_type" value="pro"> Professionnel</label>
+                            <label><input type="radio" name="exp_type" value="part" checked> Particulier</label>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nom *</label>
+                                <input type="text" name="exp_nom" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Pays *</label>
+                                <select name="exp_pays">
+                                    <option value="FR">FRANCE</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Prénom *</label>
+                                <input type="text" name="exp_prenom" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Code Postal *</label>
+                                <input type="text" name="exp_cp" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Téléphone</label>
+                                <input type="tel" name="exp_tel">
+                            </div>
+                            <div class="form-group">
+                                <label>Ville *</label>
+                                <input type="text" name="exp_ville" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>E-mail *</label>
+                                <input type="email" name="exp_email" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Adresse *</label>
+                                <input type="text" name="exp_adresse" required>
+                            </div>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="exp_save"> Conserver cet expéditeur pour mes prochains
+                                envois</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Destinataire -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span><span class="section-number">3</span> Destinataire</span>
+                        <span>FRANCE</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="radio-group" style="margin-bottom: 20px;">
+                            <label>Type *</label>
+                            <label><input type="radio" name="dest_type" value="pro" checked> Professionnel</label>
+                            <label><input type="radio" name="dest_type" value="part"> Particulier</label>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Raison Sociale *</label>
+                                <input type="text" name="dest_raison">
+                            </div>
+                            <div class="form-group">
+                                <label>Pays *</label>
+                                <select name="dest_pays">
+                                    <option value="FR">FRANCE</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nom *</label>
+                                <input type="text" name="dest_nom" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Code Postal *</label>
+                                <input type="text" name="dest_cp" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Prénom</label>
+                                <input type="text" name="dest_prenom">
+                            </div>
+                            <div class="form-group">
+                                <label>Ville *</label>
+                                <input type="text" name="dest_ville" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Téléphone</label>
+                                <input type="tel" name="dest_tel">
+                            </div>
+                            <div class="form-group">
+                                <label>Adresse *</label>
+                                <input type="text" name="dest_adresse" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>E-mail *</label>
+                                <input type="email" name="dest_email" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Digicode / Interphone</label>
+                                <input type="text" name="dest_digicode">
+                            </div>
+                        </div>
+
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="dest_save"> Conserver ce destinataire pour mes prochains
+                                envois</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sections-grid">
+                <!-- Section 4: Colis -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span><span class="section-number">4</span> Colis</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nombre de colis *</label>
+                                <input type="number" name="colis_nb" value="1" min="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Poids unitaire (kg) *</label>
+                                <input type="number" name="colis_poids" step="0.1" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Nom de l'envoi</label>
+                            <input type="text" name="colis_ref">
+                        </div>
+                        <div class="form-group">
+                            <label>Date de l'envoi *</label>
+                            <input type="date" name="colis_date" required>
+                        </div>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="colis_save"> Conserver ces caractéristiques</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 5: Options -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span><span class="section-number">5</span> Options</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="opt_assurance"> Assurer mon colis</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="opt_suivi_mail"> Recevoir le suivi par mail</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="opt_dest_mail"> Avertir le destinataire par mail</label>
+                        </div>
+
+                        <div style="margin-top: 15px;">
+                            <label style="display:block; margin-bottom:5px; font-size:0.9rem; color:#e5e7eb;">Créer une
+                                lettre de transport retour:</label>
+                            <div class="radio-group">
+                                <label><input type="radio" name="opt_retour" value="none" checked> Non</label>
+                                <label><input type="radio" name="opt_retour" value="identique"> Identique</label>
+                                <label><input type="radio" name="opt_retour" value="diff"> Différente</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button type="submit" class="btn-validate">Valider et imprimer lettre(s) de transport (F12)</button>
+            </div>
+
+        </form>
+    </main>
+    <script src="../js/chronopost-autocomplete.js"></script>
+</body>
+
+</html>

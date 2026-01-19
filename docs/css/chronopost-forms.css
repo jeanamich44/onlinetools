@@ -1,0 +1,179 @@
+/* Main Layout */
+.form-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Page Title to match Chronopost */
+.page-title {
+    font-size: 2rem;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #2a2f3a;
+    padding-bottom: 15px;
+}
+
+/* Sections Grid */
+.sections-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Full width for smaller screens */
+@media (max-width: 900px) {
+    .sections-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Individual Section Card */
+.form-section {
+    background-color: #161a22;
+    border: 1px solid #2a2f3a;
+    border-radius: 8px;
+    /* Slightly sharper corners */
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Section Header (The Blue Bar) */
+.section-header {
+    background-color: #00A1E3;
+    /* Light Blue/Cyan from image */
+    color: white;
+    /* Dark text for contrast on light blue, or white if using dark blue. Image shows dark blue header actually? Let's check image. Image has Blue header with white text. */
+    background-color: #005BBB;
+    /* Chronopost Blue for header based on image */
+    color: white;
+    padding: 10px 15px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.section-number {
+    background-color: rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-right: 10px;
+}
+
+/* Form Content */
+.section-content {
+    padding: 20px;
+}
+
+/* Form Groups */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #e5e7eb;
+    font-size: 0.9rem;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="number"],
+.form-group input[type="tel"],
+.form-group input[type="date"],
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    background-color: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #c9d1d9;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+    /* Important for padding */
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #00A1E3;
+    box-shadow: 0 0 0 2px rgba(0, 161, 227, 0.3);
+}
+
+/* Radio Buttons & Checkboxes */
+.radio-group {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 10px;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.radio-group input[type="radio"] {
+    margin-right: 8px;
+}
+
+.checkbox-group {
+    margin-top: 10px;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+/* Action Bar */
+.action-bar {
+    background-color: #161a22;
+    padding: 20px;
+    border-top: 2px solid #2a2f3a;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.btn-validate {
+    background-color: #00A1E3;
+    color: white;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-validate:hover {
+    background-color: #0081b5;
+}
+
+/* Two Column Layout within a section */
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+/* Helper Text */
+.helper-text {
+    font-size: 0.8rem;
+    color: #8b949e;
+    margin-top: 4px;
+}

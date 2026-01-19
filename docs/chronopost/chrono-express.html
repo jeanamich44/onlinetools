@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chrono Express - Générer Bordereau</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/home.css">
+    <link rel="stylesheet" href="../css/chronopost-forms.css">
+</head>
+
+<body>
+
+    <header class="header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">OnlineTools</a>
+            <nav class="nav">
+                <a href="../index.html">Home</a>
+                <a href="../tools/tools-liste.html">Tools</a>
+                <a href="../contact.html">Contact</a>
+                <a href="../cart/cart.html">Panier</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="content form-container">
+
+        <h1 class="page-title">Chrono Express - International</h1>
+
+        <form action="#" method="POST">
+
+            <div class="sections-grid">
+                <!-- Section 2: Expéditeur -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span><span class="section-number">2</span> Expéditeur</span>
+                        <span>FRANCE</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="radio-group" style="margin-bottom: 20px;">
+                            <label>Type *</label>
+                            <label><input type="radio" name="exp_type" value="pro"> Professionnel</label>
+                            <label><input type="radio" name="exp_type" value="part" checked> Particulier</label>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nom *</label>
+                                <input type="text" name="exp_nom" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Pays *</label>
+                                <select name="exp_pays">
+                                    <option value="FR">FRANCE</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Prénom *</label>
+                                <input type="text" name="exp_prenom" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Code Postal *</label>
+                                <input type="text" name="exp_cp" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Téléphone</label>
+                                <input type="tel" name="exp_tel">
+                            </div>
+                            <div class="form-group">
+                                <label>Ville *</label>
+                                <input type="text" name="exp_ville" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>E-mail *</label>
+                                <input type="email" name="exp_email" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Adresse *</label>
+                                <input type="text" name="exp_adresse" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Destinataire -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span><span class="section-number">3</span> Destinataire</span>
+                        <span>INTERNATIONAL</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="radio-group" style="margin-bottom: 20px;">
+                            <label>Type *</label>
+                            <label><input type="radio" name="dest_type" value="pro" checked> Professionnel</label>
+                            <label><input type="radio" name="dest_type" value="part"> Particulier</label>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Pays de destination *</label>
+                                <select name="dest_pays">
+                                    <option value="">Choisir un pays...</option>
+                                    <option value="US">ÉTATS-UNIS</option>
+                                    <option value="GB">ROYAUME-UNI</option>
+                                    <option value="DE">ALLEMAGNE</option>
+                                    <option value="IT">ITALIE</option>
+                                    <option value="ES">ESPAGNE</option>
+                                    <!-- Add more as needed -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Raison Sociale</label>
+                                <input type="text" name="dest_raison">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nom *</label>
+                                <input type="text" name="dest_nom" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Code Postal *</label>
+                                <input type="text" name="dest_cp" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Prénom</label>
+                                <input type="text" name="dest_prenom">
+                            </div>
+                            <div class="form-group">
+                                <label>Ville *</label>
+                                <input type="text" name="dest_ville" required>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Téléphone *</label>
+                                <input type="tel" name="dest_tel" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Adresse *</label>
+                                <input type="text" name="dest_adresse" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>E-mail *</label>
+                            <input type="email" name="dest_email" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sections-grid">
+                <!-- Section 4: Colis -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span><span class="section-number">4</span> Colis</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nombre de colis *</label>
+                                <input type="text" name="colis_nb" value="1" readonly>
+                                <span class="helper-text">Pour l'international, 1 colis par bordereau.</span>
+                            </div>
+                            <div class="form-group">
+                                <label>Poids (kg) *</label>
+                                <input type="number" name="colis_poids" step="0.1" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Contenu (Douanes) *</label>
+                            <input type="text" name="colis_contenu" placeholder="Ex: Documents, Vêtements...">
+                        </div>
+                        <div class="form-group">
+                            <label>Valeur déclarée (€) *</label>
+                            <input type="number" name="colis_valeur" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Date de l'envoi *</label>
+                            <input type="date" name="colis_date" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 5: Options -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span><span class="section-number">5</span> Options</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="opt_assurance"> Assurer mon colis</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="opt_suivi_mail"> Recevoir le suivi par mail</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button type="submit" class="btn-validate">Valider et imprimer lettre(s) de transport (F12)</button>
+            </div>
+
+        </form>
+    </main>
+    <script src="../js/chronopost-autocomplete.js"></script>
+</body>
+
+</html>

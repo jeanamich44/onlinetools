@@ -3,9 +3,12 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Contact</title>
+    <title>Contact & Réseaux - OnlineTools</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/style.css">
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="css/home.css">
+    <!-- Contact Specific Styles -->
+    <link rel="stylesheet" href="css/contact.css">
 </head>
 
 <body>
@@ -17,49 +20,71 @@
                 <a href="index.html">Home</a>
                 <a href="tools/tools-liste.html">Tools</a>
                 <a href="contact.html">Contact</a>
-                <a href="cart/cart.html">
-                    <Param>Panier</Param>
-                </a>
+                <a href="cart/cart.html">Panier</a>
             </nav>
         </div>
     </header>
 
-    <div class="container">
-        <h1>Contact</h1>
-        <p class="subtitle">Me contacter ou rejoindre les canaux</p>
+    <main class="contact-layout">
 
-        <div style="display:flex; flex-direction:column; gap:14px;">
+        <div class="page-header">
+            <h1 class="page-title">Contact & Communauté</h1>
+            <p class="page-subtitle">Rejoignez-nous sur nos différents réseaux</p>
+        </div>
 
-            <div>
-                <strong>Contact :</strong><br>
-                <a href="https://t.me/RheyyFonda" target="_blank" class="back">t.me/RheyyFonda</a>
-                <a href="https://t.me/RheyyTechnicien" target="_blank" class="back">t.me/RheyyTechnicien</a>
+        <div class="contact-grid">
+
+            <!-- Card 1: Support Direct (Telegram) -->
+            <div class="contact-card telegram-card">
+                <div class="platform-icon">✈️</div>
+                <h2 class="card-title">Support Direct</h2>
+                <p class="card-desc">Une question ? Un problème ? Contactez-nous.</p>
+
+                <div class="links-list">
+                    <a href="https://t.me/RheyyFonda" target="_blank" class="contact-button">
+                        @RheyyFonda
+                    </a>
+                    <a href="https://t.me/RheyyTechnicien" target="_blank" class="contact-button">
+                        @RheyyTechnicien
+                    </a>
+                </div>
             </div>
 
-            <div>
-                <strong>Telegram :</strong><br>
-                <a href="https://t.me/ChezRheyy" target="_blank" class="back">t.me/ChezRheyy</a>
+            <!-- Card 2: Canaux (Telegram) -->
+            <div class="contact-card telegram-card">
+                <div class="platform-icon">📢</div>
+                <h2 class="card-title">Nos Canaux</h2>
+                <p class="card-desc">Suivez les news, les preuves et les drops.</p>
+
+                <div class="links-list">
+                    <a href="https://t.me/ChezRheyy" target="_blank" class="contact-button">
+                        Canal Principal (@ChezRheyy)
+                    </a>
+                    <a href="https://t.me/ChezQuickk" target="_blank" class="contact-button">
+                        Telegram Quick (@ChezQuickk)
+                    </a>
+                    <a href="https://t.me/ChezRheyyPreuve" target="_blank" class="contact-button">
+                        Canal Preuves (@ChezRheyyPreuve)
+                    </a>
+                </div>
             </div>
 
-            <div>
-                <strong>Telegram Quick :</strong><br>
-                <a href="https://t.me/ChezQuickk" target="_blank" class="back">t.me/ChezQuickk</a>
-            </div>
+            <!-- Card 3: Snapchat -->
+            <div class="contact-card snapchat-card">
+                <div class="platform-icon">👻</div>
+                <h2 class="card-title">Snapchat</h2>
+                <p class="card-desc">Ajoutez le compte officiel.</p>
 
-            <div>
-                <strong>Telegram Preuve :</strong><br>
-                <a href="https://t.me/ChezRheyyPreuve" target="_blank" class="back">t.me/ChezRheyyPreuve</a>
-            </div>
-
-            <div>
-                <strong>SnapChat :</strong><br>
-                <span style="color:#9ca3af;">ChezRheyy</span>
+                <div class="links-list">
+                    <div class="snapchat-text">
+                        ChezRheyy
+                    </div>
+                </div>
             </div>
 
         </div>
 
-        <a href="./index.html" class="back">← Retour</a>
-    </div>
+    </main>
 
 </body>
 
