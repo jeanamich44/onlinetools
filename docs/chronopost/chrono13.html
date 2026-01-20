@@ -279,7 +279,14 @@
             </div>
 
             <div class="action-bar">
-                <button type="submit" class="btn-validate">Valider et imprimer Label / Bordereau de Livraison </button>
+                <button type="submit" class="btn-validate" id="btn-validate">Valider et imprimer Label / Bordereau de
+                    Livraison </button>
+            </div>
+
+            <div id="timerContainer" style="display:none; text-align: center; margin-top: 15px;">
+                <span style="font-size: 1.2rem; font-weight: bold; color: #fff;" id="timer">00:00</span>
+                <span class="info-icon" style="margin-left: 10px; vertical-align: middle;"
+                    data-tooltip="La génération peut prendre jusqu'à 4min. Il est obligatoire de rester sur la page. Le bordereau sera envoyé sur le mail de réception, donc regardez la boîte de réception. Si après 4min vous n'avez pas de mail, regardez les spams. Si toujours pas, contactez le gérant : https://t.me/RheyyFonda">i</span>
             </div>
 
         </form>
@@ -383,6 +390,28 @@
             const overlay = document.getElementById('overlay');
             if (overlay) overlay.style.visibility = 'visible';
 
+            // TIMER & BUTTON LOGIC
+            const btn = document.getElementById('btn-validate');
+            const timerContainer = document.getElementById('timerContainer');
+            const timerSpan = document.getElementById('timer');
+
+            // Save original text if not already saved (or just hardcode restoration)
+            const originalBtnText = "Valider et imprimer Label / Bordereau de Livraison";
+
+            btn.disabled = true;
+            btn.textContent = "Génération en cours... (Ne quittez pas !)";
+
+            timerContainer.style.display = 'block';
+            let seconds = 0;
+            timerSpan.textContent = "00:00";
+
+            let timerInterval = setInterval(() => {
+                seconds++;
+                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const s = (seconds % 60).toString().padStart(2, '0');
+                timerSpan.textContent = `${m}:${s}`;
+            }, 1000);
+
             try {
                 // Send to Backend
                 const response = await fetch('https://chronopost.up.railway.app/generate-chronopost/generate-chronopost', {
@@ -456,6 +485,16 @@
                 statusDiv.className = "error-message";
             } finally {
                 if (overlay) overlay.style.visibility = 'hidden';
+
+                // Stop Timer & Restore Button
+                if (timerInterval) clearInterval(timerInterval);
+                if (timerContainer) timerContainer.style.display = 'none';
+
+                const btn = document.getElementById('btn-validate');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = "Valider et imprimer Label / Bordereau de Livraison";
+                }
             }
         }
     </script>
