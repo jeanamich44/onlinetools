@@ -17,8 +17,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_FILE = os.path.join(BASE_DIR, "log.txt")
 
 def log(line):
-    with open(LOG_FILE, "a", encoding="utf-8") as f:
-        f.write(line + "\n")
+    print(f"[LOG] {line}")
 
 REQ_ID = 0
 

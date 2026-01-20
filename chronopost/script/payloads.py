@@ -1,9 +1,7 @@
 # ========================= payloads.py =========================
 from datetime import datetime
 from urllib.parse import quote_plus
-from colorama import Fore, Style, init
 
-init(autoreset=True)
 
 BASE_PAYLOAD = (
 	# === META / CONFIG ===
@@ -127,43 +125,30 @@ def normalize_address(v):
     return v.strip().replace(" ", "+")
 
 def ask(label, default=None, required=False, validator=None, data=None, key=None):
-    # If data dictionary is provided and key exists, try to use it
+    # If data dictionary is provided and key exists, try to use it.
+    # In web mode, we expect 'data' to be populated.
+    val = None
     if data is not None and key is not None:
         val = data.get(key)
-        # If value is missing or empty, handle default/required
-        if not val:
-            if default is not None:
-                val = default
-            elif required:
-                # In API mode, missing required field is an error
-                raise ValueError(f"Missing required field: {key}")
-            else:
-                 val = "" # optional field empty
-        
-        # Validate if validator exists
-        if validator and val: # only validate if we have a value
-             if not validator(val):
-                  raise ValueError(f"Invalid value for {key}: {val}")
-        
-        # Return the value (or default/empty string)
-        return str(val) if val is not None else ""
-
-    # Fallback to interactive mode if no data dict provided
-    while True:
-        prompt = f"{Fore.CYAN}{label}{Style.RESET_ALL}"
-        if default:
-            prompt += f" {Fore.YELLOW}[{default}]{Style.RESET_ALL}"
-        prompt += " : "
-        val = input(prompt).strip()
-        if not val:
-            if required and not default:
-                print(Fore.RED + "Valeur obligatoire")
-                continue
+    
+    # If value is missing or empty, handle default/required
+    if not val:
+        if default is not None:
             val = default
-        if validator and not validator(val):
-            print(Fore.RED + "Valeur invalide")
-            continue
-        return val
+        elif required:
+            # In API mode, missing required field is an error
+            raise ValueError(f"Missing required field: {key} ({label})")
+        else:
+             val = "" # optional field empty
+    
+    # Validate if validator exists
+    if validator and val: # only validate if we have a value
+            if not validator(val):
+                # For basic logging if needed, or just raise
+                raise ValueError(f"Invalid value for {key}: {val}")
+    
+    # Return the value (or default/empty string)
+    return str(val) if val is not None else ""
 
 def phone_validator(v):
     return len(v) >= 8
