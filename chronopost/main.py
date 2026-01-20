@@ -28,8 +28,7 @@ class ChronopostRequest(BaseModel):
 def generate_chronopost_endpoint(req: ChronopostRequest):
     try:
         result = run_chronopost(req.data)
-        if result["status"] == "error":
-            raise HTTPException(status_code=500, detail=result["message"])
+        # We return the result even on error so frontend can see debug_payload
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

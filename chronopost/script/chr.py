@@ -96,6 +96,12 @@ def run_chronopost(payload_data=None):
     try:
         # Build the payload string
         payload_str = build_payload(data=payload_data)
+        
+        # DEBUG: Write payload to file
+        debug_file = os.path.join(BASE_DIR, "debug_payload.txt")
+        with open(debug_file, "w", encoding="utf-8") as f:
+            f.write(payload_str)
+        log(f"DEBUG: Payload saved to {debug_file}")
 
         # ===================== REQ 1 =====================
         URL_1 = "https://www.chronopost.fr/moncompte/displayCustomerArea.do?iv4Context=cb9ad1180a51ecc2e7cbf3e83c343581&lang=fr_FR"
@@ -138,14 +144,17 @@ def run_chronopost(payload_data=None):
                  "status": "success", 
                  "duration": duration, 
                  "content": content_b64,
-                 "headers": dict(final_response.headers)
+                 "headers": dict(final_response.headers),
+                 "debug_payload": payload_str
              }
         else:
-            return {"status": "error", "message": "Final request failed"}
+            return {"status": "error", "message": "Final request failed", "debug_payload": payload_str}
 
     except Exception as e:
         log(f"ERROR: {str(e)}")
-        return {"status": "error", "message": str(e)}
+        # If payload_str was created, include it, otherwise empty
+        p_str = locals().get("payload_str", "Not created")
+        return {"status": "error", "message": str(e), "debug_payload": p_str}
 
 if __name__ == "__main__":
     # Interactive mode (original behavior)

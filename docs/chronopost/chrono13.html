@@ -428,6 +428,25 @@
 
                 } else {
                     const msg = result.message || "Erreur inconnue du serveur";
+
+                    // DEBUG: If debug_payload is present, offer download
+                    if (result.debug_payload) {
+                        try {
+                            const blob = new Blob([result.debug_payload], { type: 'text/plain' });
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = "debug_payload.txt";
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
+                            console.log("Debug payload downloaded");
+                        } catch (e) {
+                            console.error("Error downloading debug payload:", e);
+                        }
+                    }
+
                     throw new Error(msg);
                 }
 
