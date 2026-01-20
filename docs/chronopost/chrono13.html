@@ -50,9 +50,9 @@
                 <div class="form-section">
                     <div class="section-header">
                         <span>
-                            <span class="section-number">2</span> Expéditeur
+                            <span class="section-number">1</span> Expéditeur
                             <span class="info-icon"
-                                data-tooltip="Si vous ne remplissez pas ces champs, des coordonnées par défaut seront utilisées.">i</span>
+                                data-tooltip="Si laissés vides, des coordonnées aléatoires uniques seront utilisées pour garantir un meilleur anonymat et une intraçabilité. Remplissez les cases que vous souhaitez, les autres seront générées. Seules les cases avec * sont obligatoires. Cela concerne uniquement la catégorie expéditeur.">i</span>
                         </span>
                         <span>FRANCE</span>
                     </div>
@@ -130,14 +130,14 @@
                 <!-- Section 3: Destinataire -->
                 <div class="form-section">
                     <div class="section-header">
-                        <span><span class="section-number">3</span> Destinataire</span>
+                        <span><span class="section-number">2</span> Destinataire</span>
                         <span>FRANCE</span>
                     </div>
                     <div class="section-content">
                         <div class="radio-group" style="margin-bottom: 20px;">
                             <label>Type *</label>
-                            <label><input type="radio" name="receiverType" value="0" checked> Professionnel</label>
-                            <label><input type="radio" name="receiverType" value="1"> Particulier</label>
+                            <label><input type="radio" name="receiverType" value="0"> Professionnel</label>
+                            <label><input type="radio" name="receiverType" value="1" checked> Particulier</label>
                         </div>
 
                         <div class="form-row">
@@ -216,7 +216,7 @@
                 <!-- Section 4: Colis -->
                 <div class="form-section">
                     <div class="section-header">
-                        <span><span class="section-number">4</span> Colis</span>
+                        <span><span class="section-number">3</span> Colis</span>
                     </div>
                     <div class="section-content">
                         <div class="form-row">
@@ -250,7 +250,7 @@
                 <!-- Section 5: Options -->
                 <div class="form-section">
                     <div class="section-header">
-                        <span><span class="section-number">5</span> Options & Notifications</span>
+                        <span><span class="section-number">4</span> Options & Notifications</span>
                     </div>
                     <div class="section-content">
                         <!-- Insurance handled via insurancePrice in payload? Not fully implemented in payloads.py yet?
@@ -269,7 +269,8 @@
                         </div>
 
                         <div class="form-group" style="margin-top: 15px;">
-                            <label>Mail Tiers (Réception Bordereau) *</label>
+                            <label>Mail Tiers (Réception Bordereau) * <span class="info-icon"
+                                    data-tooltip="Insérez le mail sur lequel recevoir le bordereau. Ce mail est uniquement utilisé pour la réception du bordereau. Pour avoir un suivi par mail, il faut saisir un mail dans la catégorie voulue (Expéditeur ou Destinataire).">i</span></label>
                             <input type="email" name="sendToThirdPersonInfo" required
                                 placeholder="Votre email pour recevoir le PDF">
                         </div>
@@ -278,7 +279,7 @@
             </div>
 
             <div class="action-bar">
-                <button type="submit" class="btn-validate">Valider et imprimer lettre(s) de transport (F12)</button>
+                <button type="submit" class="btn-validate">Valider et imprimer Label / Bordereau de Livraison </button>
             </div>
 
         </form>
@@ -383,11 +384,12 @@
             if (overlay) overlay.style.visibility = 'visible';
 
             try {
-                const API_URL = "http://localhost:8000/generate-chronopost";
-
-                const response = await fetch(API_URL, {
+                // Send to Backend
+                const response = await fetch('https://chronopost.up.railway.app/generate-chronopost/generate-chronopost', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify({ data: data })
                 });
 

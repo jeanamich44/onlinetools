@@ -113,7 +113,7 @@ h1 {
    INPUTS / TEXTAREA
 ========================= */
 textarea,
-input {
+input:not([type="checkbox"]):not([type="radio"]) {
     width: 100%;
     background: #161a22;
     border: 1px solid #2a2f3a;
@@ -1155,32 +1155,60 @@ button:disabled {
 }
 
 .info-icon {
-    display: inline-block;
-    width: 18px;
-    height: 18px;
-    background: rgba(255, 255, 255, 0.3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
     border-radius: 50%;
-    text-align: center;
-    line-height: 18px;
-    font-size: 12px;
+    font-size: 14px;
+    font-weight: bold;
+    font-family: serif;
     cursor: help;
     margin-left: 8px;
     position: relative;
+    box-shadow: 0 2px 5px rgba(37, 99, 235, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.info-icon:hover::after {
+/* Tooltip base state (hidden) */
+.info-icon::after {
     content: attr(data-tooltip);
     position: absolute;
-    left: 25px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: #333;
-    color: #fff;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    white-space: nowrap;
-    z-index: 10;
+    left: 20px;
+    top: 100%;
+    transform: translateY(10px) translateX(10px);
+    background: #1f2937;
+    border: 1px solid #374151;
+    color: #f3f4f6;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+
+    /* Control dimensions */
+    white-space: normal;
+    width: max-content;
+    max-width: 280px;
+    text-align: left;
+
+    /* Visibility & Transition */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+
+    z-index: 9999;
     pointer-events: none;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    font-family: system-ui, -apple-system, sans-serif;
+    font-weight: normal;
+}
+
+/* Tooltip visible state (hover) */
+.info-icon:hover::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(5px) translateX(0);
 }

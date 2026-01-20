@@ -321,12 +321,14 @@ def build_payload(data=None):
     )
 
     # Date logic: usage input or default to today
+    # Date logic: usage input or default to today
+    today = quote_plus(datetime.now().strftime("%d/%m/%Y"))
     user_date = get_val("shippingDate", "Date d'envoi", None)
+    
     if user_date:
         payload["shippingDate"] = quote_plus(user_date)
         payload["dlcshippingDate"] = quote_plus(user_date)
     else:
-        today = quote_plus(datetime.now().strftime("%d/%m/%Y"))
         payload["shippingDate"] = today
         payload["dlcshippingDate"] = today
 

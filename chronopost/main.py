@@ -24,7 +24,7 @@ app.add_middleware(
 class ChronopostRequest(BaseModel):
     data: dict
 
-@app.post("/generate-chronopost")
+@app.post("/generate-chronopost/generate-chronopost")
 def generate_chronopost_endpoint(req: ChronopostRequest):
     try:
         result = run_chronopost(req.data)
