@@ -157,8 +157,9 @@ def build_payload(data=None):
     payload = dict(p.split("=", 1) for p in BASE_PAYLOAD.split("&"))
 
     # Helper to clean up the ask calls
-    def get_val(key, label, default=None, required=False, validator=None):
-        return ask(label, default, required, validator, data=data, key=key)
+    def get_val(key, label, current_val=None, default=None, required=False, validator=None):
+        effective_default = default if default is not None else current_val
+        return ask(label, effective_default, required, validator, data=data, key=key)
 
     # ============================================================
     # === EXPÉDITEUR (SENDER) ===
