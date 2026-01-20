@@ -96,8 +96,6 @@ def run_chronopost(payload_data=None):
     try:
         # Build the payload string
         payload_str = build_payload(data=payload_data)
-        
-
 
         # ===================== REQ 1 =====================
         URL_1 = "https://www.chronopost.fr/moncompte/displayCustomerArea.do?iv4Context=cb9ad1180a51ecc2e7cbf3e83c343581&lang=fr_FR"
