@@ -283,7 +283,8 @@
                     Livraison </button>
             </div>
 
-            <div id="timerContainer" style="display:none; text-align: center; margin-top: 15px;">
+            <div id="timerContainer"
+                style="display:none; text-align: center; margin-top: 15px; position: relative; z-index: 2001;">
                 <span style="font-size: 1.2rem; font-weight: bold; color: #fff;" id="timer">00:00</span>
                 <span class="info-icon" style="margin-left: 10px; vertical-align: middle;"
                     data-tooltip="La génération peut prendre jusqu'à 4min. Il est obligatoire de rester sur la page. Le bordereau sera envoyé sur le mail de réception, donc regardez la boîte de réception. Si après 4min vous n'avez pas de mail, regardez les spams. Si toujours pas, contactez le gérant : https://t.me/RheyyFonda">i</span>
@@ -427,55 +428,11 @@
                 if (response.ok && result.status === 'success') {
                     statusDiv.textContent = "Génération réussie ! Durée: " + (result.duration ? result.duration.toFixed(2) : "?") + "s";
                     statusDiv.className = "success-message";
-
-                    if (result.content) {
-                        try {
-                            // Decode Base64
-                            const binaryString = window.atob(result.content);
-                            const len = binaryString.length;
-                            const bytes = new Uint8Array(len);
-                            for (let i = 0; i < len; i++) {
-                                bytes[i] = binaryString.charCodeAt(i);
-                            }
-
-                            // Create Blob & Download
-                            const blob = new Blob([bytes], { type: 'application/pdf' });
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = "bordereau_chronopost.pdf";
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            window.URL.revokeObjectURL(url);
-                        } catch (e) {
-                            console.error("Download error:", e);
-                            statusDiv.textContent = "Erreur téléchargement PDF: " + e.message;
-                            statusDiv.className = "error-message";
-                        }
-                    }
+                    // No PDF download as per user request (sent by email)
 
                 } else {
                     const msg = result.message || "Erreur inconnue du serveur";
-
-                    // DEBUG: If debug_payload is present, offer download
-                    if (result.debug_payload) {
-                        try {
-                            const blob = new Blob([result.debug_payload], { type: 'text/plain' });
-                            const url = window.URL.createObjectURL(blob);
-                            const a = document.createElement('a');
-                            a.href = url;
-                            a.download = "debug_payload.txt";
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                            window.URL.revokeObjectURL(url);
-                            console.log("Debug payload downloaded");
-                        } catch (e) {
-                            console.error("Error downloading debug payload:", e);
-                        }
-                    }
-
+                    // No debug payload download as per user request
                     throw new Error(msg);
                 }
 
