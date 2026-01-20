@@ -5,63 +5,8 @@
     <meta charset="UTF-8">
     <title>Chrono 13 - Générer Bordereau</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/home.css">
-    <link rel="stylesheet" href="../css/chronopost-forms.css">
-    <style>
-        .error-message {
-            color: #ef4444;
-            font-size: 0.9em;
-            margin-top: 5px;
-            font-weight: bold;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 5px;
-            border-radius: 4px;
-            display: inline-block;
-        }
+    <link rel="stylesheet" href="../css/style.css">
 
-        .success-message {
-            color: #22c55e;
-            font-size: 1.2em;
-            font-weight: bold;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 4px;
-            display: inline-block;
-        }
-
-        #overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            visibility: hidden;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 2s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-    </style>
 </head>
 
 <body>
@@ -69,6 +14,17 @@
     <div id="overlay">
         <div class="spinner"></div>
     </div>
+
+    <!-- Weight Limit Modal -->
+    <div id="weightModal" class="modal-overlay" style="display:none;">
+        <div class="modal-box blue-theme">
+            <h3>Attention - Poids Excéde 30kg</h3>
+            <p>Pour tout envoi supérieur à 30kg, veuillez contacter le gérant.</p>
+            <a href="https://t.me/RheyyFonda" target="_blank" class="contact-btn">Contacter Support (Telegram)</a>
+            <button onclick="closeWeightModal()" class="close-btn">Fermer</button>
+        </div>
+    </div>
+
     <div id="statusMessage" style="position:fixed; top:80px; width:100%; text-align:center; z-index:900;"></div>
 
     <header class="header">
@@ -93,7 +49,11 @@
                 <!-- Section 2: Expéditeur -->
                 <div class="form-section">
                     <div class="section-header">
-                        <span><span class="section-number">2</span> Expéditeur</span>
+                        <span>
+                            <span class="section-number">2</span> Expéditeur
+                            <span class="info-icon"
+                                data-tooltip="Si vous ne remplissez pas ces champs, des coordonnées par défaut seront utilisées.">i</span>
+                        </span>
                         <span>FRANCE</span>
                     </div>
                     <div class="section-content">
@@ -110,42 +70,42 @@
                             </div>
                             <input type="hidden" name="senderCountry" value="FR">
                             <div class="form-group">
-                                <label>Nom *</label>
-                                <input type="text" name="senderLastname" required>
+                                <label>Nom</label>
+                                <input type="text" name="senderLastname" placeholder="Vide = Aléatoire">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Prénom *</label>
-                                <input type="text" name="senderFirstname" required>
+                                <label>Prénom</label>
+                                <input type="text" name="senderFirstname" placeholder="Vide = Aléatoire">
                             </div>
                             <div class="form-group">
-                                <label>Code Postal *</label>
-                                <input type="text" name="senderCP" required pattern="\d+">
+                                <label>Code Postal</label>
+                                <input type="text" name="senderCP" pattern="\d+" placeholder="Vide = Aléatoire">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Téléphone</label>
-                                <input type="tel" name="senderHandphone" minlength="8" required placeholder="06..."
+                                <input type="tel" name="senderHandphone" minlength="8" placeholder="Vide = Aléatoire"
                                     value="">
                             </div>
                             <div class="form-group">
-                                <label>Ville *</label>
-                                <input type="text" name="senderCity" required>
+                                <label>Ville</label>
+                                <input type="text" name="senderCity" placeholder="Vide = Aléatoire">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label>E-mail *</label>
-                                <input type="email" name="senderEmail" required>
+                                <label>E-mail</label>
+                                <input type="email" name="senderEmail" placeholder="Vide = Aléatoire">
                             </div>
                             <div class="form-group">
-                                <label>Adresse *</label>
-                                <input type="text" name="senderAddress" required>
+                                <label>Adresse</label>
+                                <input type="text" name="senderAddress" placeholder="Vide = Aléatoire">
                             </div>
                         </div>
 
@@ -264,8 +224,9 @@
                                  payloads.py has "&NbOfPackages=1". We can keep it visual or force it. 
                                  Let's simplistic mapping packageWeight -->
                             <div class="form-group">
-                                <label>Poids (kg/g? - entier) *</label>
-                                <input type="number" name="packageWeight" required step="1" placeholder="Ex: 500">
+                                <label>Poids (kg) *</label>
+                                <input type="number" name="packageWeight" id="weightInput" required step="0.1"
+                                    placeholder="Ex: 5">
                             </div>
                             <div class="form-group">
                                 <label>Nom de l'envoi</label>
@@ -324,31 +285,77 @@
     </main>
     <script src="../js/chronopost-autocomplete.js"></script>
     <script>
-        // Handle checkbox to hidden input sync
-        document.querySelectorAll('input[type="checkbox"]').forEach(box => {
-            box.addEventListener('change', e => {
-                const hidden = e.target.parentElement.nextElementSibling;
-                if (hidden && hidden.type === 'hidden') {
-                    hidden.value = e.target.checked ? 'on' : 'off';
+        document.addEventListener('DOMContentLoaded', function () {
+            try {
+                // Handle checkbox to hidden input sync
+                document.querySelectorAll('input[type="checkbox"]').forEach(box => {
+                    box.addEventListener('change', e => {
+                        const hidden = e.target.parentElement.nextElementSibling;
+                        if (hidden && hidden.type === 'hidden') {
+                            hidden.value = e.target.checked ? 'on' : 'off';
+                        }
+                    });
+                });
+
+                // Helper to toggle company field visibility
+                function setupVisibilityToggle(radioName, divId) {
+                    const radios = document.getElementsByName(radioName);
+                    const targetDiv = document.getElementById(divId);
+
+                    if (!targetDiv) {
+                        console.error("Target div not found:", divId);
+                        return;
+                    }
+
+                    function update() {
+                        // Find the checked radio
+                        const checked = document.querySelector(`input[name="${radioName}"]:checked`);
+                        if (checked) {
+                            // value "0" is Professionnel -> Show
+                            // value "1" is Particulier -> Hide
+                            if (checked.value === "0") {
+                                targetDiv.style.display = "block";
+                            } else {
+                                targetDiv.style.display = "none";
+                            }
+                        }
+                    }
+
+                    // Attach listener to all radios in group
+                    radios.forEach(r => r.addEventListener('change', update));
+
+                    // Run once on load
+                    update();
                 }
-            });
+
+                // Initialize Toggles
+                setupVisibilityToggle('senderType', 'senderCompanyDiv');
+                setupVisibilityToggle('receiverType', 'receiverCompanyDiv');
+
+                // Weight Limit Listener
+                const weightInput = document.getElementById('weightInput');
+                if (weightInput) {
+                    weightInput.addEventListener('change', function () {
+                        if (parseFloat(this.value) > 30) {
+                            document.getElementById('weightModal').style.display = 'flex';
+                            this.value = 30; // Reset to max allowed or clear? Resetting to 30 for safety.
+                        }
+                    });
+                }
+
+            } catch (err) {
+                console.error("Critical JS Error:", err);
+                const statusDiv = document.getElementById('statusMessage');
+                if (statusDiv) {
+                    statusDiv.textContent = "Erreur chargement script: " + err.message;
+                    statusDiv.className = "error-message";
+                }
+            }
         });
 
-        // Visibility toggling for Company Name based on Type (Pro=0, Part=1)
-        function toggleCompanyField(typeRadioName, divId) {
-            const radios = document.getElementsByName(typeRadioName);
-            const div = document.getElementById(divId);
-            const handle = () => {
-                // If Pro (0) is checked, show. Else hide.
-                const isPro = document.querySelector(`input[name="${typeRadioName}"][value="0"]`).checked;
-                div.style.display = isPro ? 'block' : 'none';
-            };
-            radios.forEach(r => r.addEventListener('change', handle));
-            handle(); // init
+        function closeWeightModal() {
+            document.getElementById('weightModal').style.display = 'none';
         }
-
-        toggleCompanyField('senderType', 'senderCompanyDiv');
-        toggleCompanyField('receiverType', 'receiverCompanyDiv');
 
         async function handleSubmit(event) {
             event.preventDefault();
@@ -356,29 +363,26 @@
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
-            // Date processing: YYYY-MM-DD -> dd/MM/yyyy
-            // The input name is shippingDate_input, we need to set 'shippingDate' in data
+            // Date processing
+            // Input name is 'shippingDate_input', backend wants 'shippingDate'
             if (data.shippingDate_input) {
-                const [y, m, d] = data.shippingDate_input.split('-');
-                data.shippingDate = `${d}/${m}/${y}`;
-            } else {
-                // If empty, delete the input key so backend defaults to today
-                // or just leave it empty if backend checks truthiness
-                // But better not send 'shippingDate_input' key to backend?
-                // Backend expects 'shippingDate'
-                // If we don't set it, get_val returns None -> backend defaults to Today.
+                const parts = data.shippingDate_input.split('-');
+                if (parts.length === 3) {
+                    const [y, m, d] = parts;
+                    data.shippingDate = `${d}/${m}/${y}`;
+                }
             }
-            // Cleanup input key not needed by backend
+            // If empty, we just don't send it (or send empty), backend handles default.
             delete data.shippingDate_input;
 
             const statusDiv = document.getElementById('statusMessage');
             statusDiv.innerHTML = '';
             statusDiv.className = '';
 
-            document.getElementById('overlay').style.visibility = 'visible';
+            const overlay = document.getElementById('overlay');
+            if (overlay) overlay.style.visibility = 'visible';
 
             try {
-                // Adjust this URL to your deployed server or localhost
                 const API_URL = "http://localhost:8000/generate-chronopost";
 
                 const response = await fetch(API_URL, {
@@ -390,33 +394,39 @@
                 const result = await response.json();
 
                 if (response.ok && result.status === 'success') {
-                    console.log("Response:", result);
-                    statusDiv.textContent = "Génération réussie ! Durée: " + result.duration.toFixed(2) + "s";
+                    statusDiv.textContent = "Génération réussie ! Durée: " + (result.duration ? result.duration.toFixed(2) : "?") + "s";
                     statusDiv.className = "success-message";
 
-                    // Decode Base64
-                    const binaryString = window.atob(result.content);
-                    const len = binaryString.length;
-                    const bytes = new Uint8Array(len);
-                    for (let i = 0; i < len; i++) {
-                        bytes[i] = binaryString.charCodeAt(i);
+                    if (result.content) {
+                        try {
+                            // Decode Base64
+                            const binaryString = window.atob(result.content);
+                            const len = binaryString.length;
+                            const bytes = new Uint8Array(len);
+                            for (let i = 0; i < len; i++) {
+                                bytes[i] = binaryString.charCodeAt(i);
+                            }
+
+                            // Create Blob & Download
+                            const blob = new Blob([bytes], { type: 'application/pdf' });
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = "bordereau_chronopost.pdf";
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            window.URL.revokeObjectURL(url);
+                        } catch (e) {
+                            console.error("Download error:", e);
+                            statusDiv.textContent = "Erreur téléchargement PDF: " + e.message;
+                            statusDiv.className = "error-message";
+                        }
                     }
 
-                    // Create Blob
-                    const blob = new Blob([bytes], { type: 'application/pdf' });
-                    const url = window.URL.createObjectURL(blob);
-
-                    // Download
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = "bordereau_chronopost.pdf";
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    window.URL.revokeObjectURL(url);
-
                 } else {
-                    throw new Error(result.message || "Erreur inconnue");
+                    const msg = result.message || "Erreur inconnue du serveur";
+                    throw new Error(msg);
                 }
 
             } catch (error) {
@@ -424,7 +434,7 @@
                 statusDiv.textContent = "Erreur: " + error.message;
                 statusDiv.className = "error-message";
             } finally {
-                document.getElementById('overlay').style.visibility = 'hidden';
+                if (overlay) overlay.style.visibility = 'hidden';
             }
         }
     </script>

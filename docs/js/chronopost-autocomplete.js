@@ -1,17 +1,34 @@
 /**
  * Chronopost Address Autocomplete
  * Uses geo.api.gouv.fr (Cities) and api-adresse.data.gouv.fr (Streets)
+ * Supports: 
+ *  - Old format: name="{prefix}_cp" / "{prefix}_ville" / "{prefix}_adresse" (e.g. exp_cp)
+ *  - New format: name="{prefix}CP" / "{prefix}City" / "{prefix}Address" (e.g. senderCP)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. CITY AUTOCOMPLETE (By Postal Code)
-    // Select all inputs ending with '_cp' (exp_cp, dest_cp, relais_cp)
-    const cpInputs = document.querySelectorAll('input[name$="_cp"]');
 
-    cpInputs.forEach(input => {
-        const prefix = input.name.split('_')[0]; // exp, dest, or relais
-        const cityInput = document.querySelector(`input[name="${prefix}_ville"]`);
-        const countrySelect = document.querySelector(`select[name="${prefix}_pays"]`);
+    function setupCityAutocomplete(cpInput) {
+        if (!cpInput) return;
+
+        let prefix = "";
+        let cityInput = null;
+        let countryInput = null;
+
+        // Detect Format
+        if (cpInput.name.endsWith('_cp')) {
+            // Old format
+            prefix = cpInput.name.split('_')[0];
+            cityInput = document.querySelector(`input[name="${prefix}_ville"]`);
+            countryInput = document.querySelector(`select[name="${prefix}_pays"]`) || document.querySelector(`input[name="${prefix}_pays"]`);
+        } else if (cpInput.name.endsWith('CP')) {
+            // New format (senderCP, receiverCP)
+            prefix = cpInput.name.replace('CP', '');
+            cityInput = document.querySelector(`input[name="${prefix}City"]`);
+            countryInput = document.querySelector(`input[name="${prefix}Country"]`) || document.querySelector(`select[name="${prefix}Country"]`);
+        } else {
+            return;
+        }
 
         if (!cityInput) return;
 
@@ -23,10 +40,11 @@ document.addEventListener('DOMContentLoaded', () => {
         cityInput.setAttribute('list', citiesListId);
 
         // ZIP Input Listener
-        input.addEventListener('input', async function () {
+        cpInput.addEventListener('input', async function () {
             const zip = this.value;
             if (zip.length !== 5 || !/^\d+$/.test(zip)) return;
-            if (countrySelect && countrySelect.value !== 'FR' && countrySelect.value !== '') return;
+            // Check country if exists (allow if FR or empty/hidden FR)
+            if (countryInput && countryInput.value && countryInput.value.toUpperCase() !== 'FR') return;
 
             try {
                 const response = await fetch(`https://geo.api.gouv.fr/communes?codePostal=${zip}&fields=nom&format=json&geometry=centre`);
@@ -41,24 +59,33 @@ document.addEventListener('DOMContentLoaded', () => {
                         option.value = city.nom;
                         citiesList.appendChild(option);
                     });
-                    if (!cityInput.value) cityInput.placeholder = "Sélectionnez une ville...";
+                    // Hint user
+                    if (!cityInput.value) {
+                        // Optional: cityInput.placeholder = "Sélectionnez...";
+                    }
                 }
             } catch (e) { console.error(e); }
         });
-    });
+    }
 
+    function setupAddressAutocomplete(addrInput) {
+        if (!addrInput) return;
 
-    // 2. STREET AUTOCOMPLETE (By Address + Context of Zip/City)
-    // Select all address inputs
-    const addressInputs = document.querySelectorAll('input[name$="_adresse"]');
+        let prefix = "";
+        let zipInput = null;
+        let countryInput = null;
 
-    addressInputs.forEach(addrInput => {
-        const prefix = addrInput.name.split('_')[0]; // exp, dest
-
-        // Find context inputs
-        const zipInput = document.querySelector(`input[name="${prefix}_cp"]`);
-        const cityInput = document.querySelector(`input[name="${prefix}_ville"]`);
-        const countrySelect = document.querySelector(`select[name="${prefix}_pays"]`);
+        if (addrInput.name.endsWith('_adresse')) {
+            prefix = addrInput.name.split('_')[0];
+            zipInput = document.querySelector(`input[name="${prefix}_cp"]`);
+            countryInput = document.querySelector(`select[name="${prefix}_pays"]`);
+        } else if (addrInput.name.endsWith('Address')) {
+            prefix = addrInput.name.replace('Address', '');
+            zipInput = document.querySelector(`input[name="${prefix}CP"]`);
+            countryInput = document.querySelector(`input[name="${prefix}Country"]`);
+        } else {
+            return;
+        }
 
         // Create datalist for streets
         const streetListId = `${prefix}-street-list-${Math.random().toString(36).substr(2, 9)}`;
@@ -66,17 +93,15 @@ document.addEventListener('DOMContentLoaded', () => {
         streetList.id = streetListId;
         document.body.appendChild(streetList);
         addrInput.setAttribute('list', streetListId);
-        addrInput.setAttribute('autocomplete', 'off'); // Browser autocomplete off
+        addrInput.setAttribute('autocomplete', 'off');
 
         addrInput.addEventListener('input', async function () {
             const query = this.value;
-            // Only search if user typed at least 3 chars AND country is France/Empty
             if (query.length < 4) return;
-            if (countrySelect && countrySelect.value !== 'FR' && countrySelect.value !== '') return;
+            if (countryInput && countryInput.value && countryInput.value.toUpperCase() !== 'FR') return;
 
             let apiUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`;
 
-            // Add postcode context if available
             if (zipInput && zipInput.value.length === 5) {
                 apiUrl += `&postcode=${zipInput.value}`;
             }
@@ -89,29 +114,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (data.features && data.features.length > 0) {
                     data.features.forEach(feature => {
-                        const validAddress = feature.properties.name; // Street name + Number
+                        const validAddress = feature.properties.name;
                         const contextMap = feature.properties;
-
                         const option = document.createElement('option');
                         option.value = validAddress;
-
-                        // We can store extra data in label or handle selection, 
-                        // but <datalist> is simple only. 
-                        // Ideally we fill zip/city too if they are empty
                         option.label = `${contextMap.postcode} ${contextMap.city}`;
                         streetList.appendChild(option);
                     });
                 }
-
             } catch (e) { console.error("Address API Error", e); }
         });
+    }
 
-        // When user selects an address, try to auto-fill Zip/City if they are empty
-        addrInput.addEventListener('change', async function () {
-            // Re-query to find the exact match details (since datalist doesn't give us the object back easily)
-            const val = this.value;
-            // Logic to fetch full details if needed, but basic text is usually enough.
-            // You explicitly asked for address search based on city. The logic above does that via &postcode context.
-        });
-    });
+    // Initialize for all potential CP inputs
+    const allCPs = [
+        ...document.querySelectorAll('input[name$="_cp"]'),
+        ...document.querySelectorAll('input[name$="CP"]')
+    ];
+    allCPs.forEach(setupCityAutocomplete);
+
+    // Initialize for all potential Address inputs
+    const allAddrs = [
+        ...document.querySelectorAll('input[name$="_adresse"]'),
+        ...document.querySelectorAll('input[name$="Address"]')
+    ];
+    allAddrs.forEach(setupAddressAutocomplete);
+
 });

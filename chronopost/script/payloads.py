@@ -190,39 +190,44 @@ def build_payload(data=None):
 
     payload["senderCompanyName"] = get_val(
         "senderCompanyName", "nom de societe expediteur",
-        payload.get("senderCompanyName")
+        payload.get("senderCompanyName"),
+        default="-"
     )
 
-    payload["senderLastname"] = get_val("senderLastname", "nom expediteur", payload.get("senderLastname"))
-    payload["senderFirstname"] = get_val("senderFirstname", "prenom expediteur", payload.get("senderFirstname"))
+    payload["senderLastname"] = get_val("senderLastname", "nom expediteur", payload.get("senderLastname"), default="-")
+    payload["senderFirstname"] = get_val("senderFirstname", "prenom expediteur", payload.get("senderFirstname"), default="-")
     payload["senderHandphone"] = get_val(
         "senderHandphone", "telephone expediteur",
         payload.get("senderHandphone"),
+        default="0602843841",
         validator=phone_validator
     )
     payload["senderEmail"] = get_val(
         "senderEmail", "mail expediteur",
         payload.get("senderEmail"),
+        default="grecoh@outlook.fr",
         validator=lambda v: "@" in v
     )
     payload["senderCP"] = get_val(
         "senderCP", "code postal expediteur",
         payload.get("senderCP"),
+        default="75013",
         validator=lambda v: v.isdigit()
     )
 
-    sender_city = normalize_city(get_val("senderCity", "ville expediteur", payload.get("senderCity")))
+    sender_city = normalize_city(get_val("senderCity", "ville expediteur", payload.get("senderCity"), default="PARIS"))
     payload["senderCity"] = sender_city
     payload["hiddenSenderCity"] = sender_city
 
     payload["senderAddress"] = normalize_address(
-        get_val("senderAddress", "adresse expediteur", payload.get("senderAddress"))
+        get_val("senderAddress", "adresse expediteur", payload.get("senderAddress"), default="14 rue henri pape")
     )
 
     payload["senderAddress2"] = normalize_address(
         get_val(
             "senderAddress2", "suite adresse expediteur",
             payload.get("senderAddress2"),
+            default="",
             validator=lambda v: len(v) <= 20
         )
     )
@@ -230,6 +235,7 @@ def build_payload(data=None):
     payload["senderRef"] = get_val(
         "senderRef", "reference expediteur",
         payload.get("senderRef"),
+        default="",
         validator=lambda v: len(v) <= 20
     )
 
