@@ -136,8 +136,7 @@ def run_chronopost(payload_data=None):
              return {
                  "status": "success", 
                  "duration": duration, 
-                 "content": None,
-                 "headers": dict(final_response.headers)
+                 "content": None
              }
         else:
             return {"status": "error", "message": "Final request failed"}
