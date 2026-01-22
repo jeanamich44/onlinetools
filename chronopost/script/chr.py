@@ -3,28 +3,13 @@ from .headers import HEADERS_1, HEADERS_2, HEADERS_4
 from .payloads import build_payload
 
 # ===================== PAYLOAD BUILD =====================
-# Removed global PAYLOAD_TMP to avoid immediate execution
 
 API_KEY = "a5fce98010bb9761a1d1a21af271d994"
 SCRAPER_URL = "https://api.scraperapi.com/"
 TIMEOUT = 60
 
-# We need to maintain the session/token logic if it's dynamic, 
-# but for now we follow the existing script structure where it seemed hardcoded or reused.
-# The user said "payload de base qui change jamais".
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-LOG_FILE = os.path.join(BASE_DIR, "log.txt")
-
-def log(line):
-    print(f"[LOG] {line}")
-
-REQ_ID = 0
-
 def retry_get(url, headers, stop_on_fail=False):
-    global REQ_ID
     for attempt in range(2):
-        REQ_ID += 1
         t0 = time.time()
         r = requests.get(
             SCRAPER_URL,
@@ -37,12 +22,6 @@ def retry_get(url, headers, stop_on_fail=False):
             headers=headers,
             timeout=TIMEOUT
         )
-        dt = time.time() - t0
-        print(f"REQ {REQ_ID} -> {r.status_code} | {dt:.2f}s")
-        log(f"REQ {REQ_ID}")
-        log(f"STATUS : {r.status_code}")
-        log(f"TIME   : {dt:.2f}s")
-        log("-" * 80)
         if r.status_code == 200:
             return r
     if stop_on_fail:
@@ -50,9 +29,7 @@ def retry_get(url, headers, stop_on_fail=False):
     return r
 
 def retry_post(url, headers, data, stop_on_fail=False, check_false=False):
-    global REQ_ID
     for attempt in range(2):
-        REQ_ID += 1
         t0 = time.time()
         r = requests.post(
             SCRAPER_URL,
@@ -66,13 +43,6 @@ def retry_post(url, headers, data, stop_on_fail=False, check_false=False):
             data=data,
             timeout=TIMEOUT
         )
-        dt = time.time() - t0
-        print(f"REQ {REQ_ID} -> {r.status_code} | {dt:.2f}s")
-        log(f"REQ {REQ_ID}")
-        log(f"STATUS : {r.status_code}")
-        log(f"TIME   : {dt:.2f}s")
-        # log(f"RESPONSE : {r.text}") # Too verbose?
-        log("-" * 80)
         if r.status_code == 200 and (not check_false or "false" not in r.text.lower()):
             return r
     if stop_on_fail:
@@ -84,14 +54,7 @@ def run_chronopost(payload_data=None):
     Main entry point for generating the label.
     payload_data: dict of values for the payload. If None, interactive mode is triggered within build_payload.
     """
-    global REQ_ID
-    REQ_ID = 0 # Reset for new run
-    
     start_time = time.time()
-    
-    log("=" * 80)
-    log(f"START | {time.strftime('%Y-%m-%d %H:%M:%S')}")
-    log("=" * 80)
 
     try:
         # Build the payload string
@@ -128,11 +91,8 @@ def run_chronopost(payload_data=None):
         
         end_time = time.time()
         duration = end_time - start_time
-        log(f"END | duration={duration:.2f}s")
-        log("=" * 80)
         
         if final_response and final_response.status_code == 200:
-
              return {
                  "status": "success", 
                  "duration": duration, 
@@ -142,11 +102,6 @@ def run_chronopost(payload_data=None):
             return {"status": "error", "message": "Final request failed"}
 
     except Exception as e:
-        log(f"ERROR: {str(e)}")
         return {"status": "error", "message": str(e)}
-
-if __name__ == "__main__":
-    # Interactive mode (original behavior)
-    run_chronopost(None)
 
 
