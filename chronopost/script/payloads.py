@@ -3,7 +3,7 @@ from datetime import datetime
 from urllib.parse import quote_plus
 
 BASE_PAYLOAD = (
-	# === META / CONFIG ===
+    # === META / CONFIG ===
     "downloadTokenValue=1768849101561"
     "&typeImpression=PDF"
     "&mediaCommunication=APPLET"
@@ -16,7 +16,7 @@ BASE_PAYLOAD = (
     "&authorizedContractCost=false"
     "&hiddenAccountOption=false"
     "&account=47107_15972103"
-    "&product=1_N_0_30_26_150_16_150_0.1_150_58.1_300_true_true_false_false_false_false_false_false_false_false_false_false_false_true"
+
 
     # === EXPÉDITEUR (SENDER) ===
     "&senderSearch="
@@ -152,8 +152,29 @@ def ask(label, default=None, required=False, validator=None, data=None, key=None
 def phone_validator(v):
     return len(v) >= 8
 
+CHRONO_13_PRODUCT = "1_N_0_30_26_150_16_150_0.1_150_58.1_300_true_true_false_false_false_false_false_false_false_false_false_false_false_true"
+CHRONO_10_PRODUCT = "2_N_0_30_26_150_16_150_0.1_150_58.1_300_true_true_false_false_false_false_false_false_false_false_false_false_false_true"
+
 def build_payload(data=None):
     payload = dict(p.split("=", 1) for p in BASE_PAYLOAD.split("&"))
+
+    # Determine product and valeurproduct
+    # Default to 13 if not specified
+    valeur_product = "13"
+    if data and "valeurproduct" in data:
+        valeur_product = str(data["valeurproduct"])
+    
+    # Select product string
+    if valeur_product == "10":
+        payload["product"] = CHRONO_10_PRODUCT
+    else:
+        # Default to 13
+        payload["product"] = CHRONO_13_PRODUCT
+        valeur_product = "13" # Enforce strict value if unknown was passed
+
+    # Add parameters to payload
+    payload["valeurproduct"] = valeur_product
+
 
     # Helper to clean up the ask calls
     def get_val(key, label, current_val=None, default=None, required=False, validator=None):
