@@ -1,62 +1,239 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>RIB Generator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="../css/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    /* Specific overrides for RIB cards if needed, otherwise using shared styles */
+    .views-field-field-image-de-l-offre {
+      background: #1f242d;
+      /* Fallback placeholder color */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+  </style>
 </head>
 
-<body class="rib-generator-page">
+<body>
 
-  <main class="rib-generator">
-    <h1>RIB Generator</h1>
-    <p class="subtitle">Choisissez votre banque</p>
-
-    <div class="bank-liste">
-      <a href="./lbp.html" class="bank-item">
-        <span class="bank-name">La Banque Postale</span>
-        <span class="bank-desc">Génération RIB LBP</span>
-      </a>
-
-      <a href="./sg.html" class="bank-item">
-        <span class="bank-name">Société Générale</span>
-        <span class="bank-desc">Génération RIB SG</span>
-      </a>
-      
-      <a href="./ca.html" class="bank-item">
-        <span class="bank-name">Crédit Agricole</span>
-        <span class="bank-desc">Génération RIB CA</span>
-      </a>
-      
-      <a href="./cm.html" class="bank-item">
-        <span class="bank-name">Crédit Mutuel</span>
-        <span class="bank-desc">Génération RIB CM</span>
-      </a>
-      
-      <a href="./cic.html" class="bank-item">
-        <span class="bank-name">Banque CIC</span>
-        <span class="bank-desc">Génération RIB CIC</span>
-      </a>
-
-      <a href="./bfb.html" class="bank-item">
-        <span class="bank-name">BforBank</span>
-        <span class="bank-desc">Génération RIB BforBank</span>
-      </a>
-
-      <a href="./qonto.html" class="bank-item">
-        <span class="bank-name">Qonto</span>
-        <span class="bank-desc">Génération RIB Qonto</span>
-      </a>
-    
-      <a href="./revolut.html" class="bank-item">
-        <span class="bank-name">Revolut</span>
-        <span class="bank-desc">Génération RIB Revolut</span>
-      </a>
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="logo">OnlineTools</a>
+      <nav class="nav">
+        <a href="../index.html">Home</a>
+        <a href="../tools/tools-liste.html">Tools</a>
+        <a href="../contact.html">Contact</a>
+        <a href="../cart/cart.html">Panier</a>
+      </nav>
     </div>
+  </header>
 
-    <a href="../index.html" class="back-link">← Retour</a>
+  <main class="content">
+    <section class="intro">
+      <h1>RIB Generator</h1>
+      <p>Choisissez votre banque pour générer un RIB.</p>
+    </section>
+
+    <h2 style="margin-bottom: 20px; font-size: 1.5rem; border-bottom: 2px solid #2a2f3a; padding-bottom: 10px;">
+      Banques Disponibles</h2>
+
+    <div class="layout-offres">
+      <div class="offers-row">
+
+        <!-- La Banque Postale -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre" style="background: #fff; padding: 20px;">
+            <img src="img/lbp.svg" alt="Logo La Banque Postale" style="width: 100%; height: 100%; object-fit: contain;">
+          </div>
+          <div class="wrapper-delais-destination">
+            <ul>
+              <li><span class="delai" data-tag-color="bleu-clair">FR</span></li>
+            </ul>
+          </div>
+          <div class="views-field-field-titre-de-l-offre">
+            La Banque Postale
+          </div>
+          <div class="views-field-field-descriptif-de-l-offre">
+            • Générateur de RIB<br>
+            • Format PDF officiel<br>
+            • 11 Champs à remplir
+          </div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./lbp.html">Générer RIB</a>
+          </p>
+        </div>
+
+        <!-- Société Générale -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre" style="background: #fff; padding: 20px;">
+            <img src="img/sg.svg" alt="Logo Société Générale" style="width: 100%; height: 100%; object-fit: contain;">
+          </div>
+          <div class="wrapper-delais-destination">
+            <ul>
+              <li><span class="delai" data-tag-color="bleu-clair">FR</span></li>
+            </ul>
+          </div>
+          <div class="views-field-field-titre-de-l-offre">
+            Société Générale
+          </div>
+          <div class="views-field-field-descriptif-de-l-offre">
+            • Générateur de RIB<br>
+            • Format PDF officiel<br>
+            • 10 Champs à remplir
+          </div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./sg.html">Générer RIB</a>
+          </p>
+        </div>
+
+        <!-- Crédit Agricole -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre" style="background: #fff; padding: 20px;">
+            <img src="img/ca.png" alt="Logo Crédit Agricole" style="width: 100%; height: 100%; object-fit: contain;">
+          </div>
+          <div class="wrapper-delais-destination">
+            <ul>
+              <li><span class="delai" data-tag-color="bleu-clair">FR</span></li>
+            </ul>
+          </div>
+          <div class="views-field-field-titre-de-l-offre">
+            Crédit Agricole
+          </div>
+          <div class="views-field-field-descriptif-de-l-offre">
+            • Générateur de RIB<br>
+            • Format PDF officiel<br>
+            • 9 Champs à remplir
+          </div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./ca.html">Générer RIB</a>
+          </p>
+        </div>
+
+        <!-- Crédit Mutuel -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre" style="background: #fff; padding: 20px;">
+            <img src="img/cm.png" alt="Logo Crédit Mutuel" style="width: 100%; height: 100%; object-fit: contain;">
+          </div>
+          <div class="wrapper-delais-destination">
+            <ul>
+              <li><span class="delai" data-tag-color="bleu-clair">FR</span></li>
+            </ul>
+          </div>
+          <div class="views-field-field-titre-de-l-offre">
+            Crédit Mutuel
+          </div>
+          <div class="views-field-field-descriptif-de-l-offre">
+            • Générateur de RIB<br>
+            • Format PDF officiel<br>
+            • 11 Champs à remplir
+          </div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./cm.html">Générer RIB</a>
+          </p>
+        </div>
+
+        <!-- CIC -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre" style="background: #fff; padding: 20px;">
+            <img src="img/cic.png" alt="Logo CIC" style="width: 100%; height: 100%; object-fit: contain;">
+          </div>
+          <div class="wrapper-delais-destination">
+            <ul>
+              <li><span class="delai" data-tag-color="bleu-clair">FR</span></li>
+            </ul>
+          </div>
+          <div class="views-field-field-titre-de-l-offre">
+            Banque CIC
+          </div>
+          <div class="views-field-field-descriptif-de-l-offre">
+            • Générateur de RIB<br>
+            • Format PDF officiel<br>
+            • 11 Champs à remplir
+          </div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./cic.html">Générer RIB</a>
+          </p>
+        </div>
+
+        <!-- BforBank -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre" style="background: #fff; padding: 20px;">
+            <img src="img/bfb.svg" alt="Logo BforBank" style="width: 100%; height: 100%; object-fit: contain;">
+          </div>
+          <div class="wrapper-delais-destination">
+            <ul>
+              <li><span class="delai" data-tag-color="bleu-clair">FR</span></li>
+            </ul>
+          </div>
+          <div class="views-field-field-titre-de-l-offre">
+            BforBank
+          </div>
+          <div class="views-field-field-descriptif-de-l-offre">
+            • Générateur de RIB<br>
+            • Format PDF officiel<br>
+            • 8 Champs à remplir
+          </div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./bfb.html">Générer RIB</a>
+          </p>
+        </div>
+
+        <!-- Qonto -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre" style="background: #fff; padding: 20px;">
+            <img src="img/qonto.png" alt="Logo Qonto" style="width: 100%; height: 100%; object-fit: contain;">
+          </div>
+          <div class="wrapper-delais-destination">
+            <ul>
+              <li><span class="delai" data-tag-color="bleu-clair">FR</span></li>
+            </ul>
+          </div>
+          <div class="views-field-field-titre-de-l-offre">
+            Qonto
+          </div>
+          <div class="views-field-field-descriptif-de-l-offre">
+            • Générateur de RIB<br>
+            • Format PDF officiel<br>
+            • 8 Champs à remplir
+          </div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./qonto.html">Générer RIB</a>
+          </p>
+        </div>
+
+        <!-- Revolut -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre" style="background: #fff; padding: 20px;">
+            <img src="img/revolut.png" alt="Logo Revolut" style="width: 100%; height: 100%; object-fit: contain;">
+          </div>
+          <div class="wrapper-delais-destination">
+            <ul>
+              <li><span class="delai" data-tag-color="bleu-clair">INTL</span></li>
+            </ul>
+          </div>
+          <div class="views-field-field-titre-de-l-offre">
+            Revolut
+          </div>
+          <div class="views-field-field-descriptif-de-l-offre">
+            • Générateur de RIB<br>
+            • Compte international<br>
+            • 10 Champs à remplir
+          </div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./revolut.html">Générer RIB</a>
+          </p>
+        </div>
+
+      </div>
+    </div>
   </main>
 
 </body>
+
 </html>
