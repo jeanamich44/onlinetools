@@ -3,7 +3,7 @@ import re
 import fitz
 
 # =========================
-# PATHS (ONLINE)
+# CHEMINS (EN LIGNE)
 # =========================
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,7 +19,7 @@ FONT_SIZE = 8
 COLOR = (0, 0, 0)
 
 # =========================
-# DEFAULT VALUES
+# VALEURS PAR DEFAUT
 # =========================
 
 DEFAULTS = {
@@ -48,7 +48,7 @@ BOLD_KEYS = {
 }
 
 # =========================
-# UTILS (IDENTIQUE LOCAL)
+# UTILITAIRES (IDENTIQUE LOCAL)
 # =========================
 
 
@@ -75,7 +75,7 @@ def fontname_for(key):
     return FONT_BOLD_NAME if key in BOLD_KEYS else FONT_REG_NAME
 
 # =========================
-# OVERWRITE (IDENTIQUE LOCAL)
+# ECRITURE (IDENTIQUE LOCAL)
 # =========================
 
 def overwrite(page, key, text):
@@ -91,7 +91,7 @@ def overwrite(page, key, text):
         )
 
 # =========================
-# MAIN GENERATOR (ONLINE)
+# GENERATEUR PRINCIPAL (EN LIGNE)
 # =========================
 
 def generate_cm_pdf(data, output_path):

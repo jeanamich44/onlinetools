@@ -2,7 +2,7 @@ import random
 from datetime import datetime, timedelta
 
 # =========================
-# ICAO UTILS
+# UTILITAIRES ICAO
 # =========================
 
 def char_value_icao(char: str) -> int:
@@ -24,7 +24,7 @@ def normalize_name(name: str) -> str:
     return name.upper().replace(" ", "<")
 
 # =========================
-# RANDOM DATA
+# DONNEES ALEATOIRES
 # =========================
 
 PRENOMS_M = [
@@ -117,7 +117,7 @@ def generate_random_data():
     }
 
 # =========================
-# MRZ CORE
+# NOYAU MRZ
 # =========================
 
 def generate_mrz(data: dict) -> dict:

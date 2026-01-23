@@ -3,7 +3,7 @@ import os
 import re
 
 # =========================
-# BASE DIR
+# DOSSIER BASE
 # =========================
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -19,7 +19,7 @@ FONT_SIZE = 8.5
 COLOR = (0, 0, 0)
 
 # =========================
-# DEFAULT VALUES
+# VALEURS PAR DEFAUT
 # =========================
 
 DEFAULTS = {
@@ -48,7 +48,7 @@ BOLD_KEYS = {
 }
 
 # =========================
-# UTILS
+# UTILITAIRES
 # =========================
 
 
@@ -75,7 +75,7 @@ def fontname_for(key: str):
     return FONT_BOLD_NAME if key in BOLD_KEYS else FONT_REG_NAME
 
 # =========================
-# WRITE
+# ECRITURE
 # =========================
 
 def overwrite(page, key, text):
@@ -90,7 +90,7 @@ def overwrite(page, key, text):
         )
 
 # =========================
-# GENERATOR
+# GENERATEUR
 # =========================
 
 def generate_cic_pdf(data, output_path):

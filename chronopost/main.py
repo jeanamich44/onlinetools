@@ -4,11 +4,7 @@ from pydantic import BaseModel
 import sys
 import os
 
-# Ensure script directory (for local imports within module) and parent (if needed) are in path
-# Although if we run from chronopost/ directory, relative imports might work or need tweak 
-# based on how it's launched. Assuming standard "uvicorn main:app" within chronopost file.
-# The `script` folder is valid python package if it has __init__.py or just directory import.
-# Using direct import since it's a sibling/child.
+
 
 from script.chr import run_chronopost
 
@@ -28,7 +24,7 @@ class ChronopostRequest(BaseModel):
 def generate_chronopost_endpoint(req: ChronopostRequest):
     try:
         result = run_chronopost(req.data)
-        # We return the result even on error so frontend can see debug_payload
+        # Nous retournons le résultat même en cas d'erreur pour le debug frontend
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

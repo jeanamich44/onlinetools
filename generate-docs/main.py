@@ -18,7 +18,7 @@ from script.assurance import generate_assurance_pdf, generate_assurance_preview
 
 
 # =========================
-# INIT
+# INITIALISATION
 # =========================
 
 app = FastAPI()

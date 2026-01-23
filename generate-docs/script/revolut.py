@@ -1,6 +1,4 @@
-# =========================
-# script/revolut.py
-# =========================
+
 import fitz
 import os
 import re

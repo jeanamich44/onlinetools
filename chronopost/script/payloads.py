@@ -124,13 +124,10 @@ def normalize_address(v):
     return v.strip().replace(" ", "+")
 
 def ask(label, default=None, required=False, validator=None, data=None, key=None):
-    # If data dictionary is provided and key exists, try to use it.
-    # In web mode, we expect 'data' to be populated.
     val = None
     if data is not None and key is not None:
         val = data.get(key)
     
-    # If value is missing or empty, handle default/required
     if not val:
         if default is not None:
             val = default
@@ -141,12 +138,10 @@ def ask(label, default=None, required=False, validator=None, data=None, key=None
              val = "" # optional field empty
     
     # Validate if validator exists
-    if validator and val: # only validate if we have a value
+    if validator and val: 
             if not validator(val):
-                # For basic logging if needed, or just raise
                 raise ValueError(f"Invalid value for {key}: {val}")
     
-    # Return the value (or default/empty string)
     return str(val) if val is not None else ""
 
 def phone_validator(v):
@@ -158,25 +153,21 @@ CHRONO_10_PRODUCT = "2_N_0_30_26_150_16_150_0.1_150_58.1_300_true_true_false_fal
 def build_payload(data=None):
     payload = dict(p.split("=", 1) for p in BASE_PAYLOAD.split("&"))
 
-    # Determine product and valeurproduct
-    # Default to 13 if not specified
+    # === SELECTION PRODUIT ===
     valeur_product = "13"
     if data and "valeurproduct" in data:
         valeur_product = str(data["valeurproduct"])
     
-    # Select product string
     if valeur_product == "10":
         payload["product"] = CHRONO_10_PRODUCT
-    else:
-        # Default to 13
+    elif valeur_product == "relais":
         payload["product"] = CHRONO_13_PRODUCT
-        valeur_product = "13" # Enforce strict value if unknown was passed
+    else:
+        payload["product"] = CHRONO_13_PRODUCT
+        valeur_product = "13"
 
-    # Add parameters to payload
     payload["valeurproduct"] = valeur_product
 
-
-    # Helper to clean up the ask calls
     def get_val(key, label, current_val=None, default=None, required=False, validator=None):
         effective_default = default if default is not None else current_val
         return ask(label, effective_default, required, validator, data=data, key=key)
@@ -310,6 +301,23 @@ def build_payload(data=None):
         validator=lambda v: len(v) <= 20
     )
 
+    # === LOGIQUE SPECIFIQUE RELAIS ===
+    if valeur_product == "relais":
+        payload["relaisReceiverLastname"] = payload["receiverLastname"]
+        payload["relaisReceiverFirstname"] = payload["receiverFirstname"]
+        payload["relaisReceiverHandphone"] = payload["receiverHandphone"]
+        payload["relaisReceiverEmail"] = payload["receiverEmail"]
+        
+        payload["relaisReceiverCP"] = payload["receiverCP"]
+        payload["relaisReceiverCityList"] = payload["receiverCity"]
+        payload["relaisReceiverCityText"] = payload["receiverCity"]
+        payload["relaisReceiverAddress"] = payload["receiverAddress"]
+        
+        code_relais = get_val("codeRelais", "Code Relais", payload.get("codeRelais"))
+        payload["codeRelais"] = code_relais
+        payload["idAltadis"] = code_relais
+
+
     # ============================================================
     # === COLIS / EXPÉDITION ===
     # ============================================================
@@ -326,7 +334,6 @@ def build_payload(data=None):
         validator=lambda v: len(v) <= 15
     )
 
-    # Date logic: usage input or default to today
     # Date logic: usage input or default to today
     today = quote_plus(datetime.now().strftime("%d/%m/%Y"))
     user_date = get_val("shippingDate", "Date d'envoi", None)

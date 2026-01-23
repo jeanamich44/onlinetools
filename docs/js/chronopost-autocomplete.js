@@ -1,9 +1,9 @@
 /**
- * Chronopost Address Autocomplete
- * Uses geo.api.gouv.fr (Cities) and api-adresse.data.gouv.fr (Streets)
- * Supports: 
- *  - Old format: name="{prefix}_cp" / "{prefix}_ville" / "{prefix}_adresse" (e.g. exp_cp)
- *  - New format: name="{prefix}CP" / "{prefix}City" / "{prefix}Address" (e.g. senderCP)
+ * Autocomplétion Adresse Chronopost
+ * Utilise geo.api.gouv.fr (Villes) et api-adresse.data.gouv.fr (Rues)
+ * Supporte : 
+ *  - Ancien format : name="{prefix}_cp" / "{prefix}_ville" / "{prefix}_adresse" (ex: exp_cp)
+ *  - Nouveau format : name="{prefix}CP" / "{prefix}City" / "{prefix}Address" (ex: senderCP)
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,14 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
         let cityInput = null;
         let countryInput = null;
 
-        // Detect Format
+        // Détection du format
         if (cpInput.name.endsWith('_cp')) {
-            // Old format
+            // Ancien format
             prefix = cpInput.name.split('_')[0];
             cityInput = document.querySelector(`input[name="${prefix}_ville"]`);
             countryInput = document.querySelector(`select[name="${prefix}_pays"]`) || document.querySelector(`input[name="${prefix}_pays"]`);
         } else if (cpInput.name.endsWith('CP')) {
-            // New format (senderCP, receiverCP)
+            // Nouveau format (senderCP, receiverCP)
             prefix = cpInput.name.replace('CP', '');
             cityInput = document.querySelector(`input[name="${prefix}City"]`);
             countryInput = document.querySelector(`input[name="${prefix}Country"]`) || document.querySelector(`select[name="${prefix}Country"]`);
@@ -32,18 +32,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!cityInput) return;
 
-        // Create datalist for cities
+        // Création de la datalist pour les villes
         const citiesListId = `${prefix}-city-list-${Math.random().toString(36).substr(2, 9)}`;
         let citiesList = document.createElement('datalist');
         citiesList.id = citiesListId;
         document.body.appendChild(citiesList);
         cityInput.setAttribute('list', citiesListId);
 
-        // ZIP Input Listener
+        // Écouteur Input Code Postal
         cpInput.addEventListener('input', async function () {
             const zip = this.value;
             if (zip.length !== 5 || !/^\d+$/.test(zip)) return;
-            // Check country if exists (allow if FR or empty/hidden FR)
+            // Vérifie le pays s'il existe (autorise si FR ou vide/caché FR)
             if (countryInput && countryInput.value && countryInput.value.toUpperCase() !== 'FR') return;
 
             try {
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         option.value = city.nom;
                         citiesList.appendChild(option);
                     });
-                    // Hint user
+                    // Indice utilisateur
                     if (!cityInput.value) {
                         // Optional: cityInput.placeholder = "Sélectionnez...";
                     }
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Create datalist for streets
+        // Création de la datalist pour les rues
         const streetListId = `${prefix}-street-list-${Math.random().toString(36).substr(2, 9)}`;
         let streetList = document.createElement('datalist');
         streetList.id = streetListId;
@@ -126,14 +126,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Initialize for all potential CP inputs
+    // Initialisation pour tous les inputs CP potentiels
     const allCPs = [
         ...document.querySelectorAll('input[name$="_cp"]'),
         ...document.querySelectorAll('input[name$="CP"]')
     ];
     allCPs.forEach(setupCityAutocomplete);
 
-    // Initialize for all potential Address inputs
+    // Initialisation pour tous les inputs Adresse potentiels
     const allAddrs = [
         ...document.querySelectorAll('input[name$="_adresse"]'),
         ...document.querySelectorAll('input[name$="Address"]')

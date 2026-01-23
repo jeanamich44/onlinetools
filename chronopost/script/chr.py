@@ -2,7 +2,7 @@ import requests, time, os, json, base64
 from .headers import HEADERS_1, HEADERS_2, HEADERS_4
 from .payloads import build_payload
 
-# ===================== PAYLOAD BUILD =====================
+# ===================== CONSTRUCTION PAYLOAD =====================
 
 API_KEY = "a5fce98010bb9761a1d1a21af271d994"
 SCRAPER_URL = "https://api.scraperapi.com/"
@@ -51,39 +51,39 @@ def retry_post(url, headers, data, stop_on_fail=False, check_false=False):
 
 def run_chronopost(payload_data=None):
     """
-    Main entry point for generating the label.
-    payload_data: dict of values for the payload. If None, interactive mode is triggered within build_payload.
+    Point d'entrée principal pour la génération de l'étiquette.
+    payload_data: dictionnaire de valeurs pour le payload. Si None, le mode interactif est déclenché.
     """
     start_time = time.time()
 
     try:
-        # Build the payload string
+        # Construction de la chaîne payload
         payload_str = build_payload(data=payload_data)
 
-        # ===================== REQ 1 =====================
+        # ===================== REQUETE 1 =====================
         URL_1 = "https://www.chronopost.fr/moncompte/displayCustomerArea.do?iv4Context=cb9ad1180a51ecc2e7cbf3e83c343581&lang=fr_FR"
         retry_get(URL_1, HEADERS_1)
 
-        # ===================== REQ 2 =====================
+        # ===================== REQUETE 2 =====================
         URL_2 = "https://www.chronopost.fr/expedier/accueilShipping.do?reinit=true&lang=fr_FR"
         HEADERS_2["Referer"] = URL_1
         retry_get(URL_2, HEADERS_2)
 
         token = 1768746808705
 
-        # ===================== REQ 3 =====================
+        # ===================== REQUETE 3 =====================
         if token:
             URL_3 = f"https://www.chronopost.fr/expeditionAvanceeSec/accueilShipping.do?_={token}&lang=fr_FR"
             retry_get(URL_3, HEADERS_4)
 
-        # ===================== REQ 4 (CRITICAL) =====================
+        # ===================== REQUETE 4 (CRITIQUE) =====================
         if token:
             URL_4 = "https://www.chronopost.fr/expeditionAvanceeSec/jsonGeoRouting"
             HEADERS_6 = HEADERS_4.copy()
             HEADERS_6["Content-Type"] = "application/x-www-form-urlencoded"
             retry_post(URL_4, HEADERS_6, payload_str, stop_on_fail=True, check_false=True)
 
-        # ===================== REQ 5 =====================
+        # ===================== REQUETE 5 =====================
         final_response = None
         if token:
             URL_5 = "https://www.chronopost.fr/expeditionAvanceeSec/shippingZPL"
