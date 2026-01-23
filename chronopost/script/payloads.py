@@ -149,6 +149,7 @@ def phone_validator(v):
 
 CHRONO_13_PRODUCT = "1_N_0_30_26_150_16_150_0.1_150_58.1_300_true_true_false_false_false_false_false_false_false_false_false_false_false_true"
 CHRONO_10_PRODUCT = "2_N_0_30_26_150_16_150_0.1_150_58.1_300_true_true_false_false_false_false_false_false_false_false_false_false_false_true"
+CHRONO_RELAIS_PRODUCT = "86_N_0_20_22.9_100_16_100_0.1_100_58.1_250_true_false_false_false_false_false_true_false_false_false_false_false_false_true"
 
 def build_payload(data=None):
     payload = dict(p.split("=", 1) for p in BASE_PAYLOAD.split("&"))
@@ -161,7 +162,7 @@ def build_payload(data=None):
     if valeur_product == "10":
         payload["product"] = CHRONO_10_PRODUCT
     elif valeur_product == "relais":
-        payload["product"] = CHRONO_13_PRODUCT
+        payload["product"] = CHRONO_RELAIS_PRODUCT
     else:
         payload["product"] = CHRONO_13_PRODUCT
         valeur_product = "13"
