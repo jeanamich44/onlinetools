@@ -142,7 +142,7 @@
                         <span>
                             <span class="section-number">1</span> Expéditeur
                             <span class="info-icon"
-                                data-tooltip="Si laissés vides, des coordonnées aléatoires uniques seront utilisées.">i</span>
+                                data-tooltip="Si laissés vides, des coordonnées aléatoires uniques seront utilisées pour garantir un meilleur anonymat et une intraçabilité. Remplissez les cases que vous souhaitez, les autres seront générées. Seules les cases avec * sont obligatoires. Cela concerne uniquement la catégorie expéditeur.">i</span>
                         </span>
                         <span>FRANCE</span>
                     </div>
@@ -379,7 +379,8 @@
 
 
                         <div class="form-group" style="margin-top: 15px;">
-                            <label>Mail Tiers (Réception Bordereau) *</label>
+                            <label>Mail Tiers (Réception Bordereau) * <span class="info-icon"
+                                    data-tooltip="Insérez le mail sur lequel recevoir le bordereau. Ce mail est uniquement utilisé pour la réception du bordereau. Pour avoir un suivi par mail, il faut saisir un mail dans la catégorie voulue (Expéditeur ou Destinataire).">i</span></label>
                             <input type="email" name="sendToThirdPersonInfo" required
                                 placeholder="Votre email pour recevoir le PDF">
                         </div>
@@ -396,7 +397,7 @@
                 style="display:none; text-align: center; margin-top: 15px; position: relative; z-index: 2001;">
                 <span style="font-size: 1.2rem; font-weight: bold; color: #fff;" id="timer">00:00</span>
                 <span class="info-icon" style="margin-left: 10px; vertical-align: middle;"
-                    data-tooltip="Patience...">i</span>
+                    data-tooltip="La génération peut prendre jusqu'à 4min, il est obligatoire de rester sur la page. Le bordereau sera envoyé sur le mail de réception, donc regardez la boîte de réception. Si après 4min vous n'avez pas de mail, regardez les spams. Si toujours pas, contactez le gérant : https://t.me/RheyyFonda">i</span>
             </div>
 
         </form>
