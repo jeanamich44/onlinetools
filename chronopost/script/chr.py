@@ -1,4 +1,5 @@
 import requests, time, os, json, base64
+from curl_cffi import requests as cffi_requests
 from .headers import HEADERS_1, HEADERS_2, HEADERS_4
 from .payloads import build_payload
 
@@ -105,3 +106,36 @@ def run_chronopost(payload_data=None):
         return {"status": "error", "message": str(e)}
 
 
+
+def get_relay_detail(pickup_id):
+    """
+    Récupère les détails d'un point relais via son ID.
+    Utilise curl_cffi pour simuler un navigateur (chrome120).
+    """
+    url = f"https://www.chronopost.fr/expeditionAvanceeSec/jsonPointRelaisById.json?pickUpId={pickup_id}"
+    
+    try:
+        r = cffi_requests.get(
+            url,
+            headers=HEADERS_4,
+            impersonate="chrome120",
+            timeout=60
+        )
+        
+        if r.status_code != 200:
+             return {"status": "error", "message": f"HTTP {r.status_code}"}
+        
+        data = json.loads(r.text)
+        if data and isinstance(data, list) and len(data) > 0:
+            pr = data[0]
+            return {
+                "status": "success",
+                "nom": pr.get("nom"),
+                "adresse": pr.get("adresse1"),
+                "cp": pr.get("codePostal"),
+                "ville": pr.get("localite")
+            }
+        return {"status": "error", "message": "Aucune donnée trouvée"}
+            
+    except Exception as e:
+        return {"status": "error", "message": str(e)}

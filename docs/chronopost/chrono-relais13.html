@@ -258,41 +258,40 @@
                                     </div>
                                     <div class="pickup-code-row">
                                         <label>Relais pickup</label>
-                                        <input type="text" name="codeRelais" placeholder="">
-                                        <button type="button">OK</button>
+                                        <input type="text" name="codeRelais" id="codeRelaisInput" placeholder="">
+                                        <button type="button" id="btnCheckRelais">OK</button>
                                     </div>
                                 </div>
 
-                                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed #444;">
-                                    <div class="form-group">
-                                        <label>Nom point relais</label>
-                                        <input type="text" name="relaisName" required readonly
-                                            style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Code Postal</label>
-                                        <input type="text" name="receiverCP" required pattern="\d+" readonly
-                                            style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Ville</label>
-                                        <input type="text" name="receiverCity" required readonly
-                                            style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Adresse</label>
-                                        <input type="text" name="receiverAddress" required readonly
-                                            style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;">
-                                    </div>
+                                <div class="form-group">
+                                    <label>Nom point relais</label>
+                                    <input type="text" name="relaisName" id="relaisName" required readonly
+                                        style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;">
+                                </div>
+                                <div class="form-group">
+                                    <label>Code Postal</label>
+                                    <input type="text" name="receiverCP" id="relaisCP" required pattern="\d+" readonly
+                                        style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;">
+                                </div>
+                                <div class="form-group">
+                                    <label>Ville</label>
+                                    <input type="text" name="receiverCity" id="relaisCity" required readonly
+                                        style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;">
+                                </div>
+                                <div class="form-group">
+                                    <label>Adresse</label>
+                                    <input type="text" name="receiverAddress" id="relaisAddress" required readonly
+                                        style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;">
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="checkbox-group" style="margin-top: 20px;">
-                            <label><input type="checkbox" name="dest_save"> Conserver ce destinataire</label>
-                        </div>
+                    <div class="checkbox-group" style="margin-top: 20px;">
+                        <label><input type="checkbox" name="dest_save"> Conserver ce destinataire</label>
                     </div>
                 </div>
+            </div>
             </div>
 
             <div class="sections-grid">
@@ -444,6 +443,48 @@
                     if (parseFloat(this.value) > 20) {
                         document.getElementById('weightModal').style.display = 'flex';
                         this.value = 20;
+                    }
+                });
+            }
+
+            // --- RELAY LOOKUP LOGIC ---
+            const btnCheckRelais = document.getElementById('btnCheckRelais');
+            const codeRelaisInput = document.getElementById('codeRelaisInput');
+
+            if (btnCheckRelais && codeRelaisInput) {
+                btnCheckRelais.addEventListener('click', async () => {
+                    const code = codeRelaisInput.value.trim();
+                    if (!code) {
+                        alert("Veuillez entrer un code relais.");
+                        return;
+                    }
+
+                    btnCheckRelais.disabled = true;
+                    btnCheckRelais.textContent = "...";
+
+                    try {
+                        const resp = await fetch('https://chronopost.up.railway.app/generate-chronopost/get-relay-info', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ pickup_id: code })
+                        });
+
+                        const res = await resp.json();
+
+                        if (res.status === 'success') {
+                            document.getElementById('relaisName').value = res.nom || "";
+                            document.getElementById('relaisCP').value = res.cp || "";
+                            document.getElementById('relaisCity').value = res.ville || "";
+                            document.getElementById('relaisAddress').value = res.adresse || "";
+                        } else {
+                            alert("Erreur : " + (res.message || "Impossible de récupérer les infos relais."));
+                        }
+
+                    } catch (e) {
+                        alert("Erreur réseau : " + e.message);
+                    } finally {
+                        btnCheckRelais.disabled = false;
+                        btnCheckRelais.textContent = "OK";
                     }
                 });
             }
