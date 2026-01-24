@@ -1,5 +1,6 @@
 import time
 import json
+import base64
 from curl_cffi import requests as cffi_requests
 from .headers import HEADERS_1, HEADERS_2, HEADERS_4
 from .payloads import build_payload
@@ -82,6 +83,26 @@ def run_chronopost(payload_data=None):
         duration = time.time() - start_time
 
         if final_response and final_response.status_code == 200:
+            content = final_response.text
+            
+            # Parsing NLABEL (jobName) and IDARTICLE (idArticle)
+            try:
+                nlabel = content.split("jobName>")[1].split("<")[0]
+                id_article = content.split("idArticle>")[1].split("<")[0]
+                
+                # Fetch Proforma if IDs are found
+                if nlabel and id_article:
+                    proforma_res = get_proforma(nlabel, id_article, HEADERS_6)
+                    if proforma_res:
+                         return {
+                            "status": "success",
+                            "duration": duration,
+                            "content": None,
+                            "proforma": proforma_res
+                        }
+            except Exception:
+                pass # Fail silently on parsing if not present
+
             return {
                 "status": "success",
                 "duration": duration,
@@ -92,6 +113,33 @@ def run_chronopost(payload_data=None):
 
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+def get_proforma(nlabel, id_article, headers):
+    """
+    Récupère la facture Proforma.
+    """
+    url = "https://www.chronopost.fr/expeditionAvanceeSec/getProforma"
+    data = f"proFormaLtNumber={nlabel}&proFormaIdArticle={id_article}"
+    
+    # Headers specific for this request based on user images
+    req_headers = headers.copy()
+    req_headers["Content-Type"] = "application/x-www-form-urlencoded"
+    req_headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+    
+    try:
+        r = cffi_requests.post(
+            url,
+            headers=req_headers,
+            data=data,
+            impersonate="chrome120",
+            timeout=30
+        )
+        if r.status_code == 200:
+            # Return base64 encoded PDF
+            return base64.b64encode(r.content).decode('utf-8')
+    except Exception:
+        pass
+    return None
 
 def get_relay_detail(pickup_id):
     """
