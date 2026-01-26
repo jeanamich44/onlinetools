@@ -91,7 +91,7 @@
                             <div class="form-group">
                                 <label>Téléphone</label>
                                 <input type="tel" name="senderHandphone" minlength="8" placeholder="Vide = Aléatoire"
-                                    value="">
+                                    value="" maxlength="14">
                             </div>
                             <div class="form-group">
                                 <label>Ville</label>
@@ -102,7 +102,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>E-mail</label>
-                                <input type="email" name="senderEmail" placeholder="Vide = Aléatoire">
+                                <input type="email" name="senderEmail" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                             <div class="form-group">
                                 <label>Adresse</label>
@@ -117,7 +117,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Référence Expéditeur</label>
-                                <input type="text" name="senderRef" maxlength="20">
+                                <input type="text" name="senderRef" maxlength="14">
                             </div>
                         </div>
 
@@ -174,7 +174,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Téléphone *</label>
-                                <input type="tel" name="receiverHandphone" minlength="8" required>
+                                <input type="tel" name="receiverHandphone" minlength="8" required maxlength="14">
                             </div>
                             <div class="form-group">
                                 <label>Adresse *</label>
@@ -185,7 +185,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>E-mail *</label>
-                                <input type="email" name="receiverEmail" required>
+                                <input type="email" name="receiverEmail" required maxlength="60">
                             </div>
                             <div class="form-group">
                                 <label>Complément adresse</label>
@@ -200,7 +200,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Référence Destinataire</label>
-                                <input type="text" name="receiverRef" maxlength="20">
+                                <input type="text" name="receiverRef" maxlength="14">
                             </div>
                         </div>
 

@@ -4,8 +4,6 @@ from pydantic import BaseModel
 import sys
 import os
 
-
-
 from script.chr import run_chronopost, get_relay_detail
 
 app = FastAPI()

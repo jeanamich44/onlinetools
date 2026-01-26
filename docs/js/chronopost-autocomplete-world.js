@@ -210,4 +210,58 @@ document.addEventListener('DOMContentLoaded', () => {
         ...document.querySelectorAll('input[name$="Address"]')
     ];
     allAddrs.forEach(setupAddressAutocomplete);
+
+    // --- Dynamic Validation Logic (Copied for consistency) ---
+    function setupDynamicValidation() {
+        if (!document.getElementById('dynamic-validation-style')) {
+            const style = document.createElement('style');
+            style.id = 'dynamic-validation-style';
+            style.innerHTML = `
+                .validation-error-msg {
+                    color: #ff4444;
+                    font-size: 0.8rem;
+                    margin-top: 4px;
+                    display: block;
+                }
+                input.input-invalid {
+                    border-color: #ff4444 !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        const inputs = document.querySelectorAll('input[required], input[pattern], input[type="email"], input[type="tel"], input[min], input[max]');
+
+        inputs.forEach(input => {
+            function validateField() {
+                const isValid = input.checkValidity();
+                let errorSpan = input.parentNode.querySelector('.validation-error-msg');
+
+                if (!isValid) {
+                    input.classList.add('input-invalid');
+                    if (!errorSpan) {
+                        errorSpan = document.createElement('span');
+                        errorSpan.className = 'validation-error-msg';
+                        input.parentNode.appendChild(errorSpan);
+                    }
+                    errorSpan.textContent = input.validationMessage;
+                } else {
+                    input.classList.remove('input-invalid');
+                    if (errorSpan) {
+                        errorSpan.remove();
+                    }
+                }
+            }
+
+            input.addEventListener('input', () => {
+                if (input.classList.contains('input-invalid')) {
+                    validateField();
+                }
+            });
+            input.addEventListener('blur', validateField);
+            input.addEventListener('change', validateField);
+        });
+    }
+
+    setupDynamicValidation();
 });

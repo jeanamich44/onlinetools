@@ -90,7 +90,8 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Téléphone</label>
-                                <input type="tel" name="senderHandphone" minlength="8" placeholder="Vide = Aléatoire">
+                                <input type="tel" name="senderHandphone" minlength="8" placeholder="Vide = Aléatoire"
+                                    value="" maxlength="14">
                             </div>
                             <div class="form-group">
                                 <label>Ville</label>
@@ -101,7 +102,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>E-mail</label>
-                                <input type="email" name="senderEmail" placeholder="Vide = Aléatoire">
+                                <input type="email" name="senderEmail" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                             <div class="form-group">
                                 <label>Adresse</label>
@@ -116,7 +117,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Référence Expéditeur</label>
-                                <input type="text" name="senderRef" maxlength="20">
+                                <input type="text" name="senderRef" maxlength="14">
                             </div>
                         </div>
 
@@ -142,8 +143,8 @@
                     <div class="section-content">
                         <div class="radio-group" style="margin-bottom: 20px;">
                             <label>Type *</label>
-                            <label><input type="radio" name="receiverType" value="0" checked> Professionnel</label>
-                            <label><input type="radio" name="receiverType" value="1"> Particulier</label>
+                            <label><input type="radio" name="receiverType" value="0"> Professionnel</label>
+                            <label><input type="radio" name="receiverType" value="1" checked> Particulier</label>
                         </div>
 
                         <div class="form-row">
@@ -403,7 +404,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Téléphone *</label>
-                                <input type="tel" name="receiverHandphone" minlength="8" required>
+                                <input type="tel" name="receiverHandphone" minlength="8" required maxlength="14">
                             </div>
                             <div class="form-group">
                                 <label>Adresse *</label>
@@ -414,7 +415,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>E-mail *</label>
-                                <input type="email" name="receiverEmail" required>
+                                <input type="email" name="receiverEmail" required maxlength="60">
                             </div>
                             <div class="form-group">
                                 <label>Code Bâtiment</label>
@@ -429,7 +430,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Référence Destinataire</label>
-                                <input type="text" name="receiverRef" maxlength="20">
+                                <input type="text" name="receiverRef" maxlength="14">
                             </div>
                         </div>
 
@@ -472,15 +473,15 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Longueur (cm) *</label>
-                                <input type="number" name="packageLength" placeholder="L">
+                                <input type="number" name="packageLength" placeholder="L" min="30" max="150" required>
                             </div>
                             <div class="form-group">
                                 <label>Largeur (cm) *</label>
-                                <input type="number" name="packageWidth" placeholder="l">
+                                <input type="number" name="packageWidth" placeholder="l" min="21" max="150" required>
                             </div>
                             <div class="form-group">
                                 <label>Hauteur (cm) *</label>
-                                <input type="number" name="packageHeight" placeholder="h">
+                                <input type="number" name="packageHeight" placeholder="h" min="1" max="150" required>
                             </div>
                         </div>
                         <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 5px;">

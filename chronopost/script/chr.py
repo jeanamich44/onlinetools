@@ -3,7 +3,7 @@ import json
 import base64
 from curl_cffi import requests as cffi_requests
 from .headers import HEADERS_1, HEADERS_2, HEADERS_4
-from .payloads import build_payload
+from .payloads import build_payload, build_payload_monde
 
 TIMEOUT = 60
 
@@ -40,7 +40,10 @@ def run_chronopost(payload_data=None):
     start_time = time.time()
 
     try:
-        payload_str = build_payload(data=payload_data)
+        if payload_data and payload_data.get("valeurproduct") == "monde":
+            payload_str = build_payload_monde(data=payload_data)
+        else:
+            payload_str = build_payload(data=payload_data)
 
         # ===================== REQUETE 1 =====================
         URL_1 = (

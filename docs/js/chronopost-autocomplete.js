@@ -140,4 +140,72 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     allAddrs.forEach(setupAddressAutocomplete);
 
+    // --- Dynamic Validation Logic ---
+    function setupDynamicValidation() {
+        // Create error message style if not exists
+        if (!document.getElementById('dynamic-validation-style')) {
+            const style = document.createElement('style');
+            style.id = 'dynamic-validation-style';
+            style.innerHTML = `
+                .validation-error-msg {
+                    color: #ff4444;
+                    font-size: 0.8rem;
+                    margin-top: 4px;
+                    display: block;
+                }
+                input.input-invalid {
+                    border-color: #ff4444 !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        const inputs = document.querySelectorAll('input[required], input[pattern], input[type="email"], input[type="tel"]');
+        
+        inputs.forEach(input => {
+            // Helper to show/hide error
+            function validateField() {
+                // If it's valid check
+                const isValid = input.checkValidity();
+                
+                // Find existing error msg
+                let errorSpan = input.parentNode.querySelector('.validation-error-msg');
+                
+                if (!isValid) {
+                    input.classList.add('input-invalid');
+                    if (!errorSpan) {
+                        errorSpan = document.createElement('span');
+                        errorSpan.className = 'validation-error-msg';
+                        input.parentNode.appendChild(errorSpan);
+                    }
+                    errorSpan.textContent = input.validationMessage;
+                } else {
+                    input.classList.remove('input-invalid');
+                    if (errorSpan) {
+                        errorSpan.remove();
+                    }
+                }
+            }
+
+            // Real-time on input (for length/pattern)
+            input.addEventListener('input', () => {
+                 // Only show error if it was already marked invalid or if user is typing
+                 // actually standard UX is show success immediately, show error on blur OR if typing and it becomes valid
+                 // User asked "dynamic and automatic". 
+                 // Let's validate on input IF the field is dirty or invalid.
+                 if(input.classList.contains('input-invalid')) {
+                     validateField();
+                 }
+            });
+
+            // On Blur (when leaving the field)
+            input.addEventListener('blur', validateField);
+            
+            // On Change
+            input.addEventListener('change', validateField);
+        });
+    }
+
+    setupDynamicValidation();
+
 });
