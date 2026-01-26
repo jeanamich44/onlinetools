@@ -90,8 +90,9 @@ def run_chronopost(payload_data=None):
                 nlabel = content.split("jobName>")[1].split("<")[0]
                 id_article = content.split("idArticle>")[1].split("<")[0]
                 
-                # Fetch Proforma if IDs are found
-                if nlabel and id_article:
+                # Fetch Proforma if IDs are found AND product is "monde"
+                is_monde = payload_data and payload_data.get("valeurproduct") == "monde"
+                if nlabel and id_article and is_monde:
                     proforma_res = get_proforma(nlabel, id_article, HEADERS_6)
                     if proforma_res:
                          return {
