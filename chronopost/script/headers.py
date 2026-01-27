@@ -1,3 +1,5 @@
+iv4 = "d8731416d5d60aac657dd0120cc49f59"
+
 HEADERS_1 = {
     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
     "accept-encoding": "gzip, deflate, br, zstd",
@@ -21,7 +23,7 @@ HEADERS_1 = {
         "SAWWID=.NODE14; "
         "parcours=Professionnel; "
         "parcoursId=4; "
-        "iv4=d8731416d5d60aac657dd0120cc49f59; "
+        f"iv4={iv4}; "
         "jur=4; "
         "connect=OUI; "
         "cookie_profile_role=4; "
@@ -42,7 +44,7 @@ HEADERS_2 = {
     "accept-encoding": "gzip, deflate, br, zstd",
     "accept-language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
     "priority": "u=0, i",
-    "referer": "https://www.chronopost.fr/moncompte/displayCustomerArea.do?iv4Context=d8731416d5d60aac657dd0120cc49f59&lang=fr_FR",
+    "referer": f"https://www.chronopost.fr/moncompte/displayCustomerArea.do?iv4Context={iv4}&lang=fr_FR",
     "sec-ch-ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"",
     "sec-ch-ua-mobile": "?0",
     "sec-ch-ua-platform": "\"Windows\"",
@@ -60,7 +62,7 @@ HEADERS_2 = {
         "SAWWID=.NODE14; "
         "parcours=Professionnel; "
         "parcoursId=4; "
-        "iv4=d8731416d5d60aac657dd0120cc49f59; "
+        f"iv4={iv4}; "
         "jur=4; "
         "connect=OUI; "
         "cookie_profile_role=4; "
@@ -81,7 +83,7 @@ HEADERS_4 = {
     "accept-encoding": "gzip, deflate, br, zstd",
     "accept-language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
     "priority": "u=0, i",
-    "referer": "https://www.chronopost.fr/moncompte/displayCustomerArea.do?iv4Context=d8731416d5d60aac657dd0120cc49f59&lang=fr_FR",
+    "referer": f"https://www.chronopost.fr/moncompte/displayCustomerArea.do?iv4Context={iv4}&lang=fr_FR",
     "sec-ch-ua": "\"Not(A:Brand\";v=\"8\", \"Chromium\";v=\"144\", \"Google Chrome\";v=\"144\"",
     "sec-ch-ua-mobile": "?0",
     "sec-ch-ua-platform": "\"Windows\"",
@@ -108,7 +110,7 @@ HEADERS_4 = {
         "SAWWID=.NODE14; "
         "parcours=Professionnel; "
         "parcoursId=4; "
-        "iv4=d8731416d5d60aac657dd0120cc49f59; "
+        f"iv4={iv4}; "
         "jur=4; "
         "connect=OUI; "
         "cookie_profile_role=4; "

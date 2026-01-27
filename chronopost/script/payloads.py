@@ -2,12 +2,14 @@
 from datetime import datetime
 from urllib.parse import quote_plus
 
+iv4 = "d8731416d5d60aac657dd0120cc49f59"
+
 BASE_PAYLOAD = (
     # === META / CONFIG ===
     "downloadTokenValue=1768849101561"
     "&typeImpression=PDF"
     "&mediaCommunication=APPLET"
-    "&iv4Context=d8731416d5d60aac657dd0120cc49f59"
+    f"&iv4Context={iv4}"
     "&codeLang=fr_FR"
     "&printDuplicata=false"
     "&printCustomerCab="
@@ -122,7 +124,7 @@ BASE_PAYLOAD_MONDE = (
     "downloadTokenValue=1769273592939"
     "&typeImpression=PDF"
     "&mediaCommunication=APPLET"
-    "&iv4Context=d8731416d5d60aac657dd0120cc49f59"
+    f"&iv4Context={iv4}"
     "&codeLang=fr_FR"
     "&printDuplicata=false"
     "&printCustomerCab="
