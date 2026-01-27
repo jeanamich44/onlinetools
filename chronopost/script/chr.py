@@ -87,12 +87,9 @@ def run_chronopost(payload_data=None):
         duration = time.time() - start_time
 
         is_monde = payload_data and payload_data.get("valeurproduct") == "monde"
-        debug_info = {}
-        if is_monde:
-            debug_info = {
-                "req4_response": req4_response.text if req4_response else None,
-                "req5_response": final_response.text if final_response else None
-            }
+        check_routing = False
+        if req4_response and "true" in req4_response.text.lower():
+            check_routing = True
 
         if final_response and final_response.status_code == 200:
             content = final_response.text
@@ -103,7 +100,7 @@ def run_chronopost(payload_data=None):
                 id_article = content.split("idArticle>")[1].split("<")[0]
                 
                 # Fetch Proforma if IDs are found AND product is "monde"
-                is_monde = payload_data and payload_data.get("valeurproduct") == "monde"
+                # Using the previously computed is_monde variable
                 if nlabel and id_article and is_monde:
                     proforma_res = get_proforma(nlabel, id_article, HEADERS_6)
                     if proforma_res:
@@ -111,8 +108,8 @@ def run_chronopost(payload_data=None):
                             "status": "success",
                             "duration": duration,
                             "content": None,
-                            "proforma": proforma_res,
-                            "debug": debug_info
+                            "routing": check_routing,
+                            "proforma": proforma_res
                         }
             except Exception:
                 pass # Fail silently on parsing if not present
@@ -120,14 +117,14 @@ def run_chronopost(payload_data=None):
             return {
                 "status": "success",
                 "duration": duration,
-                "content": None,
-                "debug": debug_info
+                "routing": check_routing,
+                "content": None
             }
 
-        return {"status": "error", "message": "Final request failed", "debug": debug_info}
+        return {"status": "error", "message": "Final request failed", "routing": check_routing}
 
     except Exception as e:
-        return {"status": "error", "message": str(e), "debug": locals().get("debug_info", {})}
+        return {"status": "error", "message": str(e)}
 
 def get_proforma(nlabel, id_article, headers):
     """
