@@ -45,27 +45,29 @@ def run_chronopost(payload_data=None):
         else:
             payload_str = build_payload(data=payload_data)
 
+        # Init debug vars
+        r1 = r2 = r3 = req4_response = final_response = None
+
         # ===================== REQUETE 1 =====================
         URL_1 = (
             "https://www.chronopost.fr/moncompte/"
             "displayCustomerArea.do?iv4Context=cb9ad1180a51ecc2e7cbf3e83c343581&lang=fr_FR"
         )
-        retry_get(URL_1, HEADERS_1)
+        r1 = retry_get(URL_1, HEADERS_1)
 
         # ===================== REQUETE 2 =====================
         URL_2 = "https://www.chronopost.fr/expedier/accueilShipping.do?reinit=true&lang=fr_FR"
         HEADERS_2["Referer"] = URL_1
-        retry_get(URL_2, HEADERS_2)
+        r2 = retry_get(URL_2, HEADERS_2)
 
         token = 1768746808705
 
         # ===================== REQUETE 3 =====================
         if token:
             URL_3 = f"https://www.chronopost.fr/expeditionAvanceeSec/accueilShipping.do?_={token}&lang=fr_FR"
-            retry_get(URL_3, HEADERS_4)
+            r3 = retry_get(URL_3, HEADERS_4)
 
         # ===================== REQUETE 4 (CRITIQUE) =====================
-        req4_response = None
         if token:
             URL_4 = "https://www.chronopost.fr/expeditionAvanceeSec/jsonGeoRouting"
             HEADERS_6 = HEADERS_4.copy()
@@ -79,7 +81,6 @@ def run_chronopost(payload_data=None):
             )
 
         # ===================== REQUETE 5 =====================
-        final_response = None
         if token:
             URL_5 = "https://www.chronopost.fr/expeditionAvanceeSec/shippingZPL"
             final_response = retry_post(URL_5, HEADERS_6, payload_str)
@@ -90,6 +91,16 @@ def run_chronopost(payload_data=None):
         check_routing = False
         if req4_response and "true" in req4_response.text.lower():
             check_routing = True
+
+        # Debug collection
+        debug_data = {
+            "req1_code": r1.status_code if r1 else None,
+            "req2_code": r2.status_code if r2 else None,
+            "req3_code": r3.status_code if r3 else None,
+            "req4_code": req4_response.status_code if req4_response else None,
+            "req5_code": final_response.status_code if final_response else None,
+            "req4_text": req4_response.text if req4_response else None
+        }
 
         if final_response and final_response.status_code == 200:
             content = final_response.text
@@ -115,7 +126,8 @@ def run_chronopost(payload_data=None):
                 "duration": duration,
                 "routing": check_routing,
                 "content": None,
-                "proforma": proforma_res
+                "proforma": proforma_res,
+                "debug": debug_data
             }
 
         return {"status": "error", "message": "Final request failed", "routing": check_routing}
