@@ -91,17 +91,22 @@ def run_chronopost(payload_data=None):
         if req4_response and "true" in req4_response.text.lower():
             check_routing = True
 
+        nlabel = "Not Found"
+        id_article = "Not Found"
+
         if final_response and final_response.status_code == 200:
             content = final_response.text
             
             # Parsing NLABEL (jobName) and IDARTICLE (idArticle)
             try:
-                nlabel = content.split("jobName>")[1].split("<")[0]
-                id_article = content.split("idArticle>")[1].split("<")[0]
+                if "jobName>" in content:
+                    nlabel = content.split("jobName>")[1].split("<")[0]
+                if "idArticle>" in content:
+                    id_article = content.split("idArticle>")[1].split("<")[0]
                 
                 # Fetch Proforma if IDs are found AND product is "monde"
                 # Using the previously computed is_monde variable
-                if nlabel and id_article and is_monde:
+                if nlabel != "Not Found" and id_article != "Not Found" and is_monde:
                     proforma_res = get_proforma(nlabel, id_article, HEADERS_6)
                     if proforma_res:
                          return {
@@ -109,7 +114,9 @@ def run_chronopost(payload_data=None):
                             "duration": duration,
                             "content": None,
                             "routing": check_routing,
-                            "proforma": proforma_res
+                            "proforma": proforma_res,
+                            "jobName": nlabel,
+                            "idArticle": id_article
                         }
             except Exception:
                 pass # Fail silently on parsing if not present
@@ -118,7 +125,9 @@ def run_chronopost(payload_data=None):
                 "status": "success",
                 "duration": duration,
                 "routing": check_routing,
-                "content": None
+                "content": None,
+                "jobName": nlabel,
+                "idArticle": id_article
             }
 
         return {"status": "error", "message": "Final request failed", "routing": check_routing}
