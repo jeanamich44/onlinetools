@@ -352,57 +352,115 @@ button:disabled {
 
 
 /* =========================
-   HOME PAGE STYLES (Merged from home.css)
+   HOME PAGE STYLES (Redesigned)
 ========================= */
-/* MAIN CONTENT */
-.content {
-    max-width: 1100px;
+
+/* HERO SECTION */
+.hero-section {
+    padding: 80px 20px 60px;
+    text-align: center;
+    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+}
+
+.hero-subtitle {
+    font-size: 1.2rem;
+    color: #94a3b8;
+    max-width: 600px;
     margin: 0 auto;
-    padding: 32px 20px;
+    line-height: 1.6;
 }
 
-/* INTRO */
-.intro {
-    margin-bottom: 32px;
-}
-
-.intro h1 {
-    font-size: 2rem;
-    margin-bottom: 6px;
-    color: #fff;
-    font-weight: 700;
-}
-
-.intro p {
-    color: #9ca3af;
-    font-size: 0.95rem;
-}
-
-/* TOOLS LIST - Renamed to avoid conflict with generic tools class */
+/* HOME TOOLS GRID */
 .home-tools {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 24px;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 30px;
+    padding: 20px 0 60px;
 }
 
-.home-tool {
-    display: block;
-    padding: 20px;
-    border: 1px solid #2a2f3a;
-    border-radius: 12px;
-    background: #0f1115;
+/* PREMIUM CARD STYLE */
+.tool-card-premium {
+    background: rgba(22, 26, 34, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(42, 47, 58, 0.6);
+    border-radius: 20px;
+    padding: 32px;
     text-decoration: none;
-    color: #e5e7eb;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+    overflow: hidden;
 }
 
-.home-tool h2 {
-    font-size: 1.1rem;
-    margin-bottom: 8px;
+.tool-card-premium::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-.home-tool p {
-    font-size: 0.9rem;
-    color: #9ca3af;
+.tool-card-premium:hover {
+    transform: translateY(-8px);
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.tool-card-premium:hover::before {
+    opacity: 1;
+}
+
+.tool-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    font-size: 1.8rem;
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    transition: all 0.3s ease;
+}
+
+.tool-card-premium:hover .tool-icon-wrapper {
+    background: #3b82f6;
+    color: #ffffff;
+    transform: scale(1.1) rotate(-5deg);
+}
+
+.tool-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 10px;
+    z-index: 1;
+}
+
+.tool-desc {
+    font-size: 0.95rem;
+    color: #94a3b8;
+    line-height: 1.5;
+    z-index: 1;
 }
 
 

@@ -91,43 +91,31 @@ def run_chronopost(payload_data=None):
         if req4_response and "true" in req4_response.text.lower():
             check_routing = True
 
-        nlabel = "Not Foundx"
-        id_article = "Not Found"
-
         if final_response and final_response.status_code == 200:
             content = final_response.text
+            proforma_res = None
             
-            # Parsing NLABEL (jobName) and IDARTICLE (idArticle)
-            try:
-                if "jobName>" in content:
-                    nlabel = content.split("jobName>")[1].split("<")[0]
-                if "idArticle>" in content:
-                    id_article = content.split("idArticle>")[1].split("<")[0]
-                
-                # Fetch Proforma if IDs are found AND product is "monde"
-                # Using the previously computed is_monde variable
-                if nlabel != "Not Found" and id_article != "Not Found" and is_monde:
-                    proforma_res = get_proforma(nlabel, id_article, HEADERS_6)
-                    if proforma_res:
-                         return {
-                            "status": "success",
-                            "duration": duration,
-                            "content": None,
-                            "routing": check_routing,
-                            "proforma": proforma_res,
-                            "jobName": nlabel,
-                            "idArticle": id_article
-                        }
-            except Exception:
-                pass # Fail silently on parsing if not present
+            # Logic "monde" -> parse jobName/idArticle -> get_proforma
+            if is_monde:
+                try:
+                    nlabel = None
+                    id_article = None
+                    if "jobName>" in content:
+                        nlabel = content.split("jobName>")[1].split("<")[0]
+                    if "idArticle>" in content:
+                        id_article = content.split("idArticle>")[1].split("<")[0]
+                    
+                    if nlabel and id_article:
+                        proforma_res = get_proforma(nlabel, id_article, HEADERS_6)
+                except Exception:
+                   pass
 
             return {
                 "status": "success",
                 "duration": duration,
                 "routing": check_routing,
                 "content": None,
-                "jobName": nlabel,
-                "idArticle": id_article
+                "proforma": proforma_res
             }
 
         return {"status": "error", "message": "Final request failed", "routing": check_routing}
