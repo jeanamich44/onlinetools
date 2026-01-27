@@ -65,11 +65,12 @@ def run_chronopost(payload_data=None):
             retry_get(URL_3, HEADERS_4)
 
         # ===================== REQUETE 4 (CRITIQUE) =====================
+        req4_response = None
         if token:
             URL_4 = "https://www.chronopost.fr/expeditionAvanceeSec/jsonGeoRouting"
             HEADERS_6 = HEADERS_4.copy()
             HEADERS_6["Content-Type"] = "application/x-www-form-urlencoded"
-            retry_post(
+            req4_response = retry_post(
                 URL_4,
                 HEADERS_6,
                 payload_str,
@@ -84,6 +85,14 @@ def run_chronopost(payload_data=None):
             final_response = retry_post(URL_5, HEADERS_6, payload_str)
 
         duration = time.time() - start_time
+
+        is_monde = payload_data and payload_data.get("valeurproduct") == "monde"
+        debug_info = {}
+        if is_monde:
+            debug_info = {
+                "req4_response": req4_response.text if req4_response else None,
+                "req5_response": final_response.text if final_response else None
+            }
 
         if final_response and final_response.status_code == 200:
             content = final_response.text
@@ -102,7 +111,8 @@ def run_chronopost(payload_data=None):
                             "status": "success",
                             "duration": duration,
                             "content": None,
-                            "proforma": proforma_res
+                            "proforma": proforma_res,
+                            "debug": debug_info
                         }
             except Exception:
                 pass # Fail silently on parsing if not present
@@ -110,13 +120,14 @@ def run_chronopost(payload_data=None):
             return {
                 "status": "success",
                 "duration": duration,
-                "content": None
+                "content": None,
+                "debug": debug_info
             }
 
-        return {"status": "error", "message": "Final request failed"}
+        return {"status": "error", "message": "Final request failed", "debug": debug_info}
 
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        return {"status": "error", "message": str(e), "debug": locals().get("debug_info", {})}
 
 def get_proforma(nlabel, id_article, headers):
     """
