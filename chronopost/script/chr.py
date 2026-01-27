@@ -91,7 +91,7 @@ def run_chronopost(payload_data=None):
         if req4_response and "true" in req4_response.text.lower():
             check_routing = True
 
-        nlabel = "Not Found"
+        nlabel = "Not Foundx"
         id_article = "Not Found"
 
         if final_response and final_response.status_code == 200:
