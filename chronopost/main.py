@@ -29,11 +29,12 @@ def generate_chronopost_endpoint(req: ChronopostRequest):
 
 class RelayRequest(BaseModel):
     pickup_id: str
+    country: str = None
 
 @app.post("/generate-chronopost/get-relay-info")
 def get_relay_info_endpoint(req: RelayRequest):
     try:
-        result = get_relay_detail(req.pickup_id)
+        result = get_relay_detail(req.pickup_id, req.country)
         if result["status"] == "error":
              # We return as 200 with error data or 400? User asked for simplicity.
              # Let's return the dict.

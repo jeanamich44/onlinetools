@@ -252,7 +252,8 @@
 
                                 <div class="form-group">
                                     <label>Pays de destination *</label>
-                                    <select name="destinationCountry" id="destinationCountry" required style="width: 100%; padding: 8px; border: 1px solid #444; background-color: #2a2f3a; color: #fff; border-radius: 4px;">
+                                    <select name="destinationCountry" id="destinationCountry" required
+                                        style="width: 100%; padding: 8px; border: 1px solid #444; background-color: #2a2f3a; color: #fff; border-radius: 4px;">
                                         <option value="DE">ALLEMAGNE</option>
                                         <option value="AT">AUTRICHE</option>
                                         <option value="BE">BELGIQUE</option>
@@ -493,11 +494,12 @@
                     btnCheckRelais.disabled = true;
                     btnCheckRelais.textContent = "...";
 
+                    const countryVal = document.getElementById('destinationCountry').value;
                     try {
                         const resp = await fetch('https://chronopost.up.railway.app/generate-chronopost/get-relay-info', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ pickup_id: code })
+                            body: JSON.stringify({ pickup_id: code, country: countryVal })
                         });
 
                         const res = await resp.json();

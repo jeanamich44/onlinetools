@@ -161,12 +161,14 @@ def get_proforma(nlabel, id_article, headers):
         pass
     return None
 
-def get_relay_detail(pickup_id):
+def get_relay_detail(pickup_id, country=None):
     """
     Récupère les détails d'un point relais via son ID.
     Utilise curl_cffi pour simuler un navigateur (chrome120).
     """
     url = f"https://www.chronopost.fr/expeditionAvanceeSec/jsonPointRelaisById.json?pickUpId={pickup_id}"
+    if country:
+        url += f"&country={country}"
     
     try:
         r = cffi_requests.get(
