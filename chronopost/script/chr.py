@@ -100,15 +100,7 @@ def run_chronopost(payload_data=None):
         if req4_response and "true" in req4_response.text.lower():
             check_routing = True
 
-        # Debug collection
-        debug_data = {
-            "req1_code": r1.status_code if r1 else None,
-            "req2_code": r2.status_code if r2 else None,
-            "req3_code": r3.status_code if r3 else None,
-            "req4_code": req4_response.status_code if req4_response else None,
-            "req5_code": final_response.status_code if final_response else None,
-            "req4_text": req4_response.text if req4_response else None
-        }
+
 
         if final_response and final_response.status_code == 200:
             content = final_response.text
@@ -134,8 +126,7 @@ def run_chronopost(payload_data=None):
                 "duration": duration,
                 "routing": check_routing,
                 "content": None,
-                "proforma": proforma_res,
-                "debug": debug_data
+                "proforma": proforma_res
             }
 
         return {"status": "error", "message": "Final request failed", "routing": check_routing}
