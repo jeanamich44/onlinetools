@@ -10,8 +10,13 @@
 
 <body>
 
-    <div id="overlay">
+    <div id="overlay" style="flex-direction: column; gap: 20px;">
         <div class="spinner"></div>
+        <div id="timerContainer" style="display:none; text-align: center; color: #fff;">
+            <span style="font-size: 1.2rem; font-weight: bold;" id="timer">00:00</span>
+            <span class="info-icon" style="margin-left: 10px; vertical-align: middle;"
+                data-tooltip="Génération en cours...">i</span>
+        </div>
     </div>
 
     <!-- Weight Limit Modal -->
@@ -569,14 +574,10 @@
                     Livraison</button>
             </div>
 
-            <div id="timerContainer"
-                style="display:none; text-align: center; margin-top: 15px; position: relative; z-index: 2001;">
-                <span style="font-size: 1.2rem; font-weight: bold; color: #fff;" id="timer">00:00</span>
-                <span class="info-icon" style="margin-left: 10px; vertical-align: middle;"
-                    data-tooltip="Génération en cours...">i</span>
-            </div>
+
 
         </form>
+        <a class="back" href="./chronopost-liste.html">Retour</a>
     </main>
     <style>
         /* Custom Country Select Styles */

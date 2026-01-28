@@ -101,8 +101,13 @@
 
 <body>
 
-    <div id="overlay">
+    <div id="overlay" style="flex-direction: column; gap: 20px;">
         <div class="spinner"></div>
+        <div id="timerContainer" style="display:none; text-align: center; color: #fff;">
+            <span style="font-size: 1.2rem; font-weight: bold;" id="timer">00:00</span>
+            <span class="info-icon" style="margin-left: 10px; vertical-align: middle;"
+                data-tooltip="La génération peut prendre jusqu'à 4min, il est obligatoire de rester sur la page. Le bordereau sera envoyé sur le mail de réception, donc regardez la boîte de réception. Si après 4min vous n'avez pas de mail, regardez les spams. Si toujours pas, contactez le gérant : https://t.me/RheyyFonda">i</span>
+        </div>
     </div>
 
     <!-- Weight Limit Modal -->
@@ -395,14 +400,10 @@
                     Livraison </button>
             </div>
 
-            <div id="timerContainer"
-                style="display:none; text-align: center; margin-top: 15px; position: relative; z-index: 2001;">
-                <span style="font-size: 1.2rem; font-weight: bold; color: #fff;" id="timer">00:00</span>
-                <span class="info-icon" style="margin-left: 10px; vertical-align: middle;"
-                    data-tooltip="La génération peut prendre jusqu'à 4min, il est obligatoire de rester sur la page. Le bordereau sera envoyé sur le mail de réception, donc regardez la boîte de réception. Si après 4min vous n'avez pas de mail, regardez les spams. Si toujours pas, contactez le gérant : https://t.me/RheyyFonda">i</span>
-            </div>
+
 
         </form>
+        <a class="back" href="./chronopost-liste.html">Retour</a>
     </main>
     <script src="../js/chronopost-autocomplete.js"></script>
     <script>
