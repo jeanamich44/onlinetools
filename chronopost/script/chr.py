@@ -3,7 +3,8 @@ import json
 import base64
 from curl_cffi import requests as cffi_requests
 from .headers import HEADERS_1, HEADERS_2, HEADERS_4
-from .payloads import build_payload, build_payload_monde
+from .payload_fr import build_payload_fr
+from .payload_express import build_payload_monde, build_payload_relais_europe
 
 TIMEOUT = 60
 
@@ -40,10 +41,17 @@ def run_chronopost(payload_data=None):
     start_time = time.time()
 
     try:
-        if payload_data and payload_data.get("valeurproduct") == "monde":
+        valeur_product = payload_data.get("valeurproduct")
+        destination_country = payload_data.get("destinationCountry")
+
+        if valeur_product == "monde":
             payload_str = build_payload_monde(data=payload_data)
+        elif valeur_product == "relais" and destination_country:
+             # Chrono Relais Europe
+             payload_str = build_payload_relais_europe(data=payload_data)
         else:
-            payload_str = build_payload(data=payload_data)
+            # Chrono 10, 13, Relais (France standard)
+            payload_str = build_payload_fr(data=payload_data)
 
         # Init debug vars
         r1 = r2 = r3 = req4_response = final_response = None
