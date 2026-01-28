@@ -73,9 +73,7 @@
     cartBtn.style.whiteSpace = "nowrap";
     cartBtn.style.marginLeft = "auto";
 
-    cartBtn.onclick = () => {
-      window.location.href = "../cart/cart.html";
-    };
+
 
     /* ===== API PDF ===== */
     const API_URL = "https://generate-docs-production.up.railway.app/generate-pdf";
@@ -117,37 +115,7 @@
       }
     };
 
-    /* ===== AJOUT AU PANIER (AVEC DONNÉES FORMULAIRE) ===== */
-    document.getElementById("addCart").onclick = () => {
-      const formData = Object.fromEntries(new FormData(form));
 
-      const cartItem = {
-        id: crypto.randomUUID(),
-        type_pdf: "qonto",
-        name: "RIB Qonto",
-        price: 5,
-        payload: formData,
-        createdAt: new Date().toISOString(),
-      };
-
-      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-      cart.push(cartItem);
-      localStorage.setItem("cart", JSON.stringify(cart));
-
-      const notif = document.createElement("div");
-      notif.textContent = "Ajouté au panier ✓";
-      notif.style.position = "fixed";
-      notif.style.top = "70px";
-      notif.style.right = "24px";
-      notif.style.background = "#16a34a";
-      notif.style.color = "#fff";
-      notif.style.padding = "10px 16px";
-      notif.style.borderRadius = "8px";
-      notif.style.zIndex = "2000";
-      document.body.appendChild(notif);
-
-      setTimeout(() => notif.remove(), 2000);
-    };
   </script>
 
 </body>

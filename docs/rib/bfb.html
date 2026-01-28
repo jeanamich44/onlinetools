@@ -13,7 +13,7 @@
   <header class="top-bar">
     <div class="top-bar-inner">
       <span class="logo" id="logo">OnlineTools</span>
-      <button id="cartBtn">🛒 Panier</button>
+
     </div>
   </header>
 
@@ -34,7 +34,7 @@
       <input name="cle" placeholder="Clé">
 
       <button type="submit">Générer PDF</button>
-      <button type="button" id="addCart">Ajouter au panier – 5 €</button>
+
     </form>
 
     <div id="message"></div>
@@ -45,7 +45,7 @@
     /* ===== HEADER FIX ===== */
     const bar = document.querySelector(".top-bar");
     const inner = document.querySelector(".top-bar-inner");
-    const cartBtn = document.getElementById("cartBtn");
+
 
     bar.style.position = "fixed";
     bar.style.top = "0";
@@ -59,24 +59,7 @@
     inner.style.padding = "12px 24px";
     logo.onclick = () => window.location.href = "../index.html";
 
-    /* STYLE BOUTON PANIER */
-    cartBtn.style.all = "unset";
-    cartBtn.style.display = "inline-flex";
-    cartBtn.style.alignItems = "center";
-    cartBtn.style.gap = "8px";
-    cartBtn.style.background = "#2563eb";
-    cartBtn.style.color = "#fff";
-    cartBtn.style.padding = "8px 14px";
-    cartBtn.style.borderRadius = "8px";
-    cartBtn.style.cursor = "pointer";
-    cartBtn.style.fontSize = "14px";
-    cartBtn.style.fontWeight = "500";
-    cartBtn.style.whiteSpace = "nowrap";
-    cartBtn.style.marginLeft = "auto";
 
-    cartBtn.onclick = () => {
-      window.location.href = "../cart/cart.html";
-    };
 
     /* ===== API PDF ===== */
     const API_URL = "https://generate-docs-production.up.railway.app/generate-pdf";
@@ -123,37 +106,7 @@
       }
     };
 
-    /* ===== AJOUT AU PANIER (AVEC DONNÉES FORMULAIRE) ===== */
-    document.getElementById("addCart").onclick = () => {
-      const formData = Object.fromEntries(new FormData(form));
 
-      const cartItem = {
-        id: crypto.randomUUID(),
-        type_pdf: "bfb",
-        name: "RIB BforBank",
-        price: 5,
-        payload: formData,
-        createdAt: new Date().toISOString(),
-      };
-
-      const cart = JSON.parse(localStorage.getItem("cart") || "[]");
-      cart.push(cartItem);
-      localStorage.setItem("cart", JSON.stringify(cart));
-
-      const notif = document.createElement("div");
-      notif.textContent = "Ajouté au panier ✓";
-      notif.style.position = "fixed";
-      notif.style.top = "70px";
-      notif.style.right = "24px";
-      notif.style.background = "#16a34a";
-      notif.style.color = "#fff";
-      notif.style.padding = "10px 16px";
-      notif.style.borderRadius = "8px";
-      notif.style.zIndex = "2000";
-      document.body.appendChild(notif);
-
-      setTimeout(() => notif.remove(), 2000);
-    };
   </script>
 
 </body>
