@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Facture – Prada</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="top-bar">
+        <div class="top-bar-inner">
+            <span class="logo" id="logo">OnlineTools</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <h1>Facture Prada</h1>
+        <p class="subtitle">Génération PDF – Prada</p>
+
+        <form id="pradaForm">
+            <input name="nom_prenom" placeholder="Nom Prénom">
+            <input name="adresse" placeholder="Adresse">
+            <input name="cp_ville" placeholder="CP Ville">
+
+            <button type="submit">Générer PDF</button>
+        </form>
+
+        <div id="message"></div>
+        <a class="back" href="./facture-liste.html">Retour</a>
+    </div>
+
+    <script>
+        /* ===== HEADER FIX ===== */
+        const bar = document.querySelector(".top-bar");
+        const inner = document.querySelector(".top-bar-inner");
+
+        bar.style.position = "fixed";
+        bar.style.top = "0";
+        bar.style.left = "0";
+        bar.style.width = "100%";
+        bar.style.zIndex = "1000";
+
+        inner.style.display = "flex";
+        inner.style.alignItems = "center";
+        inner.style.justifyContent = "space-between";
+        inner.style.padding = "12px 24px";
+        logo.onclick = () => window.location.href = "../index.html";
+
+        /* ===== API PDF ===== */
+        const API_URL = "https://generate-docs-production.up.railway.app/generate-pdf";
+        const form = document.getElementById("pradaForm");
+        const message = document.getElementById("message");
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+
+            message.textContent = "Génération en cours...";
+            message.className = "";
+
+            const data = Object.fromEntries(new FormData(form));
+            data.type_pdf = "prada";
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || "Erreur serveur");
+                }
+
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "facture_prada.pdf";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+
+                message.textContent = "PDF généré avec succès";
+                message.className = "success";
+
+            } catch (err) {
+                message.textContent = err.message;
+                message.className = "error";
+            }
+        };
+    </script>
+
+</body>
+
+</html>

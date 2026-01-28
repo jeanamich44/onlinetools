@@ -1,37 +1,250 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8" />
   <title>Facture Generator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .views-field-field-image-de-l-offre {
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      height: 120px;
+    }
+
+    .views-field-field-image-de-l-offre img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  </style>
 </head>
 
-<body class="facture-generator-page">
+<body>
 
-  <main class="facture-generator">
-    <h1>Facture Generator</h1>
-    <p class="subtitle">Choisissez votre facture</p>
-
-    <div class="facture-liste">
-      <a href="./nike.html" class="facture-item">
-        <span class="facture-name">Nike</span>
-        <span class="facture-desc">Génération Facture Nike</span>
-      </a>
-
-      <a href="./adidas.html" class="facture-item">
-        <span class="facture-name">Adidas</span>
-        <span class="facture-desc">Génération Facture Adidas</span>
-      </a>
-
-      <a href="./boulanger.html" class="facture-item">
-        <span class="facture-name">Boulanger</span>
-        <span class="facture-desc">Génération Facture Boulanger</span>
-      </a>
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="logo">OnlineTools</a>
+      <nav class="nav">
+        <a href="../index.html">Home</a>
+        <a href="../tools/tools-liste.html">Tools</a>
+        <a href="../contact.html">Contact</a>
+      </nav>
     </div>
+  </header>
 
-    <a href="../index.html" class="back-link">← Retour</a>
+  <main class="content">
+    <section class="intro">
+      <h1>Facture Generator</h1>
+      <p>Choisissez votre enseigne pour générer une facture.</p>
+    </section>
+
+    <h2 style="margin-bottom: 20px; font-size: 1.5rem; border-bottom: 2px solid #2a2f3a; padding-bottom: 10px;">
+      Enseignes Disponibles</h2>
+
+    <div class="layout-offres">
+      <div class="offers-row">
+
+        <!-- Nike -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/nike.svg" alt="Logo Nike">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">Nike</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./nike.html">Générer</a>
+          </p>
+        </div>
+
+        <!-- Adidas -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/adidas.svg" alt="Logo Adidas">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">Adidas</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./adidas.html">Générer</a>
+          </p>
+        </div>
+
+        <!-- Boulanger -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/boulanger.svg" alt="Logo Boulanger">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">Boulanger</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./boulanger.html">Générer</a>
+          </p>
+        </div>
+
+        <!-- EDF -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/edf.svg" alt="Logo EDF">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">EDF</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./edf.html">Générer</a>
+          </p>
+        </div>
+
+        <!-- Direct Energie -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/direct-energie.svg" alt="Logo Direct Energie">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">Direct Energie</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./direct-energie.html">Générer</a>
+          </p>
+        </div>
+
+        <!-- Nocibe -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/nocibe.svg" alt="Logo Nocibe">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">Nocibé</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./nocibe.html">Générer</a>
+          </p>
+        </div>
+
+        <!-- Versace -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/versace.svg" alt="Logo Versace">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">Versace</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./versace.html">Générer</a>
+          </p>
+        </div>
+
+        <!-- Prada -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/prada.svg" alt="Logo Prada">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">Prada</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./prada.html">Générer</a>
+          </p>
+        </div>
+
+        <!-- Pack Moto -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/pack-moto.svg" alt="Logo Pack Moto">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">Pack Moto</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./pack-moto.html">Générer</a>
+          </p>
+        </div>
+
+        <!-- Moncler -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/moncler.svg" alt="Logo Moncler">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">Moncler</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./moncler.html">Générer</a>
+          </p>
+        </div>
+
+        <!-- Darty -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/darty.svg" alt="Logo Darty">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">Darty</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./darty.html">Générer</a>
+          </p>
+        </div>
+
+        <!-- Dafy -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/dafy.svg" alt="Logo Dafy Moto">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">Dafy Moto</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./dafy.html">Générer</a>
+          </p>
+        </div>
+
+        <!-- Chanel -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/chanel.svg" alt="Logo Chanel">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">Chanel</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./chanel.html">Générer</a>
+          </p>
+        </div>
+
+        <!-- AMI -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/ami.svg" alt="Logo AMI">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">AMI Paris</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./ami.html">Générer</a>
+          </p>
+        </div>
+
+        <!-- Fnac -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/fnac.svg" alt="Logo Fnac">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">Fnac</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./fnac.html">Générer</a>
+          </p>
+        </div>
+
+        <!-- Amazon -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/amazon.svg" alt="Logo Amazon">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">Amazon</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Facture PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./amazon.html">Générer</a>
+          </p>
+        </div>
+
+      </div>
+    </div>
   </main>
 
 </body>
+
 </html>

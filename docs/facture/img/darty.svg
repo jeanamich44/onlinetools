@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 294.83 265.32">
+  <!-- Generator: Adobe Illustrator 29.8.0, SVG Export Plug-In . SVG Version: 2.1.1 Build 160)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: none;
+      }
+
+      .st1 {
+        fill: #e30613;
+      }
+
+      .st2 {
+        fill: #1d1d1b;
+      }
+
+      .st3 {
+        clip-path: url(#clippath);
+      }
+    </style>
+    <clipPath id="clippath">
+      <rect class="st0" width="294.83" height="265.32"/>
+    </clipPath>
+  </defs>
+  <g id="svg3946" inkscape:version="0.91 r13725" sodipodi:docname="Darty.svg">
+    <sodipodi:namedview id="base" bordercolor="#666666" borderopacity="1.0" fit-margin-bottom="0" fit-margin-left="0" fit-margin-right="0" fit-margin-top="0" inkscape:current-layer="layer1" inkscape:cx="90.513104" inkscape:cy="142.69439" inkscape:document-units="px" inkscape:pageopacity="0.0" inkscape:pageshadow="2" inkscape:window-height="978" inkscape:window-maximized="1" inkscape:window-width="1920" inkscape:window-x="0" inkscape:window-y="31" inkscape:zoom="0.7" pagecolor="#ffffff" showgrid="false"/>
+    <g id="layer1" inkscape:groupmode="layer" inkscape:label="Ebene 1">
+      <g id="g552">
+        <g class="st3">
+          <g id="g554">
+            <g id="g560">
+              <path id="path562" class="st1" d="M147.54,258.71c-77.55,0-140.41-56.45-140.41-126.07S70,6.57,147.54,6.57s140.41,56.45,140.41,126.07-62.87,126.07-140.41,126.07M-62.23,320.48h417.24V-56.08H-62.23v376.56Z" inkscape:connector-curvature="0"/>
+            </g>
+            <g id="g564">
+              <path id="path566" class="st2" d="M40.37,152.64v-40s10.5-2.19,10.5,20.06-10.5,19.93-10.5,19.93M45.69,99.26h-27.04s2.3,14.4,2.3,33.44-2.3,33.31-2.3,33.31h27.04c9.06,0,24.6-5.4,24.6-33.31s-15.39-33.44-24.6-33.44" inkscape:connector-curvature="0"/>
+            </g>
+            <g id="g568">
+              <path id="path570" class="st2" d="M93.45,135.15l4.6-22.51,4.6,22.51h-9.21ZM130.28,166.01s-6.04-17.36-9.64-33.31c-3.59-15.93-5.47-33.44-5.47-33.44h-34.24s-1.87,17.49-5.47,33.44c-3.6,15.95-9.5,33.31-9.5,33.31h23.88s-.86-2.96,0-8.75,2.45-8.75,2.45-8.75h11.51s1.87,3.34,2.45,8.87c.59,5.7,0,8.62,0,8.62,0,0,24.02,0,24.02,0Z" inkscape:connector-curvature="0"/>
+            </g>
+            <g id="g572">
+              <path id="path574" class="st2" d="M149.85,127.95v-17.36s8.2-.13,8.2,8.62-8.2,8.75-8.2,8.75M184.23,166.01s-4.18-8.15-9.78-16.72c-5.47-8.36-8.63-12.6-8.63-12.6,0,0,12.95-3.47,12.95-18.65s-12.66-18.78-17.41-18.78h-33.23s2.16,12.22,2.16,33.44-2.45,33.31-2.45,33.31h24.31s-1.44-3.99-2.3-11.19c-.86-7.2,0-11.45,0-11.45,0,0,3.45,4.12,6.04,11.32,2.59,7.2,2.16,11.32,2.16,11.32,0,0,26.18,0,26.18,0Z" inkscape:connector-curvature="0"/>
+            </g>
+            <g id="g576">
+              <path id="path578" class="st2" d="M177.61,99.26v15.31s4.46-1.93,12.8-1.93c0,0,.72,12.07,0,23.54-.72,11.58-2.3,29.84-2.3,29.84h23.88s-1.58-18.39-2.16-29.84,0-23.54,0-23.54c0,0,6.33-.26,12.52,1.93v-15.31h-44.74Z" inkscape:connector-curvature="0"/>
+            </g>
+            <g id="g580">
+              <path id="path582" class="st2" d="M243.07,99.26h-21.72s9.64,16.46,13.81,33.44c4.17,16.98,1.73,33.31,1.73,33.31h24.02s-2.59-16.46,1.58-33.31c4.17-16.85,13.95-33.44,13.95-33.44h-21.72l-5.9,19.42-5.76-19.42Z" inkscape:connector-curvature="0"/>
+            </g>
+            <g id="g584">
+              <path id="path586" class="st2" d="M177.61,99.26v15.31s4.46-1.93,12.8-1.93c0,0,.72,12.07,0,23.54-.72,11.58-2.3,29.84-2.3,29.84h23.88s-1.58-18.39-2.16-29.84,0-23.54,0-23.54c0,0,6.33-.26,12.52,1.93v-15.31h-44.74Z" inkscape:connector-curvature="0"/>
+            </g>
+            <g id="g588">
+              <path id="path590" class="st2" d="M243.07,99.26h-21.72s9.64,16.46,13.81,33.44c4.17,16.98,1.73,33.31,1.73,33.31h24.02s-2.59-16.46,1.58-33.31c4.17-16.85,13.95-33.44,13.95-33.44h-21.72l-5.9,19.42-5.76-19.42Z" inkscape:connector-curvature="0"/>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
