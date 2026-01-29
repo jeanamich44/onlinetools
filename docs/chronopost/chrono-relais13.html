@@ -162,23 +162,24 @@
                         <div class="form-row">
                             <div class="form-group" id="senderCompanyDiv" style="display:none;">
                                 <label>Nom de société</label>
-                                <input type="text" name="senderCompanyName">
+                                <input type="text" name="senderCompanyName" maxlength="60">
                             </div>
                             <input type="hidden" name="senderCountry" value="FR">
                             <div class="form-group">
                                 <label>Nom</label>
-                                <input type="text" name="senderLastname" placeholder="Vide = Aléatoire">
+                                <input type="text" name="senderLastname" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Prénom</label>
-                                <input type="text" name="senderFirstname" placeholder="Vide = Aléatoire">
+                                <input type="text" name="senderFirstname" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                             <div class="form-group">
                                 <label>Code Postal</label>
-                                <input type="text" name="senderCP" pattern="\d+" placeholder="Vide = Aléatoire">
+                                <input type="text" name="senderCP" pattern="\d+" placeholder="Vide = Aléatoire"
+                                    maxlength="60">
                             </div>
                         </div>
 
@@ -190,7 +191,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Ville</label>
-                                <input type="text" name="senderCity" placeholder="Vide = Aléatoire">
+                                <input type="text" name="senderCity" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                         </div>
 
@@ -201,7 +202,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Adresse</label>
-                                <input type="text" name="senderAddress" placeholder="Vide = Aléatoire">
+                                <input type="text" name="senderAddress" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                         </div>
 
@@ -236,11 +237,11 @@
                             <div class="left-col">
                                 <div class="form-group">
                                     <label>Nom *</label>
-                                    <input type="text" name="receiverLastname" required>
+                                    <input type="text" name="receiverLastname" required maxlength="60">
                                 </div>
                                 <div class="form-group">
                                     <label>Prénom *</label>
-                                    <input type="text" name="receiverFirstname" required>
+                                    <input type="text" name="receiverFirstname" required maxlength="60">
                                 </div>
                                 <div class="form-group">
                                     <label>Téléphone (mobile de préférence) *</label>
@@ -265,7 +266,9 @@
                                     </div>
                                     <div class="pickup-code-row">
                                         <label>Relais pickup</label>
-                                        <input type="text" name="codeRelais" id="codeRelaisInput" placeholder="">
+                                        <input type="text" name="codeRelais" id="codeRelaisInput" placeholder=""
+                                            maxlength="6"
+                                            oninput="this.value = this.value.replace(/[^a-zA-Z0-9]/g, '')">
                                         <button type="button" id="btnCheckRelais">OK</button>
                                     </div>
                                 </div>
@@ -273,22 +276,26 @@
                                 <div class="form-group">
                                     <label>Nom point relais</label>
                                     <input type="text" name="relaisName" id="relaisName" required readonly
-                                        style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;">
+                                        style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;"
+                                        maxlength="60">
                                 </div>
                                 <div class="form-group">
                                     <label>Code Postal</label>
                                     <input type="text" name="receiverCP" id="relaisCP" required pattern="\d+" readonly
-                                        style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;">
+                                        style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;"
+                                        maxlength="60">
                                 </div>
                                 <div class="form-group">
                                     <label>Ville</label>
                                     <input type="text" name="receiverCity" id="relaisCity" required readonly
-                                        style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;">
+                                        style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;"
+                                        maxlength="60">
                                 </div>
                                 <div class="form-group">
                                     <label>Adresse</label>
                                     <input type="text" name="receiverAddress" id="relaisAddress" required readonly
-                                        style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;">
+                                        style="background-color: #2a2f3a; color: #888; border-color: #444; cursor: not-allowed;"
+                                        maxlength="60">
                                 </div>
                             </div>
                         </div>
@@ -388,7 +395,7 @@
                         <div class="form-group" style="margin-top: 15px;">
                             <label>Mail Tiers (Réception Bordereau) * <span class="info-icon"
                                     data-tooltip="Insérez le mail sur lequel recevoir le bordereau. Ce mail est uniquement utilisé pour la réception du bordereau. Pour avoir un suivi par mail, il faut saisir un mail dans la catégorie voulue (Expéditeur ou Destinataire).">i</span></label>
-                            <input type="email" name="sendToThirdPersonInfo" required
+                            <input type="email" name="sendToThirdPersonInfo" required maxlength="60"
                                 placeholder="Votre email pour recevoir le PDF">
                         </div>
                     </div>

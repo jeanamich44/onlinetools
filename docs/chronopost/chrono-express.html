@@ -72,23 +72,24 @@
                         <div class="form-row">
                             <div class="form-group" id="senderCompanyDiv" style="display:none;">
                                 <label>Nom de société</label>
-                                <input type="text" name="senderCompanyName">
+                                <input type="text" name="senderCompanyName" maxlength="60">
                             </div>
                             <input type="hidden" name="senderCountry" value="FR">
                             <div class="form-group">
                                 <label>Nom</label>
-                                <input type="text" name="senderLastname" placeholder="Vide = Aléatoire">
+                                <input type="text" name="senderLastname" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Prénom</label>
-                                <input type="text" name="senderFirstname" placeholder="Vide = Aléatoire">
+                                <input type="text" name="senderFirstname" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                             <div class="form-group">
                                 <label>Code Postal</label>
-                                <input type="text" name="senderCP" pattern="\d+" placeholder="Vide = Aléatoire">
+                                <input type="text" name="senderCP" pattern="\d+" placeholder="Vide = Aléatoire"
+                                    maxlength="60">
                             </div>
                         </div>
 
@@ -100,7 +101,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Ville</label>
-                                <input type="text" name="senderCity" placeholder="Vide = Aléatoire">
+                                <input type="text" name="senderCity" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                         </div>
 
@@ -111,7 +112,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Adresse</label>
-                                <input type="text" name="senderAddress" placeholder="Vide = Aléatoire">
+                                <input type="text" name="senderAddress" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                         </div>
 
@@ -380,29 +381,29 @@
                             </div>
                             <div class="form-group" id="receiverCompanyDiv">
                                 <label>Raison Sociale *</label>
-                                <input type="text" name="receiverCompanyName">
+                                <input type="text" name="receiverCompanyName" maxlength="60">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Nom *</label>
-                                <input type="text" name="receiverLastname" required>
+                                <input type="text" name="receiverLastname" required maxlength="60">
                             </div>
                             <div class="form-group">
                                 <label>Code Postal *</label>
-                                <input type="text" name="receiverCP" required>
+                                <input type="text" name="receiverCP" required maxlength="60">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Prénom *</label>
-                                <input type="text" name="receiverFirstname">
+                                <input type="text" name="receiverFirstname" maxlength="60">
                             </div>
                             <div class="form-group">
                                 <label>Ville *</label>
-                                <input type="text" name="receiverCity" required>
+                                <input type="text" name="receiverCity" required maxlength="60">
                             </div>
                         </div>
 
@@ -413,7 +414,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Adresse *</label>
-                                <input type="text" name="receiverAddress" required>
+                                <input type="text" name="receiverAddress" required maxlength="60">
                             </div>
                         </div>
 
@@ -509,7 +510,7 @@
                         <div class="form-group">
                             <label>Contenu de l'envoi * <span class="info-icon"
                                     data-tooltip="Description simple (Lampe, Perceuse...)">?</span></label>
-                            <input type="text" name="shippingContent" required
+                            <input type="text" name="shippingContent" required maxlength="60"
                                 placeholder="Ex: Vêtements, Pièces électroniques...">
                         </div>
 
@@ -562,7 +563,7 @@
 
                         <div class="form-group" style="margin-top: 15px;">
                             <label>Mail Tiers (Réception Bordereau) *</label>
-                            <input type="email" name="sendToThirdPersonInfo" required
+                            <input type="email" name="sendToThirdPersonInfo" required maxlength="60"
                                 placeholder="Votre email pour recevoir le PDF">
                         </div>
                     </div>
