@@ -165,33 +165,45 @@ def get_relay_detail(pickup_id, country=None):
     """
     Récupère les détails d'un point relais via son ID.
     Utilise curl_cffi pour simuler un navigateur (chrome120).
+    Boucle de 10 tentatives en cas d'erreur ou 403.
     """
     url = f"https://www.chronopost.fr/expeditionAvanceeSec/jsonPointRelaisById.json?pickUpId={pickup_id}"
     if country:
         url += f"&country={country}"
     
-    try:
-        r = cffi_requests.get(
-            url,
-            headers=HEADERS_4,
-            impersonate="chrome120",
-            timeout=60
-        )
-        
-        if r.status_code != 200:
-             return {"status": "error", "message": f"HTTP {r.status_code}"}
-        
-        data = json.loads(r.text)
-        if data and isinstance(data, list) and len(data) > 0:
-            pr = data[0]
-            return {
-                "status": "success",
-                "nom": pr.get("nom"),
-                "adresse": pr.get("adresse1"),
-                "cp": pr.get("codePostal"),
-                "ville": pr.get("localite")
-            }
-        return {"status": "error", "message": "Aucune donnée trouvée"}
+    for attempt in range(10):
+        try:
+            r = cffi_requests.get(
+                url,
+                headers=HEADERS_4,
+                impersonate="chrome120",
+                timeout=60
+            )
             
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+            if r.status_code == 200:
+                data = json.loads(r.text)
+                if data and isinstance(data, list) and len(data) > 0:
+                    pr = data[0]
+                    return {
+                        "status": "success",
+                        "nom": pr.get("nom"),
+                        "adresse": pr.get("adresse1"),
+                        "cp": pr.get("codePostal"),
+                        "ville": pr.get("localite")
+                    }
+                # If 200 but empty data/wrong format, might be a soft error, but usually we can stop or retry? 
+                # User said "tant que response code = 200 n'est pas atteint". 
+                # If we get 200 but invalid data (empty list), it's technically a 200.
+                # But let's assume 200 needs to give us data. 
+                # For safety, if data is empty, maybe retry? 
+                # Let's stick to status_code check as primary request.
+                return {"status": "error", "message": "Aucune donnée trouvée"}
+            
+            # If not 200, loop continues
+            time.sleep(0.5) # Small buffer
+            
+        except Exception as e:
+            # On exception, loop continues
+            time.sleep(0.5)
+            
+    return {"status": "error", "message": "Erreur: rechargé la page ou contactez le gerant"}
