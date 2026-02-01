@@ -132,12 +132,6 @@ def generate_pdf(data: PDFRequest):
             else:
                 generate_qonto_pdf(data, output_path)
 
-        elif data.type_pdf == "assurance":
-            if data.preview:
-                generate_assurance_preview(data, output_path)
-            else:
-                generate_assurance_pdf(data, output_path)
-
         elif data.type_pdf == "maxance":
             if data.preview:
                 generate_maxance_preview(data, output_path)
