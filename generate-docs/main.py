@@ -14,8 +14,6 @@ from script.ca import generate_ca_pdf, generate_ca_preview
 from script.cm import generate_cm_pdf, generate_cm_preview
 from script.cic import generate_cic_pdf, generate_cic_preview
 from script.qonto import generate_qonto_pdf, generate_qonto_preview
-from script.qonto import generate_qonto_pdf, generate_qonto_preview
-from script.assurance import generate_assurance_pdf, generate_assurance_preview
 from script.maxance import generate_maxance_pdf, generate_maxance_preview
 
 
