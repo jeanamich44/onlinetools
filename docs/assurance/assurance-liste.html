@@ -1,27 +1,70 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8" />
-  <title>Liste Justificatif Assurance</title>
+  <title>Assurance Generator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    .views-field-field-image-de-l-offre {
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      height: 120px;
+    }
+
+    .views-field-field-image-de-l-offre img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+  </style>
 </head>
 
-<body class="rib-generator-page">
+<body>
 
-  <main class="rib-generator">
-    <h1>Justificatif Assurance</h1>
-    <p class="subtitle">Choisissez votre assurance</p>
-
-    <div class="bank-list">
-      <a href="./maxance.html" class="bank-item">
-        <span class="bank-name">Maxance Assurance</span>
-        <span class="bank-desc">Génération justificatif</span>
-      </a>
+  <header class="header">
+    <div class="header-inner">
+      <a href="../index.html" class="logo">OnlineTools</a>
+      <nav class="nav">
+        <a href="../index.html">Home</a>
+        <a href="../tools/tools-liste.html">Tools</a>
+        <a href="../contact.html">Contact</a>
+      </nav>
     </div>
+  </header>
 
-    <a href="../index.html" class="back-link">← Retour</a>
+  <main class="content">
+    <section class="intro">
+      <h1>Assurance Generator</h1>
+      <p>Choisissez votre assurance pour générer un justificatif.</p>
+    </section>
+
+    <h2 style="margin-bottom: 20px; font-size: 1.5rem; border-bottom: 2px solid #2a2f3a; padding-bottom: 10px;">
+      Assurances Disponibles</h2>
+
+    <div class="layout-offres">
+      <div class="offers-row">
+
+        <!-- Maxance -->
+        <div class="offre-wrapper">
+          <div class="views-field-field-image-de-l-offre">
+            <img src="img/maxance.svg" alt="Logo Maxance">
+          </div>
+          <div class="views-field-field-titre-de-l-offre">Maxance</div>
+          <div class="views-field-field-descriptif-de-l-offre">Génération Justificatif PDF</div>
+          <p class="wrapper-link-offer">
+            <a class="offer-link" href="./maxance.html">Générer</a>
+          </p>
+        </div>
+
+      </div>
+    </div>
   </main>
 
 </body>
+
 </html>

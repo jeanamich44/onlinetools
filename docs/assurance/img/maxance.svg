@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60">
+  <defs>
+    <style>
+      .text { font-family: "Arial", sans-serif; font-weight: bold; font-size: 50px; fill: #00263e; }
+    </style>
+  </defs>
+  
+  <!-- Main Text -->
+  <text x="10" y="45" class="text">maxance</text>
+  
+  <!-- Red accent inside the letter 'a' -->
+  <!-- Position estimated for Arial Bold 50px starting at x=10 -->
+  <!-- Center of 'a' should be roughly around x=68, y=33 -->
+  <circle cx="68" cy="33" r="5.5" fill="#e7344c" />
+  <!-- Tiny tail to mimic speech bubble -->
+  <path d="M 70 36 L 73 39 L 67 38 Z" fill="#e7344c" />
+</svg>
