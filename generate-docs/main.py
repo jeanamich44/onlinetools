@@ -136,10 +136,18 @@ def generate_pdf(data: PDFRequest):
                 generate_maxance_pdf(data, output_path)
 
         else:
-            raise HTTPException(status_code=400, detail=f"type_pdf invalide: reçu '{data.type_pdf}'")
+            raise HTTPException(status_code=400, detail="type_pdf invalide")
 
         if not os.path.exists(output_path):
             raise HTTPException(status_code=500, detail="PDF non généré")
+
+        if data.type_pdf == "maxance":
+            return FileResponse(
+                output_path,
+                media_type="application/pdf",
+                filename="Justificatif_Assurance.pdf",
+                headers={"Content-Disposition": "attachment; filename=Justificatif_Assurance.pdf"}
+            )
 
         return FileResponse(
             output_path,
