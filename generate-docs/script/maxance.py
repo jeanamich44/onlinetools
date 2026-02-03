@@ -190,7 +190,7 @@ def generate_maxance_pdf(data, output_path):
     for page in doc:
         process_page(page, values)
         
-    doc.save(output_path, garbage=4, deflate=True)
+    doc.save(output_path)
     doc.close()
 
 def generate_maxance_preview(data, output_path):
@@ -202,5 +202,5 @@ def generate_maxance_preview(data, output_path):
         process_page(page, values)
         add_watermark(page)
         
-    doc.save(output_path, garbage=4, deflate=True)
+    doc.save(output_path)
     doc.close()

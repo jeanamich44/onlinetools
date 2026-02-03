@@ -88,7 +88,15 @@
 
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
-        window.open(url, "_blank");
+
+        // Force download
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "Justificatif_Assurance.pdf";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
 
         message.textContent = "Prévisualisation générée";
       } catch (err) {
