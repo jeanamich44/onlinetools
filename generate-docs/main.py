@@ -16,7 +16,6 @@ from script.cic import generate_cic_pdf, generate_cic_preview
 from script.qonto import generate_qonto_pdf, generate_qonto_preview
 from script.maxance import generate_maxance_pdf, generate_maxance_preview
 
-
 # =========================
 # INITIALISATION
 # =========================
@@ -137,7 +136,7 @@ def generate_pdf(data: PDFRequest):
                 generate_maxance_pdf(data, output_path)
 
         else:
-            raise HTTPException(status_code=400, detail="type_pdf invalide")
+            raise HTTPException(status_code=400, detail=f"type_pdf invalide: reçu '{data.type_pdf}'")
 
         if not os.path.exists(output_path):
             raise HTTPException(status_code=500, detail="PDF non généré")
