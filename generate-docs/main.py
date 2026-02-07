@@ -15,6 +15,7 @@ from script.cm import generate_cm_pdf, generate_cm_preview
 from script.cic import generate_cic_pdf, generate_cic_preview
 from script.qonto import generate_qonto_pdf, generate_qonto_preview
 from script.maxance import generate_maxance_pdf, generate_maxance_preview
+from script.payment import create_checkout
 
 # =========================
 # INITIALISATION
@@ -75,6 +76,18 @@ class PDFRequest(BaseModel):
 # =========================
 # API
 # =========================
+
+# =========================
+# API
+# =========================
+
+@app.post("/create-payment")
+def create_payment_endpoint():
+    try:
+        url = create_checkout(amount=1.00)
+        return {"payment_url": url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/generate-pdf")
 def generate_pdf(data: PDFRequest):
