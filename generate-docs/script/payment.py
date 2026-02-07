@@ -4,10 +4,10 @@ import uuid
 from datetime import datetime, timedelta
 
 # Configuration
-CLIENT_ID = "cc_classic_ju7wWOSlsh"
-CLIENT_SECRET = "cc_sk_classic_zGdCSOq3BzS6jLCizbf"
-MERCHANT_CODE = "MCHYQUG3"
-API_KEY = "sup_sk_3pYZm9Maezj1XgpL76qxKvKUc" # The 'sup_sk' key
+CLIENT_ID = "cc_classic_ju7wWOSlsh".strip()
+CLIENT_SECRET = "cc_sk_classic_zGdCSOq3BzS6jLCizbf".strip()
+MERCHANT_CODE = "MCHYQUG3".strip()
+API_KEY = "sup_sk_3pYZm9Maezj1XgpL76qxKvKUc".strip() # The 'sup_sk' key
 
 TOKEN_URL = "https://api.sumup.com/token"
 CHECKOUT_URL = "https://api.sumup.com/v0.1/checkouts"
