@@ -9,8 +9,6 @@ from script.chr import run_chronopost, get_relay_detail
 
 app = FastAPI()
 
-
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -39,13 +37,7 @@ def get_relay_info_endpoint(req: RelayRequest):
     try:
         result = get_relay_detail(req.pickup_id, req.country)
         if result["status"] == "error":
-             # We return as 200 with error data or 400? User asked for simplicity.
-             # Let's return the dict.
-             pass
-        return result
-        if result["status"] == "error":
-             # We return as 200 with error data or 400? User asked for simplicity.
-             # Let's return the dict.
+             # Retourne 200 avec les données d'erreur comme demandé pour la simplicité
              pass
         return result
     except Exception as e:

@@ -6,7 +6,7 @@ import string
 from datetime import datetime, timedelta
 
 # =========================
-# DOSSIER BASE
+# DOSSIER DE BASE
 # =========================
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -16,11 +16,11 @@ FONT_ARIAL_REG = os.path.join(BASE_DIR, "font", "arial.ttf")
 FONT_ARIAL_BOLD = os.path.join(BASE_DIR, "font", "arialbd.ttf")
 
 # =========================
-# UTILS
+# UTILITAIRES
 # =========================
 
 def hex_to_rgb(hex_color: str):
-    """Converts hex string '#RRGGBB' to tuple (r, g, b) normalized 0-1."""
+    """Convertit une chaîne hex '#RRGGBB' en tuple (r, g, b) normalisé 0-1."""
     h = hex_color.lstrip("#")
     return tuple(int(h[i:i+2], 16) / 255 for i in (0, 2, 4))
 
@@ -53,7 +53,7 @@ STYLES = {
     "*plaque":       {"size": 9,  "font": FONT_ARIAL_REG,  "color": (0,0,0), "offset_y": 0},
     "*typevehicule": {"size": 9,  "font": FONT_ARIAL_REG,  "color": (0,0,0), "offset_y": 0},
     
-    # Absolute Y forced to 356.45 for date parts to match line
+    # Y absolu forcé à 356.45 pour aligner les parties de la date
     "*aaaa":         {"size": 9,  "font": FONT_ARIAL_BOLD, "color": (0,0,0), "absolute_y": 356.45, "offset_x": 0},
     "*m":            {"size": 9,  "font": FONT_ARIAL_BOLD, "color": (0,0,0), "absolute_y": 356.45, "offset_x": 0},
     "*jj":           {"size": 9,  "font": FONT_ARIAL_BOLD, "color": (0,0,0), "absolute_y": 356.45, "offset_x": 0},
@@ -72,13 +72,13 @@ DEFAULTS = {
 }
 
 # =========================
-# LOGIC
+# LOGIQUE
 # =========================
 
 def add_watermark(page):
     rect = page.rect
     text = "PREVIEW – NON PAYÉ"
-    # Using Arial Bold if available, else standard fallback logic from other scripts
+    # Utilise Arial Bold si disponible, sinon logique de repli standard
     for y in range(80, int(rect.height), 160):
         page.insert_text(
             (40, y),
@@ -90,11 +90,8 @@ def add_watermark(page):
         )
 
 def process_page(page, replacements):
-    # 1. Search phase (already done by caller to gather replacements list? 
-    # Actually, let's keep the logic consistent: Find rects for keys.)
-    
-    # But wait, other scripts pass 'values' dict. Let's adapt to that structure.
-    # We will search page for keys in 'replacements' dict.
+    # 1. Phase de recherche
+    # Nous allons chercher les clés du dictionnaire 'replacements' dans la page.
     
     actions = []
     
@@ -106,14 +103,14 @@ def process_page(page, replacements):
     if not actions:
         return
 
-    # 2. Redaction phase
+    # 2. Phase de rédaction
     for r, key, val in actions:
         redact_rect = fitz.Rect(r.x0, r.y0, r.x1, r.y1)
         page.add_redact_annot(redact_rect, fill=(1, 1, 1))
     
     page.apply_redactions()
 
-    # 3. Writing phase
+    # 3. Phase d'écriture
     for r, key, val in actions:
         style = STYLES.get(key, DEFAULT_STYLE)
         
@@ -126,10 +123,10 @@ def process_page(page, replacements):
         off_x = style.get("offset_x", 0)
         off_y = style.get("offset_y", 0)
         
-        # Coordinates
+        # Coordonnées
         x = r.x0 + off_x
         
-        # Check for Absolute Y override
+        # Vérification du Y absolu prioritaire
         abs_y = style.get("absolute_y", None)
         
         if abs_y is not None:
@@ -146,25 +143,25 @@ def process_page(page, replacements):
         )
 
 # =========================
-# GENERATORS
+# GÉNÉRATEURS
 # =========================
 
 def prepare_values(data):
     yesterday = get_yesterday()
     
-    # Handle Date
+    # Gestion de la Date
     date_str = getattr(data, "date", None) or yesterday.strftime("%d/%m/%Y")
     try:
         jj, mm, aaaa = date_str.split('/')
     except:
         jj, mm, aaaa = yesterday.strftime("%d"), yesterday.strftime("%m"), yesterday.strftime("%Y")
 
-    # Handle Plaque
+    # Gestion de la Plaque
     plaque = getattr(data, "plaque", None)
     if not plaque:
         plaque = generate_plate()
 
-    # Compose values dict
+    # Composition du dictionnaire de valeurs
     values = {
         "*nclient": str(getattr(data, "nclient", None) or DEFAULTS["nclient"]),
         "*ncontrat": str(getattr(data, "ncontrat", None) or DEFAULTS["ncontrat"]),
