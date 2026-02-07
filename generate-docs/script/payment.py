@@ -27,14 +27,22 @@ def get_access_token():
     # Let's try to replicate the Go code's behavior exactly if possible, 
     # but 'sup_sk_...' looks like a static key.
     
-    # We will replicate the Go code's headers to be safe.
+    # Note: The original Go code used an Authorization header, but standard OAuth2 
+    # client_credentials flow usually works with just the body. 
+    # Providing both might cause a 400 Bad Request (ambiguous authentication).
+    # We will try without the header first, relying on the body parameters.
     headers = {
-        "Authorization": "Bearer sup_sk_3pYZm9Maezj1XgpL76qxKvKUc",
         "Content-Type": "application/x-www-form-urlencoded"
     }
     
     response = requests.post(TOKEN_URL, data=payload, headers=headers)
-    response.raise_for_status()
+    
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        # Include the response body in the error message for debugging
+        raise Exception(f"Failed to get token: {e}. Body: {response.text}") from e
+        
     return response.json().get("access_token")
 
 def create_checkout(amount=1.0, currency="EUR", email=None):
