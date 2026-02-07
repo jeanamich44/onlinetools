@@ -2,6 +2,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+from typing import Optional
+import uuid
+import os
 from script.lbp import generate_lbp_pdf, generate_lbp_preview
 from script.sg import generate_sg_pdf, generate_sg_preview
 from script.bfb import generate_bfb_pdf, generate_bfb_preview
