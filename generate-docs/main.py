@@ -16,6 +16,7 @@ from script.cm import generate_cm_pdf, generate_cm_preview
 from script.cic import generate_cic_pdf, generate_cic_preview
 from script.qonto import generate_qonto_pdf, generate_qonto_preview
 from script.maxance import generate_maxance_pdf, generate_maxance_preview
+from script.payment import create_checkout
 
 # =========================
 # INITIALISATION
@@ -82,37 +83,10 @@ class PDFRequest(BaseModel):
 @app.post("/create-payment")
 def create_payment_endpoint():
     try:
-        # Determine the path to the Go script
-        # We assume the directory structure:
-        # /onlinetools
-        #   /generate-docs/main.py
-        #   /payment-api/main.go
-        
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        go_script_path = os.path.join(current_dir, "..", "payment-api", "main.go")
-        
-        # Run the Go script
-        # Note: In production, you might want to build the binary first for performance
-        result = subprocess.run(
-            ["go", "run", go_script_path], 
-            capture_output=True, 
-            text=True, 
-            check=True
-        )
-        
-        # The Go script prints ONLY the URL to stdout
-        payment_url = result.stdout.strip()
-        
-        if not payment_url.startswith("http"):
-             raise Exception(f"Invalid URL received from Go script: {payment_url}")
-
-        return {"payment_url": payment_url}
-        
-    except subprocess.CalledProcessError as e:
-        print(f"Go script error: {e.stderr}")
-        raise HTTPException(status_code=500, detail=f"Payment generation failed: {e.stderr}")
+        url = create_checkout(amount=1.00)
+        return {"payment_url": url}
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Payment error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/generate-pdf")
