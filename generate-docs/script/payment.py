@@ -31,6 +31,11 @@ def get_access_token():
         response = requests.post(TOKEN_URL, data=payload_str, headers=headers)
         if response.status_code == 200:
             return response.json().get("access_token")
+        
+        # Generate cURL command for debugging
+        curl_cmd = f"curl -X POST '{TOKEN_URL}' -H 'Authorization: Bearer {API_KEY}' -H 'Content-Type: application/x-www-form-urlencoded' -d '{payload_str}'"
+        print(f"DEBUG CURL: {curl_cmd}")
+        
         errors.append(f"Method 1 (Go-style) failed: {response.status_code} {response.text}")
     except Exception as e:
         errors.append(f"Method 1 error: {str(e)}")
@@ -65,7 +70,7 @@ def get_access_token():
         errors.append(f"Method 3 error: {str(e)}")
     
     # If we get here, all methods failed. Raise an exception with all details.
-    raise Exception("Token retrieval failed. Details: " + " | ".join(errors))
+    raise Exception(f"Token retrieval failed. \nDEBUG CURL: {curl_cmd} \nDetails: " + " | ".join(errors))
 
 def create_checkout(amount=1.0, currency="EUR", email=None):
     """Creates a checkout session and returns the payment URL."""
