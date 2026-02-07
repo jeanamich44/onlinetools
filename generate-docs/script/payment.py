@@ -17,25 +17,29 @@ def get_access_token():
         "client_id": CLIENT_ID,
         "client_secret": CLIENT_SECRET
     }
-    # Note: The original Go code also sent an Authorization header with a 'sup_sk_...' token.
     # The documentation for client_credentials flow usually just requires client_id/secret in body 
     # OR Basic Auth header. The Go code setup is a bit specific. 
     # Verification: In the Go code:
     # req1.Header.Set("Authorization", "Bearer sup_sk_3pYZm9Maezj1XgpL76qxKvKUc")
     # This looks like an initial bearer token or a mix-up. 
-    # However, standard OAuth2 client_credentials usually works with just the body.
-    # Let's try to replicate the Go code's behavior exactly if possible, 
-    # but 'sup_sk_...' looks like a static key.
+    # However, standard OAuth2 client_credentials usually works with just    # The previous attempt failed with "invalid_client". 
+    # This often means the client_id/secret are not being read correctly from the body 
+    # or the endpoint expects them in the Authorization header (Basic Auth).
+    #
+    # Standard OAuth2 allows sending client credentials in the Authorization header.
+    # We will try sending them as Basic Auth.
     
-    # Note: The original Go code used an Authorization header, but standard OAuth2 
-    # client_credentials flow usually works with just the body. 
-    # Providing both might cause a 400 Bad Request (ambiguous authentication).
-    # We will try without the header first, relying on the body parameters.
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded"
+    payload = {
+        "grant_type": "client_credentials"
     }
     
-    response = requests.post(TOKEN_URL, data=payload, headers=headers)
+    # requests.post(..., auth=(user, pass)) automatically adds the Basic Auth header
+    response = requests.post(
+        TOKEN_URL, 
+        data=payload, 
+        auth=(CLIENT_ID, CLIENT_SECRET),
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
     
     try:
         response.raise_for_status()
