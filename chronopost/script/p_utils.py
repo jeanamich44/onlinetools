@@ -68,7 +68,7 @@ def norm_country(val):
     # Si déjà code ISO (<= 3 chars, ex: FR, USA)
     if len(val) <= 3:
         return val
-    # Sinon recherche
+    # Sinon lookup
     return COUNTRY_MAP.get(val, val)
 
 def ask(label, default=None, required=False, validator=None, data=None, key=None):
@@ -80,12 +80,12 @@ def ask(label, default=None, required=False, validator=None, data=None, key=None
         if default is not None:
             val = default
         elif required:
-            # En mode API, un champ requis manquant est une erreur
+            # In API mode, missing required field is an error
             raise ValueError(f"Missing required field: {key} ({label})")
         else:
-             val = "" # champ optionnel vide
+             val = "" # optional field empty
     
-    # Valider si un validateur existe
+    # Validate if validator exists
     if validator and val: 
             if not validator(val):
                 raise ValueError(f"Invalid value for {key}: {val}")

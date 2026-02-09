@@ -53,7 +53,7 @@ def run_chronopost(payload_data=None):
             # Chrono 10, 13, Relais (France standard)
             payload_str = build_payload_fr(data=payload_data)
 
-        # Init variables de debug
+        # Init debug vars
         r1 = r2 = r3 = req4_response = final_response = None
 
         # ===================== REQUETE 1 =====================
@@ -106,7 +106,7 @@ def run_chronopost(payload_data=None):
             content = final_response.text
             proforma_res = None
             
-            # Logique "monde" -> analyse jobName/idArticle -> récupération proforma
+            # Logic "monde" -> parse jobName/idArticle -> get_proforma
             if is_monde:
                 try:
                     nlabel = None
@@ -141,7 +141,7 @@ def get_proforma(nlabel, id_article, headers):
     url = "https://www.chronopost.fr/expeditionAvanceeSec/getProforma"
     data = f"proFormaLtNumber={nlabel}&proFormaIdArticle={id_article}"
     
-    # Entêtes spécifiques pour cette requête basés sur les images utilisateur
+    # Headers specific for this request based on user images
     req_headers = headers.copy()
     req_headers["Content-Type"] = "application/x-www-form-urlencoded"
     req_headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
@@ -155,7 +155,7 @@ def get_proforma(nlabel, id_article, headers):
             timeout=30
         )
         if r.status_code == 200:
-            # Retourne le PDF encodé en base64
+            # Return base64 encoded PDF
             return base64.b64encode(r.content).decode('utf-8')
     except Exception:
         pass
@@ -191,14 +191,19 @@ def get_relay_detail(pickup_id, country=None):
                         "cp": pr.get("codePostal"),
                         "ville": pr.get("localite")
                     }
-                # Si 200 mais liste vide, on considère que c'est une erreur logicielle (pas de relais trouvé)
+                # If 200 but empty data/wrong format, might be a soft error, but usually we can stop or retry? 
+                # User said "tant que response code = 200 n'est pas atteint". 
+                # If we get 200 but invalid data (empty list), it's technically a 200.
+                # But let's assume 200 needs to give us data. 
+                # For safety, if data is empty, maybe retry? 
+                # Let's stick to status_code check as primary request.
                 return {"status": "error", "message": "Aucune donnée trouvée"}
             
-            # Si pas 200, on continue la boucle
-            time.sleep(0.5) # Petite pause
+            # If not 200, loop continues
+            time.sleep(0.5) # Small buffer
             
         except Exception as e:
-            # En cas d'exception, on continue la boucle
+            # On exception, loop continues
             time.sleep(0.5)
             
     return {"status": "error", "message": "Erreur: rechargé la page ou contactez le gerant"}

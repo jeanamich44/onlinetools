@@ -35,7 +35,6 @@
       <input name="domiciliation" placeholder="Domiciliation">
 
       <button type="submit">Générer PDF</button>
-      <button type="button" id="payButton" style="background-color: #0099ff; margin-left: 10px;">Payer 1€</button>
 
     </form>
 
@@ -61,36 +60,6 @@
     inner.style.padding = "12px 24px";
     logo.onclick = () => window.location.href = "../index.html";
 
-    /* ===== PAYMENT API ===== */
-    const payButton = document.getElementById("payButton");
-
-    payButton.onclick = async () => {
-      try {
-        payButton.textContent = "Chargement...";
-        payButton.disabled = true;
-
-        const res = await fetch("https://generate-docs-production.up.railway.app/create-payment", {
-          method: "POST"
-        });
-
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.detail || "Erreur lors de la création du paiement");
-        }
-
-        const data = await res.json();
-        if (data.payment_url) {
-          window.location.href = data.payment_url;
-        } else {
-          throw new Error("Pas d'URL de paiement reçue");
-        }
-
-      } catch (err) {
-        alert("Erreur: " + err.message);
-        payButton.textContent = "Payer 1€";
-        payButton.disabled = false;
-      }
-    };
 
 
     /* ===== API PDF ===== */
