@@ -2,7 +2,7 @@ import time
 import json
 import base64
 from curl_cffi import requests as cffi_requests
-# from .headers import HEADERS_1, HEADERS_2, HEADERS_4
+from .headers import HEADERS_1, HEADERS_2, HEADERS_4
 from .payload_fr import build_payload_fr
 from .payload_express import build_payload_monde, build_payload_relais_europe
 
