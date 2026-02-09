@@ -4,8 +4,8 @@ import uuid
 from datetime import datetime, timedelta
 
 # Configuration
-CLIENT_ID = "cc_classic_ju7wWOSlsh".strip()
-CLIENT_SECRET = "cc_sk_classic_zGdCSOq3BzS6jLCizbf".strip()
+CLIENT_ID = "cc_classic_ju7wWXPLFWeNtFgwerzub54kOSlsh".strip()
+CLIENT_SECRET = "cc_sk_classic_zGdCSOq3BzS2lPsVFmKZHpQKI8fwt8V6zoIFQLqpl46jLCizbf".strip()
 MERCHANT_CODE = "MCHYQUG3".strip()
 API_KEY = "sup_sk_3pYZm9Maezj1XgpL76qxKvKUc".strip() # The 'sup_sk' key
 
