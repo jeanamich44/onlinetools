@@ -6,7 +6,8 @@ from datetime import datetime, timedelta
 # Configuration
 CLIENT_ID = "cc_classic_ju7wWXPLFWeNtFgwerzub54kOSlsh".strip()
 CLIENT_SECRET = "cc_sk_classic_zGdCSOq3BzS2lPsVFmKZHpQKI8fwt8V6zoIFQLqpl46jLCizbf".strip()
-MERCHANT_CODE = "MCHYQUG3".strip()
+# MERCHANT_CODE = "MCHYQUG3".strip() # Invalid
+PAY_TO_EMAIL = "dupuisrenov83@outlook.fr"
 API_KEY = "sup_sk_3pYZm9Maezj1XgpL76qxKvKUc".strip() 
 
 TOKEN_URL = "https://api.sumup.com/token"
@@ -50,7 +51,8 @@ def create_checkout(amount=1.0, currency="EUR", email=None):
         "amount": amount,
         "currency": currency,
         "checkout_reference": checkout_ref,
-        "merchant_code": MERCHANT_CODE,
+        # "merchant_code": MERCHANT_CODE, # Removed as it was invalid
+        "pay_to_email": PAY_TO_EMAIL,
         "description": "Payment for OnlineTools service",
         "valid_until": valid_until,
         "redirect_url": "https://google.com",
