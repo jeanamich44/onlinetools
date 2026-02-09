@@ -74,7 +74,6 @@ class PDFRequest(BaseModel):
     typevehicule: Optional[str] = None
 
 # =========================
-# API
 # =========================
 
 @app.post("/create-payment")
