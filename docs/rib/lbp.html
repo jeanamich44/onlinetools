@@ -39,6 +39,9 @@
     </form>
 
     <div id="message"></div>
+    <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">
+      <button id="btnPay" type="button" style="background-color: #007bff; width: 100%;">Payer 1€ (SumUp)</button>
+    </div>
     <a class="back" href="./rib-generator.html">Retour</a>
   </div>
 
@@ -61,6 +64,35 @@
     logo.onclick = () => window.location.href = "../index.html";
 
 
+
+    /* ===== PAIEMENT SUMUP ===== */
+    const btnPay = document.getElementById("btnPay");
+    btnPay.onclick = async () => {
+      message.textContent = "Création du lien de paiement...";
+      message.className = "";
+
+      try {
+        // Au besoin, changez l'URL si l'API est ailleurs
+        // const API_BASE = "http://127.0.0.1:8000"; 
+        const API_BASE = "https://generate-docs-production.up.railway.app";
+
+        const res = await fetch(`${API_BASE}/create-payment`, { method: "POST" });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Erreur lors de la création du paiement");
+        }
+
+        const data = await res.json();
+        if (data.payment_url) {
+          window.location.href = data.payment_url;
+        } else {
+          throw new Error("Pas d'URL de paiement reçue");
+        }
+      } catch (err) {
+        message.textContent = "Erreur Paiement: " + err.message;
+        message.className = "error";
+      }
+    };
 
     /* ===== API PDF ===== */
     const API_URL = "https://generate-docs-production.up.railway.app/generate-pdf";
