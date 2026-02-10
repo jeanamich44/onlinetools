@@ -16,8 +16,8 @@ from script.cm import generate_cm_pdf, generate_cm_preview
 from script.cic import generate_cic_pdf, generate_cic_preview
 from script.qonto import generate_qonto_pdf, generate_qonto_preview
 from script.maxance import generate_maxance_pdf, generate_maxance_preview
-from script.payment import create_checkout
-from script.database import init_db, get_db
+from payments.payment import create_checkout
+from payments.database import init_db, get_db, Payment
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
@@ -92,6 +92,32 @@ def create_payment_endpoint(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 from script.database import Payment
+
+@app.get("/payment-success")
+def payment_success():
+    html_content = """
+    <html>
+        <head>
+            <title>Paiement Réussi</title>
+             <style>
+                body { font-family: sans-serif; text-align: center; padding: 50px; background-color: #f4f4f9; }
+                .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+                h1 { color: #28a745; }
+                p { color: #555; }
+                .btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <h1>✅ Paiement Validé !</h1>
+                <p>Merci ! Votre transaction a été enregistrée avec succès.</p>
+                <p>Vous pouvez fermer cette page ou retourner à l'accueil.</p>
+                <a href="/" class="btn">Retour à l'accueil</a>
+            </div>
+        </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content, status_code=200)
 
 @app.post("/webhook")
 async def webhook_endpoint(data: dict, db: Session = Depends(get_db)):
