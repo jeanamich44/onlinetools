@@ -97,6 +97,8 @@ from payments.database import Payment
 
 @app.get("/payment-success")
 def payment_success(checkout_reference: Optional[str] = None, db: Session = Depends(get_db)):
+    # LOGGING FOR DEBUGGING
+    logger.info(f"Payment Success Page Hit. Ref: {checkout_reference}")
     
     status_message = "Merci ! Votre transaction a été enregistrée avec succès."
     status_color = "#28a745" # Green
@@ -108,6 +110,7 @@ def payment_success(checkout_reference: Optional[str] = None, db: Session = Depe
             payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
             
             if payment:
+                logger.info(f"Payment found in DB: {payment.id}, Status: {payment.status}")
                 if payment.status == "PENDING":
                     # Force verification with SumUp API
                     from payments.payment import get_access_token
@@ -116,12 +119,16 @@ def payment_success(checkout_reference: Optional[str] = None, db: Session = Depe
                         headers = {"Authorization": f"Bearer {token}"}
                         
                         if payment.checkout_id:
+                            logger.info(f"Verifying with SumUp API for ID: {payment.checkout_id}")
                             CHECKOUT_URL = f"https://api.sumup.com/v0.1/checkouts/{payment.checkout_id}"
                             response = requests.get(CHECKOUT_URL, headers=headers)
+                            
+                            logger.info(f"SumUp API Response: {response.status_code} {response.text}")
                             
                             if response.status_code == 200:
                                 data = response.json()
                                 new_status = data.get("status")
+                                logger.info(f"New Status from SumUp: {new_status}")
                                 if new_status == "PAID":
                                     payment.status = "PAID"
                                     db.commit()
@@ -134,6 +141,8 @@ def payment_success(checkout_reference: Optional[str] = None, db: Session = Depe
                                     status_color = "#dc3545"
                             else:
                                 logger.error(f"Failed to check status: {response.text}")
+                        else:
+                             logger.warning("Payment has no checkout_id in DB yet.")
                     except Exception as ex:
                         logger.error(f"Error calling SumUp: {ex}")
 
@@ -145,6 +154,8 @@ def payment_success(checkout_reference: Optional[str] = None, db: Session = Depe
                 logger.warning(f"Payment success page hit with unknown ref: {checkout_reference}")
         except Exception as e:
             logger.error(f"Error checking status on success page: {e}")
+    else:
+        logger.warning("Payment success page hit WITHOUT checkout_reference!")
 
     html_content = f"""
     <html>
