@@ -63,6 +63,9 @@ def create_checkout(db: Session, amount=1.0, currency="EUR", email=None):
     
     valid_until = (datetime.utcnow() + timedelta(minutes=15)).isoformat() + "Z"
 
+    # Use the app's domain for webhook callback
+    APP_DOMAIN = "https://generate-docs-production.up.railway.app"
+
     payload = {
         "amount": amount,
         "currency": currency,
@@ -72,6 +75,7 @@ def create_checkout(db: Session, amount=1.0, currency="EUR", email=None):
         "description": f"Payment #{new_payment.id}",
         "valid_until": valid_until,
         "redirect_url": "https://google.com",
+        "return_url": f"{APP_DOMAIN}/webhook", # This registers the webhook dynamically!
         "hosted_checkout": {
             "enabled": True
         }

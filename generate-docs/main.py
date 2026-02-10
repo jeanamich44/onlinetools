@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import Optional
 import uuid
 import os
+import requests
 
 from script.lbp import generate_lbp_pdf, generate_lbp_preview
 from script.sg import generate_sg_pdf, generate_sg_preview
@@ -89,6 +90,60 @@ def create_payment_endpoint(db: Session = Depends(get_db)):
         return {"payment_url": url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+from script.database import Payment
+
+@app.post("/webhook")
+async def webhook_endpoint(data: dict, db: Session = Depends(get_db)):
+    """
+    Webhook called by SumUp when a payment status changes.
+    Payload: {"event_type": "CHECKOUT_STATUS_CHANGED", "id": "..."}
+    """
+    try:
+        checkout_id = data.get("id")
+        
+        if not checkout_id:
+            return {"status": "ignored", "reason": "no_id"}
+
+        # Find payment by checkout_id
+        payment = db.query(Payment).filter(Payment.checkout_id == checkout_id).first()
+        
+        if not payment:
+            return {"status": "ignored", "reason": "not_found"}
+
+        # Verify status with SumUp API
+        # We need a fresh token
+        from script.payment import get_access_token
+        
+        token = get_access_token()
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+        
+        # Determine endpoint based on ID format (v0.1 checkouts usually start with 'c-')
+        # But for V0.1 API, the endpoint is GET /v0.1/checkouts/{id}
+        CHECKOUT_URL = f"https://api.sumup.com/v0.1/checkouts/{checkout_id}"
+        
+        response = requests.get(CHECKOUT_URL, headers=headers)
+        
+        if response.status_code == 200:
+            checkout_data = response.json()
+            new_status = checkout_data.get("status") # e.g., "PAID", "PENDING", "FAILED"
+            
+            if new_status and new_status != payment.status:
+                payment.status = new_status
+                db.commit()
+                return {"status": "updated", "id": checkout_id, "new_status": new_status}
+            else:
+                return {"status": "unchanged", "current_status": payment.status}
+        else:
+             print(f"Failed to verify checkout {checkout_id}: {response.text}")
+             return {"status": "error", "reason": "verification_failed"}
+
+    except Exception as e:
+        print(f"Webhook Error: {e}")
+        return {"status": "error", "detail": str(e)}
 
 @app.post("/generate-pdf")
 def generate_pdf(data: PDFRequest):
