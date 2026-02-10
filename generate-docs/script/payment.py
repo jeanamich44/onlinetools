@@ -43,8 +43,6 @@ def create_checkout(amount=1.0, currency="EUR", email=None):
     token = get_access_token()
     
     checkout_ref = str(uuid.uuid4())
-
-    checkout_ref = str(uuid.uuid4())
     valid_until = (datetime.utcnow() + timedelta(minutes=15)).isoformat() + "Z"
 
     payload = {
