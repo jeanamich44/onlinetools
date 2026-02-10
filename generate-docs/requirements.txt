@@ -3,3 +3,5 @@ uvicorn
 pymupdf
 python-multipart
 requests
+sqlalchemy
+psycopg2-binary

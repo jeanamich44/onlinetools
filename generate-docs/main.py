@@ -16,10 +16,16 @@ from script.cic import generate_cic_pdf, generate_cic_preview
 from script.qonto import generate_qonto_pdf, generate_qonto_preview
 from script.maxance import generate_maxance_pdf, generate_maxance_preview
 from script.payment import create_checkout
+from script.database import init_db, get_db
+from sqlalchemy.orm import Session
+from fastapi import Depends
 
 # =========================
 # INITIALISATION
 # =========================
+
+# Initialize tables
+init_db()
 
 app = FastAPI()
 
@@ -77,9 +83,9 @@ class PDFRequest(BaseModel):
 # =========================
 
 @app.post("/create-payment")
-def create_payment_endpoint():
+def create_payment_endpoint(db: Session = Depends(get_db)):
     try:
-        url = create_checkout(amount=1.0)
+        url = create_checkout(db=db, amount=1.0)
         return {"payment_url": url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -13,6 +13,9 @@ API_KEY = "sup_sk_3pYZm9Maezj1XgpL76qxKvKUc".strip()
 TOKEN_URL = "https://api.sumup.com/token"
 CHECKOUT_URL = "https://api.sumup.com/v0.1/checkouts"
 
+from .database import Payment
+from sqlalchemy.orm import Session
+
 def get_access_token():
     """
     Retrieves an access token using the Method that worked in debug (Go-style).
@@ -36,13 +39,28 @@ def get_access_token():
     except Exception as e:
         raise Exception(f"Token Retrieval Error: {str(e)}")
 
-def create_checkout(amount=1.0, currency="EUR", email=None):
+def create_checkout(db: Session, amount=1.0, currency="EUR", email=None):
     """Creates a checkout session and returns the payment URL."""
     
+    # 1. Generate local reference
+    checkout_ref = str(uuid.uuid4())
+    
+    # 2. Create PENDING record in DB
+    new_payment = Payment(
+        checkout_ref=checkout_ref,
+        amount=amount,
+        currency=currency,
+        status="PENDING",
+        email=email or PAY_TO_EMAIL
+    )
+    db.add(new_payment)
+    db.commit()
+    db.refresh(new_payment)
+
+    # 3. Call SumUp API
     # Try to get a token (will raise Exception if fails)
     token = get_access_token()
     
-    checkout_ref = str(uuid.uuid4())
     valid_until = (datetime.utcnow() + timedelta(minutes=15)).isoformat() + "Z"
 
     payload = {
@@ -51,7 +69,7 @@ def create_checkout(amount=1.0, currency="EUR", email=None):
         "checkout_reference": checkout_ref,
         # "merchant_code": MERCHANT_CODE, # Removed as it was invalid
         "pay_to_email": PAY_TO_EMAIL,
-        "description": "Payment for OnlineTools service",
+        "description": f"Payment #{new_payment.id}",
         "valid_until": valid_until,
         "redirect_url": "https://google.com",
         "hosted_checkout": {
@@ -70,9 +88,18 @@ def create_checkout(amount=1.0, currency="EUR", email=None):
     response = requests.post(CHECKOUT_URL, json=payload, headers=headers)
     
     if response.status_code >= 400:
+        # Update status to FAILED
+        new_payment.status = "FAILED"
+        db.commit()
         raise Exception(f"Checkout failed: {response.status_code} {response.text}")
         
     response.raise_for_status()
     
     data = response.json()
+    
+    # 4. Update DB with real checkout ID from SumUp
+    new_payment.checkout_id = data.get("id")
+    new_payment.payment_url = data.get("hosted_checkout_url")
+    db.commit()
+    
     return data.get("hosted_checkout_url")
