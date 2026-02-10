@@ -16,6 +16,9 @@ CHECKOUT_URL = "https://api.sumup.com/v0.1/checkouts"
 from .database import Payment
 from sqlalchemy.orm import Session
 
+import logging
+logger = logging.getLogger(__name__)
+
 def get_access_token():
     """
     Retrieves an access token using the Method that worked in debug (Go-style).
@@ -33,7 +36,7 @@ def get_access_token():
             return response.json().get("access_token")
         
         # Log failure
-        print(f"Token Auth Failed: {response.status_code} {response.text}")
+        logger.error(f"Token Auth Failed: {response.status_code} {response.text}")
         raise Exception(f"Token Auth Failed: {response.status_code} {response.text}")
 
     except Exception as e:

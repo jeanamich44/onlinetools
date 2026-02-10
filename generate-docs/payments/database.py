@@ -4,16 +4,23 @@ from sqlalchemy.orm import sessionmaker
 import os
 from datetime import datetime
 
+import logging
+
+# Configure logging to console (stdout) which Railway captures
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Railway provides DATABASE_URL. 
 # Note: SQLAlchemy requires 'postgresql://' but Railway might give 'postgres://'.
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
-if SQLALCHEMY_DATABASE_URL and SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
-    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
-
-# Fallback for local testing if env var is not set (sqlite)
-if not SQLALCHEMY_DATABASE_URL:
-    SQLALCHEMY_DATABASE_URL = "sqlite:///./local_payments.db"
+if SQLALCHEMY_DATABASE_URL:
+    logger.info(f"✅ Found DATABASE_URL: {SQLALCHEMY_DATABASE_URL[:15]}...")
+    if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+        SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
+else:
+    logger.error("❌ DATABASE_URL is NOT set! Cannot connect to PostgreSQL.")
+    raise ValueError("DATABASE_URL environment variable is missing!")
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

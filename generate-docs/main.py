@@ -3,9 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import Optional
-import uuid
-import os
-import requests
+import uuid, logging, os, requests
 
 from script.lbp import generate_lbp_pdf, generate_lbp_preview
 from script.sg import generate_sg_pdf, generate_sg_preview
@@ -119,6 +117,12 @@ def payment_success():
     """
     return HTMLResponse(content=html_content, status_code=200)
 
+
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 @app.post("/webhook")
 async def webhook_endpoint(data: dict, db: Session = Depends(get_db)):
     """
@@ -164,11 +168,11 @@ async def webhook_endpoint(data: dict, db: Session = Depends(get_db)):
             else:
                 return {"status": "unchanged", "current_status": payment.status}
         else:
-             print(f"Failed to verify checkout {checkout_id}: {response.text}")
+             logger.error(f"Failed to verify checkout {checkout_id}: {response.text}")
              return {"status": "error", "reason": "verification_failed"}
 
     except Exception as e:
-        print(f"Webhook Error: {e}")
+        logger.error(f"Webhook Error: {e}")
         return {"status": "error", "detail": str(e)}
 
 @app.post("/generate-pdf")
