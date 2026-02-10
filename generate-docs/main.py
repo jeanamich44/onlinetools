@@ -92,23 +92,72 @@ def create_payment_endpoint(db: Session = Depends(get_db)):
 from payments.database import Payment
 
 @app.get("/payment-success")
-def payment_success():
-    html_content = """
+def payment_success(checkout_reference: Optional[str] = None, db: Session = Depends(get_db)):
+    
+    status_message = "Merci ! Votre transaction a été enregistrée avec succès."
+    status_color = "#28a745" # Green
+    status_title = "✅ Paiement Validé !"
+
+    if checkout_reference:
+        try:
+            # Find payment by our local ref
+            payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
+            
+            if payment:
+                if payment.status == "PENDING":
+                    # Force verification with SumUp API
+                    from payments.payment import get_access_token
+                    try:
+                        token = get_access_token()
+                        headers = {"Authorization": f"Bearer {token}"}
+                        
+                        if payment.checkout_id:
+                            CHECKOUT_URL = f"https://api.sumup.com/v0.1/checkouts/{payment.checkout_id}"
+                            response = requests.get(CHECKOUT_URL, headers=headers)
+                            
+                            if response.status_code == 200:
+                                data = response.json()
+                                new_status = data.get("status")
+                                if new_status == "PAID":
+                                    payment.status = "PAID"
+                                    db.commit()
+                                    logger.info(f"Payment {payment.id} validated via success page.")
+                                elif new_status == "FAILED":
+                                    payment.status = "FAILED"
+                                    db.commit()
+                                    status_title = "❌ Paiement Échoué"
+                                    status_message = "Le paiement a échoué ou a été annulé."
+                                    status_color = "#dc3545"
+                            else:
+                                logger.error(f"Failed to check status: {response.text}")
+                    except Exception as ex:
+                        logger.error(f"Error calling SumUp: {ex}")
+
+                elif payment.status == "FAILED":
+                     status_title = "❌ Paiement Échoué"
+                     status_message = "Ce paiement est marqué comme échoué."
+                     status_color = "#dc3545"
+            else:
+                logger.warning(f"Payment success page hit with unknown ref: {checkout_reference}")
+        except Exception as e:
+            logger.error(f"Error checking status on success page: {e}")
+
+    html_content = f"""
     <html>
         <head>
-            <title>Paiement Réussi</title>
+            <title>Statut du Paiement</title>
              <style>
-                body { font-family: sans-serif; text-align: center; padding: 50px; background-color: #f4f4f9; }
-                .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
-                h1 { color: #28a745; }
-                p { color: #555; }
-                .btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+                body {{ font-family: sans-serif; text-align: center; padding: 50px; background-color: #f4f4f9; }}
+                .card {{ background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }}
+                h1 {{ color: {status_color}; }}
+                p {{ color: #555; }}
+                .btn {{ display: inline-block; margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }}
             </style>
         </head>
         <body>
             <div class="card">
-                <h1>✅ Paiement Validé !</h1>
-                <p>Merci ! Votre transaction a été enregistrée avec succès.</p>
+                <h1>{status_title}</h1>
+                <p>{status_message}</p>
                 <p>Vous pouvez fermer cette page ou retourner à l'accueil.</p>
                 <a href="/" class="btn">Retour à l'accueil</a>
             </div>
