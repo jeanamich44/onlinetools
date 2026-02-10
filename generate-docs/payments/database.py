@@ -20,7 +20,8 @@ if SQLALCHEMY_DATABASE_URL:
         SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
 else:
     logger.error("❌ DATABASE_URL is NOT set! Cannot connect to PostgreSQL.")
-    raise ValueError("DATABASE_URL environment variable is missing!")
+    available_keys = list(os.environ.keys())
+    raise ValueError(f"DATABASE_URL environment variable is missing! Available keys: {available_keys}")
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
