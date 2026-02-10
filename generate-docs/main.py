@@ -91,7 +91,7 @@ def create_payment_endpoint(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-from script.database import Payment
+from payments.database import Payment
 
 @app.get("/payment-success")
 def payment_success():
