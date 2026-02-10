@@ -42,7 +42,7 @@ def get_access_token():
     except Exception as e:
         raise Exception(f"Token Retrieval Error: {str(e)}")
 
-def create_checkout(db: Session, amount=1.0, currency="EUR", email=None):
+def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=None, product_name=None):
     """Creates a checkout session and returns the payment URL."""
     
     # 1. Generate local reference
@@ -54,7 +54,8 @@ def create_checkout(db: Session, amount=1.0, currency="EUR", email=None):
         amount=amount,
         currency=currency,
         status="PENDING",
-        email=email or PAY_TO_EMAIL
+        ip_address=ip_address,
+        product_name=product_name
     )
     db.add(new_payment)
     db.commit()

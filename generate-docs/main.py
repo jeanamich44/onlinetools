@@ -81,12 +81,16 @@ class PDFRequest(BaseModel):
 # =========================
 # =========================
 
+from fastapi import Request
+
 @app.post("/create-payment")
-def create_payment_endpoint(db: Session = Depends(get_db)):
+def create_payment_endpoint(request: Request, product_name: str = "default", db: Session = Depends(get_db)):
     try:
-        url = create_checkout(db=db, amount=1.0)
+        client_ip = request.client.host
+        url = create_checkout(db=db, amount=1.0, ip_address=client_ip, product_name=product_name)
         return {"payment_url": url}
     except Exception as e:
+        logger.error(f"Error creating payment: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 from payments.database import Payment

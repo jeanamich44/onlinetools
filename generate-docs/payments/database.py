@@ -37,7 +37,8 @@ class Payment(Base):
     amount = Column(Float)
     currency = Column(String, default="EUR")
     status = Column(String, default="PENDING") # PENDING, PAID, FAILED
-    email = Column(String, nullable=True) # User email if provided
+    ip_address = Column(String, nullable=True) # User IP
+    product_name = Column(String, nullable=True) # e.g. "lbp", "sg", "assurance"
     payment_url = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
