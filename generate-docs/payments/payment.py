@@ -85,8 +85,9 @@ def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=None, pr
         }
     }
     
-    if email:
-        payload["pay_to_email"] = email
+    # Removed email logic as column was deleted
+    # if email:
+    #     payload["pay_to_email"] = email
 
     headers = {
         "Authorization": f"Bearer {token}",

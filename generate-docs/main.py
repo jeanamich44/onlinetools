@@ -86,7 +86,11 @@ from fastapi import Request
 @app.post("/create-payment")
 def create_payment_endpoint(request: Request, product_name: str = "default", db: Session = Depends(get_db)):
     try:
-        client_ip = request.client.host
+        # Get real client IP if behind proxy (like Railway)
+        client_ip = request.headers.get("x-forwarded-for", request.client.host)
+        
+        logger.info(f"Creating payment for Product: {product_name}, IP: {client_ip}")
+
         url = create_checkout(db=db, amount=1.0, ip_address=client_ip, product_name=product_name)
         return {"payment_url": url}
     except Exception as e:

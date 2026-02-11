@@ -76,7 +76,7 @@
         // const API_BASE = "http://127.0.0.1:8000"; 
         const API_BASE = "https://generate-docs-production.up.railway.app";
 
-        const res = await fetch(`${API_BASE}/create-payment`, { method: "POST" });
+        const res = await fetch(`${API_BASE}/create-payment?product_name=rib-lbp`, { method: "POST" });
         if (!res.ok) {
           const err = await res.json();
           throw new Error(err.detail || "Erreur lors de la création du paiement");
