@@ -78,7 +78,7 @@ def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=None, pr
         "pay_to_email": PAY_TO_EMAIL,
         "description": f"Payment #{new_payment.id}",
         "valid_until": valid_until,
-        "redirect_url": f"{APP_DOMAIN}/payment-success",
+        "redirect_url": f"{APP_DOMAIN}/payment-success?checkout_reference={checkout_ref}",
         "return_url": f"{APP_DOMAIN}/webhook", # This registers the webhook dynamically!
         "hosted_checkout": {
             "enabled": True
