@@ -798,6 +798,50 @@ button:disabled {
     margin-top: 10px;
 }
 
+/* =========================
+   ANIMATED BACKGROUND CARDS
+   (Replaces the static #1f242d + emoji)
+========================= */
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.anim-bg-common {
+    height: 140px;
+    width: 100%;
+    background-size: 300% 300%;
+    animation: gradientBG 15s ease infinite;
+    border-bottom: 1px solid #2a2f3a; /* Optional separator */
+}
+
+/* Tools Liste (Blue/Tech) */
+.bg-anim-tools {
+    background-image: linear-gradient(-45deg, #0f172a, #1e40af, #3b82f6, #60a5fa);
+}
+
+/* RIB / Docs (Green/Secure) */
+.bg-anim-docs {
+    background-image: linear-gradient(-45deg, #064e3b, #059669, #34d399, #065f46);
+}
+
+/* Auto (Red/Dynamic) */
+.bg-anim-auto {
+    background-image: linear-gradient(-45deg, #7f1d1d, #ef4444, #f87171, #991b1b);
+}
+
+/* Facture (Receipt/Light Grey but stylish) */
+.bg-anim-facture {
+    background-image: linear-gradient(-45deg, #374151, #6b7280, #9ca3af, #4b5563);
+}
+
+/* Chronopost (Blue/Yellow/Orange) */
+.bg-anim-chrono {
+    background-image: linear-gradient(-45deg, #1e3a8a, #fbbf24, #f59e0b, #1d4ed8);
+}
+
 .checkbox-group label {
     display: flex;
     align-items: center;

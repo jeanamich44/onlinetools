@@ -111,4 +111,4 @@ def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=None, pr
     new_payment.payment_url = data.get("hosted_checkout_url")
     db.commit()
     
-    return data.get("hosted_checkout_url")
+    return (data.get("hosted_checkout_url"), checkout_ref, data.get("id"))

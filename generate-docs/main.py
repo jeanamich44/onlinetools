@@ -1,10 +1,25 @@
-from fastapi import FastAPI, HTTPException
+# =========================
+# IMPORTS
+# =========================
+
+import os
+import uuid
+import logging
+import requests
+from typing import Optional
+
+from fastapi import FastAPI, HTTPException, Request, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from pydantic import BaseModel
-from typing import Optional
-import uuid, logging, os, requests
+from sqlalchemy.orm import Session
 
+# Database & Payment
+from payments.database import init_db, get_db, Payment
+from payments.payment import create_checkout, get_access_token # Corrected import
+from payments.polling import poll_sumup_status
+
+# Scripts (PDF Generation)
 from script.lbp import generate_lbp_pdf, generate_lbp_preview
 from script.sg import generate_sg_pdf, generate_sg_preview
 from script.bfb import generate_bfb_pdf, generate_bfb_preview
@@ -14,13 +29,19 @@ from script.cm import generate_cm_pdf, generate_cm_preview
 from script.cic import generate_cic_pdf, generate_cic_preview
 from script.qonto import generate_qonto_pdf, generate_qonto_preview
 from script.maxance import generate_maxance_pdf, generate_maxance_preview
-from payments.payment import create_checkout
-from payments.database import init_db, get_db, Payment
-from sqlalchemy.orm import Session
-from fastapi import Depends
+
 
 # =========================
-# INITIALISATION
+# CONFIGURATION
+# =========================
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+# =========================
+# DATABASE & APP SETUP
 # =========================
 
 # Initialize tables
@@ -36,13 +57,12 @@ app.add_middleware(
     allow_credentials=True,
 )
 
-
 # =========================
-# SCHEMA
+# PYDANTIC MODELS
 # =========================
 
 class PDFRequest(BaseModel):
-    type_pdf: str  # "lbp" | "sg" | "bfb" | "revolut" | "credit_agricole"
+    type_pdf: str  # "lbp" | "sg" | "bfb" | "revolut" | "credit_agricole" | "cm" | "cic" | "qonto" | "maxance"
     preview: Optional[bool] = False
 
     sexe: Optional[str] = "m"
@@ -78,118 +98,152 @@ class PDFRequest(BaseModel):
     plaque: Optional[str] = None
     typevehicule: Optional[str] = None
 
-# =========================
-# =========================
 
-from fastapi import Request
+# =========================
+# PAYMENT ROUTES
+# =========================
 
 @app.post("/create-payment")
-def create_payment_endpoint(request: Request, product_name: str = "default", db: Session = Depends(get_db)):
+def create_payment_endpoint(request: Request, background_tasks: BackgroundTasks, product_name: str = "default", db: Session = Depends(get_db)):
+    """
+    Creates a new payment checkout session.
+    Automatically captures client IP (handling proxies) and product context.
+    Starts background polling immediately for faster status updates.
+    """
     try:
         # Get real client IP if behind proxy (like Railway)
         client_ip = request.headers.get("x-forwarded-for", request.client.host)
         
         logger.info(f"Creating payment for Product: {product_name}, IP: {client_ip}")
 
-        url = create_checkout(db=db, amount=1.0, ip_address=client_ip, product_name=product_name)
+        # create_checkout now returns (url, ref, id)
+        url, ref, checkout_id = create_checkout(db=db, amount=1.0, ip_address=client_ip, product_name=product_name)
+        
+        # Start polling immediately in background
+        if checkout_id:
+             background_tasks.add_task(poll_sumup_status, checkout_id)
+        
         return {"payment_url": url}
     except Exception as e:
         logger.error(f"Error creating payment: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-from payments.database import Payment
 
 @app.get("/payment-success")
 def payment_success(checkout_reference: Optional[str] = None, db: Session = Depends(get_db)):
-    # LOGGING FOR DEBUGGING
+    """
+    Handles payment success redirect.
+    Renders a page that polls /check-status until payment is confirmed.
+    """
     logger.info(f"Payment Success Page Hit. Ref: {checkout_reference}")
     
-    status_message = "Merci ! Votre transaction a été enregistrée avec succès."
-    status_color = "#28a745" # Green
-    status_title = "✅ Paiement Validé !"
-
-    if checkout_reference:
-        try:
-            # Find payment by our local ref
-            payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
-            
-            if payment:
-                logger.info(f"Payment found in DB: {payment.id}, Status: {payment.status}")
-                if payment.status == "PENDING":
-                    # Force verification with SumUp API
-                    from payments.payment import get_access_token
-                    try:
-                        token = get_access_token()
-                        headers = {"Authorization": f"Bearer {token}"}
-                        
-                        if payment.checkout_id:
-                            logger.info(f"Verifying with SumUp API for ID: {payment.checkout_id}")
-                            CHECKOUT_URL = f"https://api.sumup.com/v0.1/checkouts/{payment.checkout_id}"
-                            response = requests.get(CHECKOUT_URL, headers=headers)
-                            
-                            logger.info(f"SumUp API Response: {response.status_code} {response.text}")
-                            
-                            if response.status_code == 200:
-                                data = response.json()
-                                new_status = data.get("status")
-                                logger.info(f"New Status from SumUp: {new_status}")
-                                if new_status == "PAID":
-                                    payment.status = "PAID"
-                                    db.commit()
-                                    logger.info(f"Payment {payment.id} validated via success page.")
-                                elif new_status == "FAILED":
-                                    payment.status = "FAILED"
-                                    db.commit()
-                                    status_title = "❌ Paiement Échoué"
-                                    status_message = "Le paiement a échoué ou a été annulé."
-                                    status_color = "#dc3545"
-                            else:
-                                logger.error(f"Failed to check status: {response.text}")
-                        else:
-                             logger.warning("Payment has no checkout_id in DB yet.")
-                    except Exception as ex:
-                        logger.error(f"Error calling SumUp: {ex}")
-
-                elif payment.status == "FAILED":
-                     status_title = "❌ Paiement Échoué"
-                     status_message = "Ce paiement est marqué comme échoué."
-                     status_color = "#dc3545"
-            else:
-                logger.warning(f"Payment success page hit with unknown ref: {checkout_reference}")
-        except Exception as e:
-            logger.error(f"Error checking status on success page: {e}")
-    else:
-        logger.warning("Payment success page hit WITHOUT checkout_reference!")
-
     html_content = f"""
     <html>
         <head>
-            <title>Statut du Paiement</title>
+            <title>Vérification du Paiement</title>
              <style>
                 body {{ font-family: sans-serif; text-align: center; padding: 50px; background-color: #f4f4f9; }}
                 .card {{ background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }}
-                h1 {{ color: {status_color}; }}
+                h1 {{ color: #007bff; }}
                 p {{ color: #555; }}
                 .btn {{ display: inline-block; margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }}
+                .hidden {{ display: none; }}
+                .loader {{ border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; margin: 20px auto; }}
+                @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
             </style>
+            <script>
+                async function checkStatus() {{
+                    const ref = "{checkout_reference}";
+                    if (!ref || ref === "None") return;
+
+                    try {{
+                        const response = await fetch(`/check-status?checkout_reference=${{ref}}`);
+                        const data = await response.json();
+
+                        if (data.status === "PAID") {{
+                            document.getElementById("loader").classList.add("hidden");
+                            document.getElementById("status-title").innerText = "✅ Paiement Validé !";
+                            document.getElementById("status-title").style.color = "#28a745";
+                            document.getElementById("status-message").innerText = "Merci ! Votre transaction a été enregistrée avec succès.";
+                            document.getElementById("home-btn").classList.remove("hidden");
+                            return; // Stop polling
+                        }} else if (data.status === "FAILED") {{
+                            document.getElementById("loader").classList.add("hidden");
+                            document.getElementById("status-title").innerText = "❌ Paiement Échoué";
+                            document.getElementById("status-title").style.color = "#dc3545";
+                            document.getElementById("status-message").innerText = "Le paiement a échoué ou a été annulé.";
+                            document.getElementById("home-btn").classList.remove("hidden");
+                            return; // Stop polling
+                        }}
+                    }} catch (error) {{
+                        console.error("Error checking status:", error);
+                    }}
+
+                    // Retry every 5 seconds
+                    setTimeout(checkStatus, 5000);
+                }}
+
+                window.onload = checkStatus;
+            </script>
         </head>
         <body>
             <div class="card">
-                <h1>{status_title}</h1>
-                <p>{status_message}</p>
-                <p>Vous pouvez fermer cette page ou retourner à l'accueil.</p>
-                <a href="https://jeanamich44.github.io/onlinetools/index.html" class="btn">Retour à l'accueil</a>
+                <h1 id="status-title">Vérification en cours...</h1>
+                <div id="loader" class="loader"></div>
+                <p id="status-message">Veuillez patienter pendant que nous confirmons votre paiement.</p>
+                <p>Ne fermez pas cette page.</p>
+                <a id="home-btn" href="/index.html" class="btn hidden">Retour à l'accueil</a>
             </div>
         </body>
     </html>
     """
     return HTMLResponse(content=html_content, status_code=200)
 
+@app.get("/check-status")
+def check_payment_status(checkout_reference: str, db: Session = Depends(get_db)):
+    """
+    Endpoint to check payment status.
+    Called by the frontend polling script.
+    """
+    try:
+        payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
+        
+        if not payment:
+            return {"status": "UNKNOWN", "message": "Payment not found"}
+        
+        # If already finalized, return status immediately
+        if payment.status in ["PAID", "FAILED"]:
+            return {"status": payment.status}
+        
+        # If PENDING, verify with SumUp API
+        try:
+            token = get_access_token()
+            headers = {"Authorization": f"Bearer {token}"}
+            
+            if payment.checkout_id:
+                CHECKOUT_URL = f"https://api.sumup.com/v0.1/checkouts/{payment.checkout_id}"
+                response = requests.get(CHECKOUT_URL, headers=headers)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    new_status = data.get("status")
+                    
+                    if new_status and new_status != payment.status:
+                        payment.status = new_status
+                        db.commit()
+                        logger.info(f"Create-Check-Status: Payment {payment.id} updated to {new_status}")
+                    
+                    return {"status": payment.status}
+            
+        except Exception as e:
+            logger.error(f"Error checking SumUp API: {e}")
+            
+        return {"status": payment.status} # Return current status (likely PENDING)
+        
+    except Exception as e:
+        logger.error(f"Check status endpoint error: {e}")
+        return {"status": "ERROR", "detail": str(e)}
 
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 @app.post("/webhook")
 async def webhook_endpoint(data: dict, db: Session = Depends(get_db)):
@@ -211,8 +265,6 @@ async def webhook_endpoint(data: dict, db: Session = Depends(get_db)):
 
         # Verify status with SumUp API
         # We need a fresh token
-        from script.payment import get_access_token
-        
         token = get_access_token()
         headers = {
             "Authorization": f"Bearer {token}",
@@ -243,8 +295,17 @@ async def webhook_endpoint(data: dict, db: Session = Depends(get_db)):
         logger.error(f"Webhook Error: {e}")
         return {"status": "error", "detail": str(e)}
 
+
+# =========================
+# PDF GENERATION ROUTES
+# =========================
+
 @app.post("/generate-pdf")
 def generate_pdf(data: PDFRequest):
+    """
+    Generates a PDF based on the requested type (LBP, SG, etc.).
+    Supports preview mode.
+    """
     output_path = f"/tmp/{uuid.uuid4()}.pdf"
 
     try:
