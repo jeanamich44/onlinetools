@@ -178,7 +178,7 @@ def payment_success(checkout_reference: Optional[str] = None, db: Session = Depe
                 <h1>{status_title}</h1>
                 <p>{status_message}</p>
                 <p>Vous pouvez fermer cette page ou retourner à l'accueil.</p>
-                <a href="/" class="btn">Retour à l'accueil</a>
+                <a href="https://jeanamich44.github.io/onlinetools/index.html" class="btn">Retour à l'accueil</a>
             </div>
         </body>
     </html>
