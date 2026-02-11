@@ -3,7 +3,7 @@ import requests
 import logging
 from sqlalchemy.orm import Session
 from .database import Payment, SessionLocal
-from .payment importGX get_access_token
+from .payment import get_access_token
 
 logger = logging.getLogger(__name__)
 
