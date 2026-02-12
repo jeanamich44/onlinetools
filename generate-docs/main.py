@@ -35,16 +35,16 @@ from script.maxance import generate_maxance_pdf, generate_maxance_preview
 # CONFIGURATION
 # =========================
 
-# Configure logging
+# Configuration des logs
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 # =========================
-# DATABASE & APP SETUP
+# BASE DE DONNÉES & SETUP APP
 # =========================
 
-# Initialize tables
+# Initialisation des tables
 init_db()
 
 app = FastAPI()
@@ -58,7 +58,7 @@ app.add_middleware(
 )
 
 # =========================
-# PYDANTIC MODELS
+# MODÈLES PYDANTIC
 # =========================
 
 class PDFRequest(BaseModel):
@@ -100,42 +100,42 @@ class PDFRequest(BaseModel):
 
 
 # =========================
-# PAYMENT ROUTES
+# ROUTES DE PAIEMENT
 # =========================
 
 @app.post("/create-payment")
-def create_payment_endpoint(request: Request, background_tasks: BackgroundTasks, product_name: str = "default", db: Session = Depends(get_db)):
+async def create_payment_endpoint(request: Request, background_tasks: BackgroundTasks, product_name: str = "default", db: Session = Depends(get_db)):
     """
-    Creates a new payment checkout session.
-    Automatically captures client IP (handling proxies) and product context.
-    Starts background polling immediately for faster status updates.
+    Crée une nouvelle session de paiement de manière asynchrone.
+    Capture automatiquement l'IP du client (gère les proxys) et le contexte du produit.
+    Démarre le polling en arrière-plan immédiatement pour des mises à jour de statut plus rapides.
     """
     try:
-        # Get real client IP if behind proxy (like Railway)
+        # Obtenir l'IP réelle du client s'il est derrière un proxy (comme Railway)
         client_ip = request.headers.get("x-forwarded-for", request.client.host)
         
-        logger.info(f"Creating payment for Product: {product_name}, IP: {client_ip}")
+        logger.info(f"Création paiement (Async) pour Produit: {product_name}, IP: {client_ip}")
 
-        # create_checkout now returns (url, ref, id)
-        url, ref, checkout_id = create_checkout(db=db, amount=1.0, ip_address=client_ip, product_name=product_name)
+        # create_checkout retourne maintenant (url, ref, id)
+        url, ref, checkout_id = await create_checkout(db=db, amount=1.0, ip_address=client_ip, product_name=product_name)
         
-        # Start polling immediately in background
+        # Démarrer le polling immédiatement en arrière-plan
         if checkout_id:
              background_tasks.add_task(poll_sumup_status, checkout_id)
         
         return {"payment_url": url}
     except Exception as e:
-        logger.error(f"Error creating payment: {e}")
+        logger.error(f"Erreur création paiement: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/payment-success")
 def payment_success(checkout_reference: Optional[str] = None, db: Session = Depends(get_db)):
     """
-    Handles payment success redirect.
-    Renders a page that polls /check-status until payment is confirmed.
+    Gère la redirection après succès du paiement.
+    Affiche une page qui interroge /check-status jusqu'à confirmation du paiement.
     """
-    logger.info(f"Payment Success Page Hit. Ref: {checkout_reference}")
+    logger.info(f"Page Succès Paiement atteinte. Réf: {checkout_reference}")
     
     html_content = f"""
     <html>
@@ -166,20 +166,20 @@ def payment_success(checkout_reference: Optional[str] = None, db: Session = Depe
                             document.getElementById("status-title").style.color = "#28a745";
                             document.getElementById("status-message").innerText = "Merci ! Votre transaction a été enregistrée avec succès.";
                             document.getElementById("home-btn").classList.remove("hidden");
-                            return; // Stop polling
+                            return; // Arrêter le polling
                         }} else if (data.status === "FAILED") {{
                             document.getElementById("loader").classList.add("hidden");
                             document.getElementById("status-title").innerText = "❌ Paiement Échoué";
                             document.getElementById("status-title").style.color = "#dc3545";
                             document.getElementById("status-message").innerText = "Le paiement a échoué ou a été annulé.";
                             document.getElementById("home-btn").classList.remove("hidden");
-                            return; // Stop polling
+                            return; // Arrêter le polling
                         }}
                     }} catch (error) {{
-                        console.error("Error checking status:", error);
+                        console.error("Erreur vérification statut:", error);
                     }}
 
-                    // Retry every 5 seconds
+                    // Réessayer toutes les 5 secondes
                     setTimeout(checkStatus, 5000);
                 }}
 
@@ -200,55 +200,58 @@ def payment_success(checkout_reference: Optional[str] = None, db: Session = Depe
     return HTMLResponse(content=html_content, status_code=200)
 
 @app.get("/check-status")
-def check_payment_status(checkout_reference: str, db: Session = Depends(get_db)):
+async def check_payment_status(checkout_reference: str, db: Session = Depends(get_db)):
     """
-    Endpoint to check payment status.
-    Called by the frontend polling script.
+    Endpoint pour vérifier le statut du paiement.
+    Appelé par le script de polling frontend.
     """
     try:
         payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
         
         if not payment:
-            return {"status": "UNKNOWN", "message": "Payment not found"}
+            return {"status": "UNKNOWN", "message": "Paiement non trouvé"}
         
-        # If already finalized, return status immediately
+        # Si déjà finalisé, retourner le statut immédiatement
         if payment.status in ["PAID", "FAILED"]:
             return {"status": payment.status}
         
-        # If PENDING, verify with SumUp API
+        # Si PENDING, vérifier avec l'API SumUp
         try:
-            token = get_access_token()
+            token = await get_access_token()
             headers = {"Authorization": f"Bearer {token}"}
             
             if payment.checkout_id:
                 CHECKOUT_URL = f"https://api.sumup.com/v0.1/checkouts/{payment.checkout_id}"
-                response = requests.get(CHECKOUT_URL, headers=headers)
                 
-                if response.status_code == 200:
-                    data = response.json()
-                    new_status = data.get("status")
+                import aiohttp
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(CHECKOUT_URL, headers=headers) as response:
                     
-                    if new_status and new_status != payment.status:
-                        payment.status = new_status
-                        db.commit()
-                        logger.info(f"Create-Check-Status: Payment {payment.id} updated to {new_status}")
-                    
-                    return {"status": payment.status}
+                        if response.status == 200:
+                            data = await response.json()
+                            new_status = data.get("status")
+                            
+                            if new_status and new_status != payment.status:
+                                payment.status = new_status
+                                db.commit()
+                                logger.info(f"Create-Check-Status: Paiement {payment.id} mis à jour vers {new_status}")
+                            
+                            return {"status": payment.status}
             
         except Exception as e:
-            logger.error(f"Error checking SumUp API: {e}")
+            logger.error(f"Erreur vérification API SumUp: {e}")
             
-        return {"status": payment.status} # Return current status (likely PENDING)
+        return {"status": payment.status} # Retourner statut actuel (probablement PENDING)
         
     except Exception as e:
-        logger.error(f"Check status endpoint error: {e}")
+        logger.error(f"Erreur endpoint check status: {e}")
         return {"status": "ERROR", "detail": str(e)}
 
 
 @app.post("/webhook")
 async def webhook_endpoint(data: dict, db: Session = Depends(get_db)):
     """
-    Webhook called by SumUp when a payment status changes.
+    Webhook appelé par SumUp quand le statut d'un paiement change.
     Payload: {"event_type": "CHECKOUT_STATUS_CHANGED", "id": "..."}
     """
     try:
@@ -257,42 +260,48 @@ async def webhook_endpoint(data: dict, db: Session = Depends(get_db)):
         if not checkout_id:
             return {"status": "ignored", "reason": "no_id"}
 
-        # Find payment by checkout_id
+        # Trouver le paiement par checkout_id
         payment = db.query(Payment).filter(Payment.checkout_id == checkout_id).first()
         
         if not payment:
             return {"status": "ignored", "reason": "not_found"}
 
-        # Verify status with SumUp API
-        # We need a fresh token
-        token = get_access_token()
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json"
-        }
-        
-        # Determine endpoint based on ID format (v0.1 checkouts usually start with 'c-')
-        # But for V0.1 API, the endpoint is GET /v0.1/checkouts/{id}
-        CHECKOUT_URL = f"https://api.sumup.com/v0.1/checkouts/{checkout_id}"
-        
-        response = requests.get(CHECKOUT_URL, headers=headers)
-        
-        if response.status_code == 200:
-            checkout_data = response.json()
-            new_status = checkout_data.get("status") # e.g., "PAID", "PENDING", "FAILED"
+        # Vérifier le statut avec l'API SumUp
+        # Nous avons besoin d'un token frais
+        try:
+            token = await get_access_token()
+            headers = {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json"
+            }
             
-            if new_status and new_status != payment.status:
-                payment.status = new_status
-                db.commit()
-                return {"status": "updated", "id": checkout_id, "new_status": new_status}
-            else:
-                return {"status": "unchanged", "current_status": payment.status}
-        else:
-             logger.error(f"Failed to verify checkout {checkout_id}: {response.text}")
-             return {"status": "error", "reason": "verification_failed"}
+            CHECKOUT_URL = f"https://api.sumup.com/v0.1/checkouts/{checkout_id}"
+            
+            import aiohttp
+            async with aiohttp.ClientSession() as session:
+                async with session.get(CHECKOUT_URL, headers=headers) as response:
+            
+                    if response.status == 200:
+                        checkout_data = await response.json()
+                        new_status = checkout_data.get("status") # e.g., "PAID", "PENDING", "FAILED"
+                        
+                        if new_status and new_status != payment.status:
+                            payment.status = new_status
+                            db.commit()
+                            return {"status": "updated", "id": checkout_id, "new_status": new_status}
+                        else:
+                            return {"status": "unchanged", "current_status": payment.status}
+                    else:
+                        text = await response.text()
+                        logger.error(f"Echec vérification checkout {checkout_id}: {text}")
+                        return {"status": "error", "reason": "verification_failed"}
+                        
+        except Exception as e:
+             logger.error(f"Erreur verification SumUp: {e}")
+             return {"status": "error", "detail": str(e)}
 
     except Exception as e:
-        logger.error(f"Webhook Error: {e}")
+        logger.error(f"Erreur Webhook: {e}")
         return {"status": "error", "detail": str(e)}
 
 

@@ -3,39 +3,41 @@ import requests
 import logging
 from sqlalchemy.orm import Session
 from .database import Payment, SessionLocal
-from .payment import get_access_token
+from .payment import get_access_token_sync
 
 logger = logging.getLogger(__name__)
 
 def poll_sumup_status(checkout_id: str):
     """
-    Polls SumUp API for payment status updates in the background.
-    Runs for up to 5 minutes, checking every 5 seconds.
-    Stops if status is PAID or FAILED.
+    Sonde l'API SumUp pour les mises à jour de statut de paiement en arrière-plan (thread synchrone).
+    S'exécute pendant jusqu'à 5 minutes, vérifie toutes les 5 secondes.
+    S'arrête si le statut est PAID ou FAILED.
     """
-    logger.info(f"Starting background polling for Checkout ID: {checkout_id}")
+    logger.info(f"Démarrage polling arrière-plan pour Checkout ID: {checkout_id}")
     
     start_time = time.time()
     timeout = 300 # 5 minutes
-    interval = 5   # 5 seconds
+    interval = 5   # 5 secondes
 
-    db = SessionLocal() # Create a new session for the background thread
-
+    db = SessionLocal() # Créer une nouvelle session pour le thread
+    
     try:
         while time.time() - start_time < timeout:
             try:
-                # 1. Check current status in DB first (in case webhook updated it)
+                # 1. Vérifier le statut actuel en DB d'abord (au cas où le webhook l'aurait mis à jour)
                 payment = db.query(Payment).filter(Payment.checkout_id == checkout_id).first()
                 if not payment:
-                    logger.warning(f"Polling: Payment {checkout_id} not found in DB.")
+                    logger.warning(f"Polling: Paiement {checkout_id} non trouvé en DB.")
                     break
                 
                 if payment.status in ["PAID", "FAILED"]:
-                    logger.info(f"Polling: Payment {checkout_id} already finalized: {payment.status}")
+                    logger.info(f"Polling: Paiement {checkout_id} déjà finalisé: {payment.status}")
                     break
 
-                # 2. Query SumUp API
-                token = get_access_token()
+                # 2. Interroger l'API SumUp
+                # Utiliser la version SYNC car nous sommes dans un thread
+                token = get_access_token_sync()
+                
                 headers = {"Authorization": f"Bearer {token}"}
                 url = f"https://api.sumup.com/v0.1/checkouts/{checkout_id}"
                 
@@ -46,22 +48,22 @@ def poll_sumup_status(checkout_id: str):
                     new_status = data.get("status")
 
                     if new_status and new_status != payment.status:
-                        logger.info(f"Polling: Status changed for {checkout_id}: {payment.status} -> {new_status}")
+                        logger.info(f"Polling: Statut changé pour {checkout_id}: {payment.status} -> {new_status}")
                         payment.status = new_status
                         db.commit()
                         
                         if new_status in ["PAID", "FAILED"]:
-                            break # We are done
+                            break # Terminé
                 else:
-                    logger.warning(f"Polling: API Error {response.status_code}: {response.text}")
+                    logger.warning(f"Polling: Erreur API {response.status_code}: {response.text}")
 
             except Exception as e:
-                logger.error(f"Polling Loop Error: {e}")
+                logger.error(f"Erreur Boucle Polling: {e}")
 
             time.sleep(interval)
             
     except Exception as e:
-        logger.error(f"Polling Fatal Error: {e}")
+        logger.error(f"Erreur Fatale Polling: {e}")
     finally:
         db.close()
-        logger.info(f"Background polling finished for {checkout_id}")
+        logger.info(f"Polling arrière-plan terminé pour {checkout_id}")
