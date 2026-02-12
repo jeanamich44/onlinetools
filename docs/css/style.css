@@ -798,64 +798,6 @@ button:disabled {
     margin-top: 10px;
 }
 
-/* =========================
-   ANIMATED BACKGROUND CARDS
-   (Replaces the static #1f242d + emoji)
-========================= */
-
-/* =========================
-   ANIMATED GIF BACKGROUNDS
-   (User requested "vrai gif")
-========================= */
-
-/* Common container setup */
-.anim-bg-common {
-    height: 140px;
-    width: 100%;
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    border-bottom: 1px solid #2a2f3a;
-    position: relative;
-    overflow: hidden;
-}
-
-/* 
-   NOTE: If you want to change the GIFs, replace the files in:
-   docs/assets/img/bg/
-   (tools.gif, docs.gif, auto.gif, facture.gif, chrono.gif)
-*/
-
-/* 1. TOOLS */
-.bg-anim-tools {
-    /* Fallback color */
-    background-color: #0f172a;
-    background-image: url('../assets/img/bg/tools.gif');
-}
-
-/* 2. DOCS / RIB */
-.bg-anim-docs {
-    background-color: #064e3b;
-    background-image: url('../assets/img/bg/docs.gif');
-}
-
-/* 3. AUTO */
-.bg-anim-auto {
-    background-color: #7f1d1d;
-    background-image: url('../assets/img/bg/auto.gif');
-}
-
-/* 4. FACTURE */
-.bg-anim-facture {
-    background-color: #374151;
-    background-image: url('../assets/img/bg/facture.gif');
-}
-
-/* 5. CHRONOPOST */
-.bg-anim-chrono {
-    background-color: #1e3a8a;
-    background-image: url('../assets/img/bg/chrono.gif');
-}
 
 
 .checkbox-group label {
