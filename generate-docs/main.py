@@ -179,8 +179,8 @@ def payment_success(checkout_reference: Optional[str] = None, db: Session = Depe
                         console.error("Erreur vérification statut:", error);
                     }}
 
-                    // Réessayer toutes les 5 secondes
-                    setTimeout(checkStatus, 5000);
+                    // Réessayer toutes les 2 secondes
+                    setTimeout(checkStatus, 2000);
                 }}
 
                 window.onload = checkStatus;

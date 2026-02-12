@@ -17,7 +17,7 @@ def poll_sumup_status(checkout_id: str):
     
     start_time = time.time()
     timeout = 300 # 5 minutes
-    interval = 5   # 5 secondes
+    interval = 2   # 2 secondes
 
     db = SessionLocal() # Créer une nouvelle session pour le thread
     
