@@ -71,70 +71,63 @@ def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=None, pr
     # 1. Generate local reference
     checkout_ref = str(uuid.uuid4())
     
-    # 2. Create PENDING record in DB
-    new_payment = Payment(
-        checkout_ref=checkout_ref,
-        amount=amount,
-        currency=currency,
-        status="PENDING",
-        ip_address=ip_address,
-        product_name=product_name
-    )
-    db.add(new_payment)
-    db.commit()
-    db.refresh(new_payment)
-    
-    # 3. Call SumUp API
-    # Try to get a token (will raise Exception if fails)
-    token = get_access_token()
-    
-    valid_until = (datetime.utcnow() + timedelta(minutes=15)).isoformat() + "Z"
-
-    # Use the app's domain for webhook callback
-    APP_DOMAIN = "https://generate-docs-production.up.railway.app"
-
-    payload = {
-        "amount": amount,
-        "currency": currency,
-        "checkout_reference": checkout_ref,
-        # "merchant_code": MERCHANT_CODE, # Removed as it was invalid
-        "pay_to_email": PAY_TO_EMAIL,
-        "description": f"Payment #{new_payment.id}",
-        "valid_until": valid_until,
-        "redirect_url": f"{APP_DOMAIN}/payment-success?checkout_reference={checkout_ref}",
-        "return_url": f"{APP_DOMAIN}/webhook", # This registers the webhook dynamically!
-        "hosted_checkout": {
-            "enabled": True
-        }
-    }
-    
-    # Removed email logic as column was deleted
-    # if email:
-    #     payload["pay_to_email"] = email
-
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json"
-    }
-
+    # 2. Call SumUp API FIRST (Optimization: No DB insert before API call)
     try:
+        # Try to get a token (will raise Exception if fails)
+        token = get_access_token()
+        
+        valid_until = (datetime.utcnow() + timedelta(minutes=15)).isoformat() + "Z"
+
+        # Use the app's domain for webhook callback
+        APP_DOMAIN = "https://generate-docs-production.up.railway.app"
+        
+        # We don't have payement.id yet, so we use checkout_ref in description
+        payload = {
+            "amount": amount,
+            "currency": currency,
+            "checkout_reference": checkout_ref,
+            "pay_to_email": PAY_TO_EMAIL,
+            "description": f"Payment Ref: {checkout_ref}", 
+            "valid_until": valid_until,
+            "redirect_url": f"{APP_DOMAIN}/payment-success?checkout_reference={checkout_ref}",
+            "return_url": f"{APP_DOMAIN}/webhook", 
+            "hosted_checkout": {
+                "enabled": True
+            }
+        }
+        
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+
         response = requests.post(CHECKOUT_URL, json=payload, headers=headers)
     
         if response.status_code >= 400:
-            # Update status to FAILED
-            new_payment.status = "FAILED"
-            db.commit()
             raise Exception(f"Checkout failed: {response.status_code} {response.text}")
             
         response.raise_for_status()
         
         data = response.json()
         
-        # 4. Update DB with real checkout ID from SumUp
-        new_payment.checkout_id = data.get("id")
-        new_payment.payment_url = data.get("hosted_checkout_url")
+        # 3. Create record in DB (Wait for API response success)
+        # This is faster as it avoids an initial INSERT + COMMIT before the API call
+        new_payment = Payment(
+            checkout_ref=checkout_ref,
+            amount=amount,
+            currency=currency,
+            status="PENDING", # It is created successfully at SumUp
+            ip_address=ip_address,
+            product_name=product_name,
+            checkout_id=data.get("id"),
+            payment_url=data.get("hosted_checkout_url")
+        )
+        db.add(new_payment)
         db.commit()
+        db.refresh(new_payment)
         
         return (data.get("hosted_checkout_url"), checkout_ref, data.get("id"))
+
     except Exception as e:
+        logger.error(f"Error in create_checkout: {e}")
         raise e
