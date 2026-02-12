@@ -20,23 +20,10 @@ from sqlalchemy.orm import Session
 import logging
 logger = logging.getLogger(__name__)
 
-# Token Cache
-_token_cache = {
-    "access_token": None,
-    "expires_at": 0 # Timestamp
-}
-
 def get_access_token():
     """
-    Retrieves an access token, using a global cache to avoid repetitive requests.
-    Tokens are valid for 1 hour approx.
+    Retrieves an access token using the Method that worked in debug (Go-style).
     """
-    global _token_cache
-    
-    # Check if we have a valid token
-    if _token_cache["access_token"] and time.time() < _token_cache["expires_at"]:
-        return _token_cache["access_token"]
-
     # Method 1: Body + Bearer Header (Confirmed working in debug)
     headers = {
         "Authorization": f"Bearer {API_KEY}",
@@ -47,16 +34,7 @@ def get_access_token():
     try:
         response = requests.post(TOKEN_URL, data=payload_str, headers=headers)
         if response.status_code == 200:
-            data = response.json()
-            token = data.get("access_token")
-            expires_in = data.get("expires_in", 3600) # Default 1h
-            
-            # Update cache (subtract 60s for safety buffer)
-            _token_cache["access_token"] = token
-            _token_cache["expires_at"] = time.time() + expires_in - 60
-            
-            logger.info("🔑 New SumUp Access Token retrieved and cached.")
-            return token
+            return response.json().get("access_token")
         
         # Log failure
         logger.error(f"Token Auth Failed: {response.status_code} {response.text}")
@@ -83,7 +61,7 @@ def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=None, pr
     db.add(new_payment)
     db.commit()
     db.refresh(new_payment)
-
+    
     # 3. Call SumUp API
     # Try to get a token (will raise Exception if fails)
     token = get_access_token()
@@ -117,21 +95,6 @@ def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=None, pr
         "Content-Type": "application/json"
     }
 
-    response = requests.post(CHECKOUT_URL, json=payload, headers=headers)
+    try:
+        response = requests.post(CHECKOUT_URL, json=payload, headers=headers)
     
-    if response.status_code >= 400:
-        # Update status to FAILED
-        new_payment.status = "FAILED"
-        db.commit()
-        raise Exception(f"Checkout failed: {response.status_code} {response.text}")
-        
-    response.raise_for_status()
-    
-    data = response.json()
-    
-    # 4. Update DB with real checkout ID from SumUp
-    new_payment.checkout_id = data.get("id")
-    new_payment.payment_url = data.get("hosted_checkout_url")
-    db.commit()
-    
-    return (data.get("hosted_checkout_url"), checkout_ref, data.get("id"))
