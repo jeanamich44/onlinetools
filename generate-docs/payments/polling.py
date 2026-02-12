@@ -16,8 +16,8 @@ def poll_sumup_status(checkout_id: str):
     logger.info(f"Démarrage polling arrière-plan pour Checkout ID: {checkout_id}")
     
     start_time = time.time()
-    timeout = 300 # 5 minutes
-    interval = 2   # 2 secondes
+    timeout = 900 
+    interval = 1   # 1 seconde (Vérification ultra-rapide)
 
     db = SessionLocal() # Créer une nouvelle session pour le thread
     

@@ -10,7 +10,7 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Request, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from payments.database import init_db, get_db, Payment
 from payments.payment import create_checkout, get_access_token # Corrected import
 from payments.polling import poll_sumup_status
+import aiohttp
 
 # Scripts (PDF Generation)
 from script.lbp import generate_lbp_pdf, generate_lbp_preview
@@ -128,76 +129,14 @@ async def create_payment_endpoint(request: Request, background_tasks: Background
         logger.error(f"Erreur création paiement: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.get("/payment-success")
-def payment_success(checkout_reference: Optional[str] = None, db: Session = Depends(get_db)):
+def payment_success(checkout_reference: Optional[str] = None):
     """
-    Gère la redirection après succès du paiement.
-    Affiche une page qui interroge /check-status jusqu'à confirmation du paiement.
+    Redirige immédiatement vers la page d'accueil après le paiement.
+    Le statut est mis à jour en arrière-plan par le polling serveur.
     """
-    logger.info(f"Page Succès Paiement atteinte. Réf: {checkout_reference}")
-    
-    html_content = f"""
-    <html>
-        <head>
-            <title>Vérification du Paiement</title>
-             <style>
-                body {{ font-family: sans-serif; text-align: center; padding: 50px; background-color: #f4f4f9; }}
-                .card {{ background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }}
-                h1 {{ color: #007bff; }}
-                p {{ color: #555; }}
-                .btn {{ display: inline-block; margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; }}
-                .hidden {{ display: none; }}
-                .loader {{ border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 2s linear infinite; margin: 20px auto; }}
-                @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
-            </style>
-            <script>
-                async function checkStatus() {{
-                    const ref = "{checkout_reference}";
-                    if (!ref || ref === "None") return;
-
-                    try {{
-                        const response = await fetch(`/check-status?checkout_reference=${{ref}}`);
-                        const data = await response.json();
-
-                        if (data.status === "PAID") {{
-                            document.getElementById("loader").classList.add("hidden");
-                            document.getElementById("status-title").innerText = "✅ Paiement Validé !";
-                            document.getElementById("status-title").style.color = "#28a745";
-                            document.getElementById("status-message").innerText = "Merci ! Votre transaction a été enregistrée avec succès.";
-                            document.getElementById("home-btn").classList.remove("hidden");
-                            return; // Arrêter le polling
-                        }} else if (data.status === "FAILED") {{
-                            document.getElementById("loader").classList.add("hidden");
-                            document.getElementById("status-title").innerText = "❌ Paiement Échoué";
-                            document.getElementById("status-title").style.color = "#dc3545";
-                            document.getElementById("status-message").innerText = "Le paiement a échoué ou a été annulé.";
-                            document.getElementById("home-btn").classList.remove("hidden");
-                            return; // Arrêter le polling
-                        }}
-                    }} catch (error) {{
-                        console.error("Erreur vérification statut:", error);
-                    }}
-
-                    // Réessayer toutes les 2 secondes
-                    setTimeout(checkStatus, 2000);
-                }}
-
-                window.onload = checkStatus;
-            </script>
-        </head>
-        <body>
-            <div class="card">
-                <h1 id="status-title">Vérification en cours...</h1>
-                <div id="loader" class="loader"></div>
-                <p id="status-message">Veuillez patienter pendant que nous confirmons votre paiement.</p>
-                <p>Ne fermez pas cette page.</p>
-                <a id="home-btn" href="/index.html" class="btn hidden">Retour à l'accueil</a>
-            </div>
-        </body>
-    </html>
-    """
-    return HTMLResponse(content=html_content, status_code=200)
+    logger.info(f"Paiement terminé. Redirection accueil. Ref: {checkout_reference}")
+    return RedirectResponse(url="https://jeanamich44.github.io/onlinetools/index.html")
 
 @app.get("/check-status")
 async def check_payment_status(checkout_reference: str, db: Session = Depends(get_db)):
@@ -223,7 +162,6 @@ async def check_payment_status(checkout_reference: str, db: Session = Depends(ge
             if payment.checkout_id:
                 CHECKOUT_URL = f"https://api.sumup.com/v0.1/checkouts/{payment.checkout_id}"
                 
-                import aiohttp
                 async with aiohttp.ClientSession() as session:
                     async with session.get(CHECKOUT_URL, headers=headers) as response:
                     
@@ -246,8 +184,6 @@ async def check_payment_status(checkout_reference: str, db: Session = Depends(ge
     except Exception as e:
         logger.error(f"Erreur endpoint check status: {e}")
         return {"status": "ERROR", "detail": str(e)}
-
-
 
 # =========================
 # PDF GENERATION ROUTES
