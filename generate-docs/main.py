@@ -249,67 +249,6 @@ async def check_payment_status(checkout_reference: str, db: Session = Depends(ge
 
 
 
-
-
-
-
-@app.post("/webhook")
-async def webhook_endpoint(data: dict, db: Session = Depends(get_db)):
-    """
-    Webhook appelé par SumUp quand le statut d'un paiement change.
-    Payload: {"event_type": "CHECKOUT_STATUS_CHANGED", "id": "..."}
-    """
-    try:
-        checkout_id = data.get("id")
-        
-        if not checkout_id:
-            return {"status": "ignored", "reason": "no_id"}
-
-        # Trouver le paiement par checkout_id
-        payment = db.query(Payment).filter(Payment.checkout_id == checkout_id).first()
-        
-        if not payment:
-            return {"status": "ignored", "reason": "not_found"}
-
-        # Vérifier le statut avec l'API SumUp
-        # Nous avons besoin d'un token frais
-        try:
-            token = await get_access_token()
-            headers = {
-                "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json"
-            }
-            
-            CHECKOUT_URL = f"https://api.sumup.com/v0.1/checkouts/{checkout_id}"
-            
-            import aiohttp
-            async with aiohttp.ClientSession() as session:
-                async with session.get(CHECKOUT_URL, headers=headers) as response:
-            
-                    if response.status == 200:
-                        checkout_data = await response.json()
-                        new_status = checkout_data.get("status") # e.g., "PAID", "PENDING", "FAILED"
-                        
-                        if new_status and new_status != payment.status:
-                            payment.status = new_status
-                            db.commit()
-                            return {"status": "updated", "id": checkout_id, "new_status": new_status}
-                        else:
-                            return {"status": "unchanged", "current_status": payment.status}
-                    else:
-                        text = await response.text()
-                        logger.error(f"Echec vérification checkout {checkout_id}: {text}")
-                        return {"status": "error", "reason": "verification_failed"}
-                        
-        except Exception as e:
-             logger.error(f"Erreur verification SumUp: {e}")
-             return {"status": "error", "detail": str(e)}
-
-    except Exception as e:
-        logger.error(f"Erreur Webhook: {e}")
-        return {"status": "error", "detail": str(e)}
-
-
 # =========================
 # PDF GENERATION ROUTES
 # =========================

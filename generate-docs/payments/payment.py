@@ -117,7 +117,7 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
         
         valid_until = (datetime.utcnow() + timedelta(minutes=15)).isoformat() + "Z"
 
-        # Utiliser le domaine de l'application pour le callback webhook
+        # Utiliser le domaine de l'application
         APP_DOMAIN = "https://generate-docs-production.up.railway.app"
         
         payload = {
@@ -128,7 +128,6 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
             "description": f"Payment Ref: {checkout_ref}", 
             "valid_until": valid_until,
             "redirect_url": f"{APP_DOMAIN}/payment-success?checkout_reference={checkout_ref}",
-            "return_url": f"{APP_DOMAIN}/webhook", 
             "hosted_checkout": {
                 "enabled": True
             }

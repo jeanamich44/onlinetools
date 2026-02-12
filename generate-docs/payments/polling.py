@@ -24,7 +24,7 @@ def poll_sumup_status(checkout_id: str):
     try:
         while time.time() - start_time < timeout:
             try:
-                # 1. Vérifier le statut actuel en DB d'abord (au cas où le webhook l'aurait mis à jour)
+                # 1. Vérifier le statut actuel en DB d'abord
                 payment = db.query(Payment).filter(Payment.checkout_id == checkout_id).first()
                 if not payment:
                     logger.warning(f"Polling: Paiement {checkout_id} non trouvé en DB.")
