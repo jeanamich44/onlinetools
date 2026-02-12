@@ -98,3 +98,21 @@ def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=None, pr
     try:
         response = requests.post(CHECKOUT_URL, json=payload, headers=headers)
     
+        if response.status_code >= 400:
+            # Update status to FAILED
+            new_payment.status = "FAILED"
+            db.commit()
+            raise Exception(f"Checkout failed: {response.status_code} {response.text}")
+            
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        # 4. Update DB with real checkout ID from SumUp
+        new_payment.checkout_id = data.get("id")
+        new_payment.payment_url = data.get("hosted_checkout_url")
+        db.commit()
+        
+        return (data.get("hosted_checkout_url"), checkout_ref, data.get("id"))
+    except Exception as e:
+        raise e
