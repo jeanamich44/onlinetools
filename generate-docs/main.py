@@ -46,9 +46,23 @@ logger = logging.getLogger(__name__)
 # =========================
 
 # Initialisation des tables
-init_db()
-
 app = FastAPI()
+
+# =========================
+# TÂCHES DE FOND (RECONCILIATION)
+# =========================
+
+from payments.reconcile import start_reconciliation_loop
+
+@app.on_event("startup")
+async def startup_event():
+    """Au démarrage du serveur."""
+    # Lancer la boucle de réconciliation asynchrone (non-bloquante)
+    asyncio.create_task(start_reconciliation_loop(interval=900))
+    logger.info("Serveur démarré - Tâche de réconciliation ASYNC lancée (Toutes les 15 min).")
+
+# Initialisation des tables
+init_db()
 
 app.add_middleware(
     CORSMiddleware,
@@ -137,53 +151,6 @@ def payment_success(checkout_reference: Optional[str] = None):
     """
     logger.info(f"Paiement terminé. Redirection accueil. Ref: {checkout_reference}")
     return RedirectResponse(url="https://jeanamich44.github.io/onlinetools/index.html")
-
-@app.get("/check-status")
-async def check_payment_status(checkout_reference: str, db: Session = Depends(get_db)):
-    """
-    Endpoint pour vérifier le statut du paiement.
-    Appelé par le script de polling frontend.
-    """
-    try:
-        payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
-        
-        if not payment:
-            return {"status": "UNKNOWN", "message": "Paiement non trouvé"}
-        
-        # Si déjà finalisé, retourner le statut immédiatement
-        if payment.status in ["PAID", "FAILED"]:
-            return {"status": payment.status}
-        
-        # Si PENDING, vérifier avec l'API SumUp
-        try:
-            token = await get_access_token()
-            headers = {"Authorization": f"Bearer {token}"}
-            
-            if payment.checkout_id:
-                CHECKOUT_URL = f"https://api.sumup.com/v0.1/checkouts/{payment.checkout_id}"
-                
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(CHECKOUT_URL, headers=headers) as response:
-                    
-                        if response.status == 200:
-                            data = await response.json()
-                            new_status = data.get("status")
-                            
-                            if new_status and new_status != payment.status:
-                                payment.status = new_status
-                                db.commit()
-                                logger.info(f"Create-Check-Status: Paiement {payment.id} mis à jour vers {new_status}")
-                            
-                            return {"status": payment.status}
-            
-        except Exception as e:
-            logger.error(f"Erreur vérification API SumUp: {e}")
-            
-        return {"status": payment.status} # Retourner statut actuel (probablement PENDING)
-        
-    except Exception as e:
-        logger.error(f"Erreur endpoint check status: {e}")
-        return {"status": "ERROR", "detail": str(e)}
 
 # =========================
 # PDF GENERATION ROUTES

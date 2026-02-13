@@ -41,7 +41,13 @@ def poll_sumup_status(checkout_id: str):
                 headers = {"Authorization": f"Bearer {token}"}
                 url = f"https://api.sumup.com/v0.1/checkouts/{checkout_id}"
                 
+                # DEBUG TEMPORAIRE
+                logger.info(f"[DEBUG] Envoi requête Polling SumUp: {url}")
+                
                 response = requests.get(url, headers=headers)
+                
+                # DEBUG TEMPORAIRE
+                logger.info(f"[DEBUG] Réponse SumUp ({response.status_code}): {response.text}")
                 
                 if response.status_code == 200:
                     data = response.json()
