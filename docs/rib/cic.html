@@ -5,63 +5,16 @@
   <meta charset="UTF-8">
   <title>RIB – CIC</title>
   <link rel="stylesheet" href="../css/style.css">
-  <style>
-    #loadingOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #f8f9fa;
-      z-index: 10000;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-    }
-
-    .spinner-large {
-      width: 60px;
-      height: 60px;
-      border: 6px solid #e9ecef;
-      border-top: 6px solid #3498db;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 30px;
-    }
-
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-
-    .loading-text {
-      font-family: sans-serif;
-      font-size: 1.2rem;
-      color: #495057;
-      font-weight: bold;
-    }
-
-    .loading-subtext {
-      margin-top: 10px;
-      font-size: 0.9rem;
-      color: #6c757d;
-    }
-  </style>
 </head>
 
 <body>
 
-  <div id="loadingOverlay">
-    <div class="spinner-large"></div>
-    <div class="loading-text">Génération de la preview gratuite...</div>
-    <div class="loading-subtext">Votre document sera prêt dans quelques instants.<br>Veuillez ne pas quitter la page.
+  <div id="overlay" style="display: flex; flex-direction: column; gap: 20px;">
+    <div class="spinner"></div>
+    <div id="timerContainer" style="display:none; text-align: center; color: #fff;">
+      <span style="font-size: 1.2rem; font-weight: bold;" id="timer">00:00</span>
+      <span class="info-icon" style="margin-left: 10px; vertical-align: middle;"
+        data-tooltip="La génération peut prendre quelques instants, veuillez rester sur la page.">i</span>
     </div>
   </div>
 
@@ -185,8 +138,20 @@
     ribForm.onsubmit = async (e) => {
       e.preventDefault();
 
-      const overlay = document.getElementById("loadingOverlay");
-      overlay.style.display = "flex";
+      const overlay = document.getElementById("overlay");
+      overlay.style.visibility = "visible";
+      const timerSpan = document.getElementById("timer");
+      const timerContainer = document.getElementById("timerContainer");
+
+      timerContainer.style.display = "block";
+      let seconds = 0;
+      timerSpan.textContent = "00:00";
+      let timerInterval = setInterval(() => {
+        seconds++;
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        timerSpan.textContent = `${m}:${s}`;
+      }, 1000);
 
       await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -230,7 +195,9 @@
         message.textContent = err.message;
         message.className = "error";
       } finally {
-        overlay.style.display = "none";
+        overlay.style.visibility = "hidden";
+        if (timerInterval) clearInterval(timerInterval);
+        if (timerContainer) timerContainer.style.display = "none";
       }
     };
 
