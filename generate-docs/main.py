@@ -61,6 +61,10 @@ async def startup_event():
     asyncio.create_task(start_reconciliation_loop(interval=900))
     logger.info("Serveur démarré - Tâche de réconciliation ASYNC lancée (Toutes les 15 min).")
 
+@app.get("/")
+def read_root():
+    return {"status": "online", "message": "API Generate-Docs is running"}
+
 # Initialisation des tables
 init_db()
 
@@ -69,7 +73,7 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
 )
 
 # =========================
@@ -153,6 +157,7 @@ def payment_success(checkout_reference: Optional[str] = None):
     return RedirectResponse(url=f"https://jeanamich44.github.io/onlinetools/index.html?checkout_ref={checkout_reference}")
 
 @app.post("/generate-pdf")
+@app.post("/generate-pdf/")
 def generate_pdf(request: Request, data: PDFRequest):
     """
     Génère un PDF. Gère la preview libre et le PDF final payé.
