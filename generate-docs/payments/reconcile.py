@@ -13,22 +13,22 @@ async def reconcile_all_pending_payments():
     Parcourt tous les paiements PENDING en base et vérifie leur statut réel chez SumUp.
     Version asynchrone pour ne pas bloquer les autres processus.
     """
-    logger.info("Démarrage de la réconciliation globale (ASYNCHRONE) des paiements PENDING...")
+    logger.info("Démarrage de la réconciliation globale (ASYNCHRONE) des paiements PENDING & FAILED...")
     
     # On utilise SessionLocal() dans un bloc contextuel pour assurer la fermeture
     try:
-        # 1. Récupérer les IDs des paiements PENDING (Session courte)
+        # 1. Récupérer les IDs des paiements PENDING & FAILED (Session courte)
         db = SessionLocal()
         try:
-            pending_payments_data = db.query(Payment.checkout_id, Payment.status).filter(Payment.status == "PENDING").all()
+            pending_payments_data = db.query(Payment.checkout_id, Payment.status).filter(Payment.status.in_(["PENDING", "FAILED"])).all()
         finally:
             db.close()
             
         if not pending_payments_data:
-            logger.info("Aucun paiement PENDING à réconcilier.")
+            logger.info("Aucun paiement PENDING ou FAILED à réconcilier.")
             return
 
-        logger.info(f"Réconciliation : {len(pending_payments_data)} paiements à vérifier.")
+        logger.info(f"Réconciliation : {len(pending_payments_data)} paiements (PENDING/FAILED) à vérifier.")
 
         token = await get_access_token()
         headers = {
