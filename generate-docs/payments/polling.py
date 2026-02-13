@@ -55,8 +55,14 @@ def poll_sumup_status(checkout_id: str):
 
                     if new_status and new_status != payment.status:
                         logger.info(f"Polling: Statut changé pour {checkout_id}: {payment.status} -> {new_status}")
-                        payment.status = new_status
-                        db.commit()
+                        
+                        # Mise à jour dans un thread pour ne pas ralentir la boucle
+                        def update_status():
+                            payment.status = new_status
+                            db.commit()
+                        
+                        loop = asyncio.get_event_loop()
+                        await loop.run_in_executor(None, update_status)
                         
                         if new_status in ["PAID", "FAILED"]:
                             break # Terminé

@@ -148,21 +148,25 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
                 data = await response.json()
                 
                 # 3. Créer l'enregistrement en DB (Attendre le succès de la réponse API)
-                # Garder les opérations DB synchrones car SQLAlchemy pur est synchrone
-                # Mais comme c'est rapide (local), c'est acceptable dans le chemin async
-                new_payment = Payment(
-                    checkout_ref=checkout_ref,
-                    amount=amount,
-                    currency=currency,
-                    status="PENDING", 
-                    ip_address=ip_address,
-                    product_name=product_name,
-                    checkout_id=data.get("id"),
-                    payment_url=data.get("hosted_checkout_url")
-                )
-                db.add(new_payment)
-                db.commit()
-                db.refresh(new_payment)
+                # On exécute la partie synchrone DB dans un thread pour ne pas bloquer l'event loop
+                def sync_db_write():
+                    new_payment = Payment(
+                        checkout_ref=checkout_ref,
+                        amount=amount,
+                        currency=currency,
+                        status="PENDING", 
+                        ip_address=ip_address,
+                        product_name=product_name,
+                        checkout_id=data.get("id"),
+                        payment_url=data.get("hosted_checkout_url")
+                    )
+                    db.add(new_payment)
+                    db.commit()
+                    db.refresh(new_payment)
+                    return new_payment
+
+                loop = asyncio.get_event_loop()
+                await loop.run_in_executor(None, sync_db_write)
                 
                 return (data.get("hosted_checkout_url"), checkout_ref, data.get("id"))
 

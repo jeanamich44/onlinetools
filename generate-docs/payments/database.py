@@ -23,7 +23,12 @@ else:
     available_keys = list(os.environ.keys())
     raise ValueError(f"DATABASE_URL environment variable is missing! Available keys: {available_keys}")
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    pool_pre_ping=True,  # Vérifie la connexion avant de l'utiliser (évite les déconnexions)
+    pool_size=10,        # Nombre de connexions persistantes
+    max_overflow=20      # Connexions supplémentaires autorisées si besoin
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
