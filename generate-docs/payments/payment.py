@@ -1,8 +1,9 @@
 import aiohttp
 import asyncio
-import json
+import os
 import uuid
 import time
+import logging
 from datetime import datetime, timedelta
 
 # Configuration
@@ -147,26 +148,27 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
                     
                 data = await response.json()
                 
-                # 3. Créer l'enregistrement en DB (Attendre le succès de la réponse API)
-                # On exécute la partie synchrone DB dans un thread pour ne pas bloquer l'event loop
-                def sync_db_write():
-                    new_payment = Payment(
-                        checkout_ref=checkout_ref,
-                        amount=amount,
-                        currency=currency,
-                        status="PENDING", 
-                        ip_address=ip_address,
-                        product_name=product_name,
-                        checkout_id=data.get("id"),
-                        payment_url=data.get("hosted_checkout_url")
-                    )
-                    db.add(new_payment)
-                    db.commit()
-                    db.refresh(new_payment)
-                    return new_payment
-
-                loop = asyncio.get_event_loop()
-                await loop.run_in_executor(None, sync_db_write)
+                # 3. Créer l'enregistrement en DB
+                # On le fait de manière synchrone et directe.
+                # Ajout de logs de temps pour identifier si c'est le commit qui est lent.
+                start_db = time.time()
+                
+                new_payment = Payment(
+                    checkout_ref=checkout_ref,
+                    amount=amount,
+                    currency=currency,
+                    status="PENDING", 
+                    ip_address=ip_address,
+                    product_name=product_name,
+                    checkout_id=data.get("id"),
+                    payment_url=data.get("hosted_checkout_url")
+                )
+                db.add(new_payment)
+                db.commit()
+                # On évite refresh() qui peut être lent (refait un SELECT)
+                
+                db_duration = time.time() - start_db
+                logger.info(f"DB Write: Enregistrement créé en {db_duration:.3f}s pour {checkout_ref}")
                 
                 return (data.get("hosted_checkout_url"), checkout_ref, data.get("id"))
 

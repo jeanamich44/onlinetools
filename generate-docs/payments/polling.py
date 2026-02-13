@@ -28,12 +28,12 @@ async def poll_sumup_status(checkout_id: str):
             while time.time() - start_time < timeout:
                 try:
                     # 1. Vérifier le statut actuel en DB d'abord
-                    # On le fait dans un thread car c'est synchrone
-                    loop = asyncio.get_event_loop()
-                    payment = await loop.run_in_executor(
-                        None, 
-                        lambda: db.query(Payment).filter(Payment.checkout_id == checkout_id).first()
-                    )
+                    start_q = time.time()
+                    payment = db.query(Payment).filter(Payment.checkout_id == checkout_id).first()
+                    q_duration = time.time() - start_q
+                    
+                    if q_duration > 1.0:
+                        logger.warning(f"DB Query SLOW: {q_duration:.3f}s pour {checkout_id}")
 
                     if not payment:
                         logger.warning(f"Polling: Paiement {checkout_id} non trouvé en DB.")
@@ -64,12 +64,16 @@ async def poll_sumup_status(checkout_id: str):
                             if new_status and new_status != payment.status:
                                 logger.info(f"Polling: Statut changé pour {checkout_id}: {payment.status} -> {new_status}")
                                 
-                                # Mise à jour dans un thread
-                                def update_status_db():
-                                    payment.status = new_status
-                                    db.commit()
+                            if new_status and new_status != payment.status:
+                                old_status = payment.status
+                                logger.info(f"Polling: Statut changé pour {checkout_id}: {old_status} -> {new_status}")
                                 
-                                await loop.run_in_executor(None, update_status_db)
+                                # Mise à jour synchrone sécurisée
+                                start_db = time.time()
+                                payment.status = new_status
+                                db.commit()
+                                db_duration = time.time() - start_db
+                                logger.info(f"DB Update (Polling): Succès en {db_duration:.3f}s pour {checkout_id}")
                                 
                                 if new_status in ["PAID", "FAILED"]:
                                     break # Terminé
@@ -79,7 +83,10 @@ async def poll_sumup_status(checkout_id: str):
                 except Exception as e:
                     logger.error(f"Erreur Boucle Polling: {e}")
 
-                await asyncio.sleep(interval)
+                # Intervalle dynamique : 1s pendant 60s, puis 5s
+                elapsed = time.time() - start_time
+                current_interval = 1 if elapsed <= 60 else 5
+                await asyncio.sleep(current_interval)
             
     except Exception as e:
         logger.error(f"Erreur Fatale Polling: {e}")

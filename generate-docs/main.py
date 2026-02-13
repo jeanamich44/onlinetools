@@ -17,8 +17,9 @@ from sqlalchemy.orm import Session
 
 # Database & Payment
 from payments.database import init_db, get_db, Payment
-from payments.payment import create_checkout, get_access_token # Corrected import
+from payments.payment import create_checkout, get_access_token
 from payments.polling import poll_sumup_status
+from payments.reconcile import start_reconciliation_loop
 import aiohttp
 
 # Scripts (PDF Generation)
@@ -52,8 +53,6 @@ app = FastAPI()
 # =========================
 # TÂCHES DE FOND (RECONCILIATION)
 # =========================
-
-from payments.reconcile import start_reconciliation_loop
 
 @app.on_event("startup")
 async def startup_event():

@@ -1,5 +1,6 @@
 import asyncio
 import aiohttp
+import time
 import logging
 from sqlalchemy.orm import Session
 from .database import Payment, SessionLocal
@@ -18,14 +19,14 @@ async def reconcile_all_pending_payments():
     db = SessionLocal()
     try:
         # Récupérer tous les paiements marqués PENDING
-        # On exécute la requête synchrone dans un thread
-        loop = asyncio.get_event_loop()
-        pending_payments = await loop.run_in_executor(
-            None, 
-            lambda: db.query(Payment).filter(Payment.status == "PENDING").all()
-        )
+        # On utilise une opération synchrone simple (normalement rapide)
+        start_query = time.time()
+        pending_payments = db.query(Payment).filter(Payment.status == "PENDING").all()
+        query_duration = time.time() - start_query
         
-        if not pending_payments:
+        if pending_payments:
+            logger.info(f"DB Query (Reconcile): {len(pending_payments)} paiements trouvés en {query_duration:.3f}s")
+        else:
             logger.info("Aucun paiement PENDING à réconcilier.")
             return
 
@@ -47,12 +48,11 @@ async def reconcile_all_pending_payments():
                             if new_status and new_status != p.status:
                                 logger.info(f"Réconciliation : {p.checkout_id} passé de {p.status} à {new_status}")
                                 
-                                # Mise à jour synchrone dans un thread
-                                def do_update(payment_obj, status):
-                                    payment_obj.status = status
-                                    db.commit()
-                                
-                                await loop.run_in_executor(None, do_update, p, new_status)
+                                start_db = time.time()
+                                p.status = new_status
+                                db.commit()
+                                db_duration = time.time() - start_db
+                                logger.info(f"DB Update (Reconcile): Succès en {db_duration:.3f}s pour {p.checkout_id}")
                         else:
                             text = await response.text()
                             logger.warning(f"Réconciliation : Impossible de vérifier {p.checkout_id} (Code {response.status}): {text}")
