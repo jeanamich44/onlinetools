@@ -6,11 +6,55 @@
   <title>RIB – Crédit Agricole</title>
   <link rel="stylesheet" href="../css/style.css">
   <style>
-    /* Keep this style block, but remove the loading overlay specific styles */
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      z-index: 10000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .loading-text {
+      font-family: sans-serif;
+      color: #333;
+      font-size: 1.1rem;
+    }
   </style>
 </head>
 
 <body>
+
+  <div id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="loading-text">Génération de votre document...<br>Veuillez patienter quelques instants.</div>
+  </div>
 
   <!-- HEADER -->
   <header class="top-bar">
@@ -127,6 +171,8 @@
     ribForm.onsubmit = async (e) => {
       e.preventDefault();
 
+      const overlay = document.getElementById("loadingOverlay");
+      overlay.style.display = "flex";
       message.textContent = "Génération de la preview...";
       message.className = "";
 
@@ -166,6 +212,8 @@
       } catch (err) {
         message.textContent = err.message;
         message.className = "error";
+      } finally {
+        overlay.style.display = "none";
       }
     };
 
