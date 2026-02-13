@@ -38,11 +38,14 @@
       <input name="agence_adresse" placeholder="Adresse Agence">
       <input name="agence_cp_ville" placeholder="CP Ville Agence">
 
-      <button type="submit">Générer PDF</button>
-
+      <button type="submit">Générer Preview (Gratuit)</button>
     </form>
 
     <div id="message"></div>
+    <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">
+      <p style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">Le PDF final sans filigrane est payant (1€).</p>
+      <button id="btnPay" type="button" style="background-color: #28a745; width: 100%; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Acheter le PDF Final (1€)</button>
+    </div>
     <a class="back" href="./rib-generator.html">Retour</a>
   </div>
 
@@ -50,54 +53,107 @@
     /* ===== HEADER FIX ===== */
     const bar = document.querySelector(".top-bar");
     const inner = document.querySelector(".top-bar-inner");
-
-
     bar.style.position = "fixed";
     bar.style.top = "0";
     bar.style.left = "0";
     bar.style.width = "100%";
     bar.style.zIndex = "1000";
-
     inner.style.display = "flex";
     inner.style.alignItems = "center";
     inner.style.justifyContent = "space-between";
     inner.style.padding = "12px 24px";
+    
+    const logo = document.getElementById("logo");
     logo.onclick = () => window.location.href = "../index.html";
 
-
-
-    /* ===== API PDF ===== */
-    const API_URL = "https://generate-docs-production.up.railway.app/generate-pdf";
-    const form = document.getElementById("sgForm");
+    const API_BASE = "https://generate-docs-production.up.railway.app";
+    const ribForm = document.getElementById("sgForm");
     const message = document.getElementById("message");
+    const btnPay = document.getElementById("btnPay");
 
-    form.onsubmit = async (e) => {
-      e.preventDefault();
+    /* ===== PAIEMENT SUMUP ===== */
+    btnPay.onclick = async () => {
+      const formData = Object.fromEntries(new FormData(ribForm).entries());
+      if (!formData.nom_prenom) {
+        alert("Veuillez remplir au moins le nom pour le paiement.");
+        return;
+      }
 
-      const data = Object.fromEntries(new FormData(form));
-      data.type_pdf = "sg"; // 🔑 IMPORTANT
+      message.textContent = "Préparation du paiement...";
+      message.className = "";
 
       try {
-        const res = await fetch(API_URL, {
+        const payload = {
+          type_pdf: "sg",
+          ...formData
+        };
+
+        const res = await fetch(`${API_BASE}/create-payment?product_name=rib-sg`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data)
+          body: JSON.stringify(payload)
         });
 
-        if (!res.ok) throw new Error("Erreur serveur");
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Erreur lors de la création du paiement");
+        }
+
+        const data = await res.json();
+        if (data.payment_url) {
+          window.location.href = data.payment_url;
+        } else {
+          throw new Error("Pas d'URL de paiement reçue");
+        }
+      } catch (err) {
+        message.textContent = "Erreur Paiement: " + err.message;
+        message.className = "error";
+      }
+    };
+
+    /* ===== PREVIEW PDF ===== */
+    ribForm.onsubmit = async (e) => {
+      e.preventDefault();
+
+      message.textContent = "Génération de la preview...";
+      message.className = "";
+
+      const formData = Object.fromEntries(new FormData(ribForm).entries());
+
+      const payload = {
+        type_pdf: "sg",
+        preview: true,
+        ...formData
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/generate-pdf`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.detail || "Erreur serveur");
+        }
 
         const blob = await res.blob();
         const url = URL.createObjectURL(blob);
 
         const a = document.createElement("a");
         a.href = url;
-        a.download = "RIB_SG.pdf";
+        a.download = "preview_sg.pdf";
         document.body.appendChild(a);
         a.click();
         a.remove();
 
+        message.textContent = "Preview générée ! Vérifiez vos infos avant de payer.";
+        message.className = "success";
+
       } catch (err) {
         message.textContent = err.message;
+        message.className = "error";
       }
     };
 
