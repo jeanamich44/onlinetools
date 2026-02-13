@@ -57,7 +57,6 @@ async def get_access_token():
                     _token_cache["access_token"] = token
                     _token_cache["expires_at"] = time.time() + expires_in - 60
                     
-                    logger.info("🔑 Nouveau Token d'accès SumUp récupéré (Async).")
                     return token
                 
                 text = await response.text()
@@ -95,7 +94,6 @@ def get_access_token_sync():
             _token_cache["access_token"] = token
             _token_cache["expires_at"] = time.time() + expires_in - 60
             
-            logger.info("🔑 Nouveau Token d'accès SumUp récupéré (Sync).")
             return token
         
         logger.error(f"Echec Auth Token (Sync): {response.status_code} {response.text}")
@@ -111,12 +109,9 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
     """
     # 1. Générer une référence locale
     checkout_ref = str(uuid.uuid4())
-    logger.info(f"Début création paiement: Ref={checkout_ref}")
     
-    # 2. Insertion DB immédiate (Session indépendante pour commit instantané)
     db = SessionLocal()
     try:
-        start_init = time.time()
         new_payment = Payment(
             checkout_ref=checkout_ref,
             amount=amount,
@@ -127,9 +122,7 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
         )
         db.add(new_payment)
         db.commit()
-        db.refresh(new_payment) # On récupère l'ID pour être sûr
-        db_id = new_payment.id
-        logger.info(f"[PERF] DB Pre-insertion SUCCESS: ID={db_id} en {time.time()-start_init:.3f}s (Ref={checkout_ref})")
+        db.refresh(new_payment)
         
         # 3. Appel API SumUp
         token = await get_access_token()
@@ -153,7 +146,6 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
         }
 
         async with aiohttp.ClientSession() as session:
-            logger.info(f"Appel API SumUp...")
             async with session.post(CHECKOUT_URL, json=payload, headers=headers) as response:
                 status_code = response.status
                 if status_code >= 400:
@@ -168,13 +160,11 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
                 checkout_id = data.get("id")
                 payment_url = data.get("hosted_checkout_url")
                 
-                # 4. Mise à jour finale
-                start_update = time.time()
                 new_payment.checkout_id = checkout_id
                 new_payment.payment_url = payment_url
                 new_payment.status = "PENDING"
                 db.commit()
-                logger.info(f"[PERF] DB Final Update SUCCESS: {checkout_id} (Status=PENDING) en {time.time()-start_update:.3f}s")
+                logger.info(f"Paiement prêt: {checkout_id}")
                 
                 return (payment_url, checkout_ref, checkout_id)
 

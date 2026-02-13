@@ -38,31 +38,23 @@ async def poll_sumup_status(checkout_id: str):
                         headers = {"Authorization": f"Bearer {token}"}
                         url = f"https://api.sumup.com/v0.1/checkouts/{checkout_id}"
                         
-                        start_api = time.time()
                         async with session.get(url, headers=headers) as response:
-                            api_duration = time.time() - start_api
                             status_code = response.status
                             
                             if status_code == 200:
                                 data = await response.json()
                                 new_status = data.get("status")
-                                logger.info(f"[PERF] Polling API SUCCESS: {checkout_id} (Status={new_status}) en {api_duration:.3f}s")
 
                                 if new_status and new_status != payment.status:
-                                    old_status = payment.status
-                                    logger.info(f"Polling: Changement détecté pour {checkout_id}: {old_status} -> {new_status}")
+                                    logger.info(f"Changement de statut pour {checkout_id}: {payment.status} -> {new_status}")
                                     
-                                    start_db = time.time()
                                     payment.status = new_status
                                     db.commit()
-                                    db_duration = time.time() - start_db
-                                    logger.info(f"[PERF] DB Update (Polling) SUCCESS: {checkout_id} -> {new_status} en {db_duration:.3f}s")
                                     
                                     if new_status in ["PAID", "FAILED"]:
                                         break # Terminé
                             else:
-                                response_text = await response.text()
-                                logger.warning(f"[PERF] Polling API ERROR: {checkout_id} (Code={status_code}) en {api_duration:.3f}s. Détails: {response_text}")
+                                logger.warning(f"Erreur polling API {checkout_id}: {status_code}")
                     
                     finally:
                         db.close() # CRITIQUE : Libère la connexion immédiatement
@@ -72,7 +64,13 @@ async def poll_sumup_status(checkout_id: str):
 
                 # Intervalle dynamique
                 elapsed = time.time() - start_time
-                current_interval = 1 if elapsed <= 60 else 5
+                if elapsed <= 60:
+                    current_interval = 1
+                elif elapsed <= 180:
+                    current_interval = 5
+                else:
+                    current_interval = 15
+                    
                 await asyncio.sleep(current_interval)
             
     except Exception as e:
