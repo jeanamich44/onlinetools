@@ -5,267 +5,163 @@
   <meta charset="UTF-8" />
   <title>RIB – La Banque Postale</title>
   <link rel="stylesheet" href="../css/style.css">
-  <style>
-    /* Écran de chargement (Overlay) */
-    #loadingOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.95);
-      z-index: 10000;
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-    }
-
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid #3498db;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-bottom: 20px;
-    }
-
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-
-    .loading-text {
-      font-family: sans-serif;
-      color: #333;
-      font-size: 1.1rem;
-    }
-  </style>
 </head>
 
 <body>
 
-  <!-- Écran de Chargement -->
-  <div id="loadingOverlay">
-    <div class="spinner"></div>
-    <div class="loading-text">Génération de votre RIB final...<br>Veuillez patienter quelques instants.</div>
-  </div>
+  <body>
 
-  <!-- HEADER -->
-  <header class="top-bar">
-    <div class="top-bar-inner">
-      <span class="logo" id="logo">OnlineTools</span>
+    <!-- HEADER -->
+    <header class="top-bar">
+      <div class="top-bar-inner">
+        <span class="logo" id="logo">OnlineTools</span>
 
+      </div>
+    </header>
+
+    <div class="container">
+      <h1>RIB LBP</h1>
+      <p class="subtitle">Génération PDF – La Banque Postale</p>
+
+      <form id="ribForm">
+        <input name="sexe" placeholder="M / F">
+        <input name="banque" placeholder="Banque">
+        <input name="guichet" placeholder="Guichet">
+        <input name="compte" placeholder="Compte">
+        <input name="cle" placeholder="Clé">
+        <input name="iban" placeholder="IBAN">
+        <input name="bic" placeholder="BIC">
+        <input name="nom_prenom" placeholder="Nom Prénom">
+        <input name="adresse" placeholder="Adresse">
+        <input name="cp_ville" placeholder="CP Ville">
+        <input name="domiciliation" placeholder="Domiciliation">
+
+        <button type="submit">Générer Preview (Gratuit)</button>
+      </form>
+
+      <div id="message"></div>
+      <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">
+        <p style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">Le PDF final sans filigrane est payant (1€).</p>
+        <button id="btnPay" type="button"
+          style="background-color: #28a745; width: 100%; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Acheter
+          le PDF Final (1€)</button>
+      </div>
+      <a class="back" href="./rib-generator.html">Retour</a>
     </div>
-  </header>
 
-  <div class="container">
-    <h1>RIB LBP</h1>
-    <p class="subtitle">Génération PDF – La Banque Postale</p>
+    <script>
+      /* ===== HEADER FIX ===== */
+      const bar = document.querySelector(".top-bar");
+      const inner = document.querySelector(".top-bar-inner");
 
-    <form id="ribForm">
-      <input name="sexe" placeholder="M / F">
-      <input name="banque" placeholder="Banque">
-      <input name="guichet" placeholder="Guichet">
-      <input name="compte" placeholder="Compte">
-      <input name="cle" placeholder="Clé">
-      <input name="iban" placeholder="IBAN">
-      <input name="bic" placeholder="BIC">
-      <input name="nom_prenom" placeholder="Nom Prénom">
-      <input name="adresse" placeholder="Adresse">
-      <input name="cp_ville" placeholder="CP Ville">
-      <input name="domiciliation" placeholder="Domiciliation">
+      bar.style.position = "fixed";
+      bar.style.top = "0";
+      bar.style.left = "0";
+      bar.style.width = "100%";
+      bar.style.zIndex = "1000";
 
-      <button type="submit">Générer Preview (Gratuit)</button>
-    </form>
+      inner.style.display = "flex";
+      inner.style.alignItems = "center";
+      inner.style.justifyContent = "space-between";
+      inner.style.padding = "12px 24px";
 
-    <div id="message"></div>
-    <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">
-      <p style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">Le PDF final sans filigrane est payant (1€).</p>
-      <button id="btnPay" type="button"
-        style="background-color: #28a745; width: 100%; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Acheter
-        le PDF Final (1€)</button>
-    </div>
-    <a class="back" href="./rib-generator.html">Retour</a>
-  </div>
+      const logo = document.getElementById("logo");
+      logo.onclick = () => window.location.href = "../index.html";
 
-  <script>
-    /* ===== HEADER FIX ===== */
-    const bar = document.querySelector(".top-bar");
-    const inner = document.querySelector(".top-bar-inner");
+      const API_BASE = "https://generate-docs-production.up.railway.app";
+      const ribForm = document.getElementById("ribForm");
+      const message = document.getElementById("message");
+      const btnPay = document.getElementById("btnPay");
 
-    bar.style.position = "fixed";
-    bar.style.top = "0";
-    bar.style.left = "0";
-    bar.style.width = "100%";
-    bar.style.zIndex = "1000";
+      /* ===== PAIEMENT SUMUP ===== */
+      btnPay.onclick = async () => {
+        const formData = Object.fromEntries(new FormData(ribForm).entries());
+        if (!formData.nom_prenom) {
+          alert("Veuillez remplir au moins le nom pour le paiement.");
+          return;
+        }
 
-    inner.style.display = "flex";
-    inner.style.alignItems = "center";
-    inner.style.justifyContent = "space-between";
-    inner.style.padding = "12px 24px";
+        message.textContent = "Préparation du paiement...";
+        message.className = "";
 
-    const logo = document.getElementById("logo");
-    logo.onclick = () => window.location.href = "../index.html";
+        try {
+          const payload = {
+            type_pdf: "lbp",
+            ...formData
+          };
 
-    const API_BASE = "https://generate-docs-production.up.railway.app";
-    const ribForm = document.getElementById("ribForm");
-    const message = document.getElementById("message");
-    const btnPay = document.getElementById("btnPay");
+          const res = await fetch(`${API_BASE}/create-payment?product_name=rib-lbp`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
 
-    /* ===== PAIEMENT SUMUP ===== */
-    btnPay.onclick = async () => {
-      const formData = Object.fromEntries(new FormData(ribForm).entries());
-      if (!formData.nom_prenom) {
-        alert("Veuillez remplir au moins le nom pour le paiement.");
-        return;
-      }
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || "Erreur lors de la création du paiement");
+          }
 
-      message.textContent = "Préparation du paiement...";
-      message.className = "";
+          const data = await res.json();
+          if (data.payment_url) {
+            window.location.href = data.payment_url;
+          } else {
+            throw new Error("Pas d'URL de paiement reçue");
+          }
+        } catch (err) {
+          message.textContent = "Erreur Paiement: " + err.message;
+          message.className = "error";
+        }
+      };
 
-      try {
+      /* ===== PREVIEW PDF ===== */
+      ribForm.onsubmit = async (e) => {
+        e.preventDefault();
+
+        message.textContent = "Génération de la preview...";
+        message.className = "";
+
+        const formData = Object.fromEntries(new FormData(ribForm).entries());
+
         const payload = {
           type_pdf: "lbp",
+          preview: true,
           ...formData
         };
 
-        const res = await fetch(`${API_BASE}/create-payment?product_name=rib-lbp`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.detail || "Erreur lors de la création du paiement");
-        }
-
-        const data = await res.json();
-        if (data.payment_url) {
-          window.location.href = data.payment_url;
-        } else {
-          throw new Error("Pas d'URL de paiement reçue");
-        }
-      } catch (err) {
-        message.textContent = "Erreur Paiement: " + err.message;
-        message.className = "error";
-      }
-    };
-
-    /* ===== PREVIEW PDF ===== */
-    ribForm.onsubmit = async (e) => {
-      e.preventDefault();
-
-      message.textContent = "Génération de la preview...";
-      message.className = "";
-
-      const formData = Object.fromEntries(new FormData(ribForm).entries());
-
-      const payload = {
-        type_pdf: "lbp",
-        preview: true,
-        ...formData
-      };
-
-      try {
-        const res = await fetch(`${API_BASE}/generate-pdf`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.detail || "Erreur serveur");
-        }
-
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "preview_lbp.pdf";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-
-        message.textContent = "Preview générée ! Vérifiez vos infos avant de payer.";
-        message.className = "success";
-
-      } catch (err) {
-        message.textContent = err.message;
-        message.className = "error";
-      }
-    };
-
-
-    /* ===== FINAL PDF AUTO-DOWNLOAD (After Payment) ===== */
-    window.onload = async () => {
-      const params = new URLSearchParams(window.location.search);
-      const checkoutRef = params.get("checkout_ref");
-
-      if (checkoutRef) {
-        // Afficher l'accès de chargement
-        const overlay = document.getElementById("loadingOverlay");
-        overlay.style.display = "flex";
-
         try {
-          // Boucle de tentative si le paiement est encore en traitement (402 Payment Required)
-          let pdfReady = false;
-          let attempts = 0;
-          const maxAttempts = 10;
+          const res = await fetch(`${API_BASE}/generate-pdf`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
 
-          while (!pdfReady && attempts < maxAttempts) {
-            attempts++;
-            const res = await fetch(`${API_BASE}/generate-pdf`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ checkout_ref: checkoutRef, preview: false, type_pdf: "lbp" })
-            });
-
-            if (res.status === 200) {
-              const blob = await res.blob();
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = "rib_lbp_final.pdf";
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
-              pdfReady = true;
-            } else if (res.status === 402) {
-              // Paiement en attente de confirmation SumUp -> On attend 2 secondes avant de retenter
-              await new Promise(r => setTimeout(r, 2000));
-            } else {
-              // Autre erreur (403, 500...)
-              const err = await res.json().catch(() => ({ detail: "Erreur inconnue" }));
-              throw new Error(err.detail || "Le lien est expiré ou le paiement n'est pas valide.");
-            }
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || "Erreur serveur");
           }
 
-          if (!pdfReady) {
-            throw new Error("Délai d'attente dépassé. Veuillez rafraîchir la page.");
-          }
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "preview_lbp.pdf";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+
+          message.textContent = "Preview générée ! Vérifiez vos infos avant de payer.";
+          message.className = "success";
 
         } catch (err) {
-          alert("Erreur: " + err.message);
-        } finally {
-          overlay.style.display = "none";
-          // Nettoyer l'URL sans rafraîchir
-          window.history.replaceState({}, document.title, window.location.pathname);
+          message.textContent = err.message;
+          message.className = "error";
         }
-      }
-    };
-  </script>
+      };
 
-</body>
+
+    </script>
+
+  </body>
 
 </html>

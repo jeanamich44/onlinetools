@@ -33,6 +33,31 @@ from script.cic import generate_cic_pdf, generate_cic_preview
 from script.qonto import generate_qonto_pdf, generate_qonto_preview
 from script.maxance import generate_maxance_pdf, generate_maxance_preview
 
+# Mapping des generateurs
+GENERATORS = {
+    "lbp": generate_lbp_pdf,
+    "sg": generate_sg_pdf,
+    "bfb": generate_bfb_pdf,
+    "revolut": generate_revolut_pdf,
+    "ca": generate_ca_pdf,
+    "cm": generate_cm_pdf,
+    "cic": generate_cic_pdf,
+    "qonto": generate_qonto_pdf,
+    "maxance": generate_maxance_pdf
+}
+
+# Mapping des previews
+PREVIEWS = {
+    "lbp": generate_lbp_preview,
+    "sg": generate_sg_preview,
+    "bfb": generate_bfb_preview,
+    "revolut": generate_revolut_preview,
+    "ca": generate_ca_preview,
+    "cm": generate_cm_preview,
+    "cic": generate_cic_preview,
+    "qonto": generate_qonto_preview,
+    "maxance": generate_maxance_preview
+}
 
 # =========================
 # CONFIGURATION
@@ -150,41 +175,94 @@ async def create_payment_endpoint(request: Request, data: PDFRequest, background
 
 @app.get("/payment-success")
 @app.get("/payment-success/")
-def payment_success(checkout_reference: Optional[str] = None):
+async def payment_success(request: Request, checkout_reference: str):
     """
-    Redirige vers la page produit spécifique au lieu de l'accueil.
-    Utilise 302 pour une compatibilité maximale.
+    Page de succès : sert le PDF si payé, sinon affiche un spinner.
     """
-    logger.info(f"Appel /payment-success reçu. checkout_reference={checkout_reference}")
+    logger.info(f"Appel /payment-success pour ref: {checkout_reference}")
     
-    if not checkout_reference:
-        logger.warning("Paiement terminé mais aucune référence reçue.")
-        return RedirectResponse(url="https://jeanamich44.github.io/onlinetools/index.html", status_code=302)
-
     db = SessionLocal()
     try:
-        # Chercher le paiement pour connaître le produit
         payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
+        if not payment:
+            return HTMLResponse("<h1>Paiement non trouvé</h1><p>Veuillez contacter le support.</p>")
+
+        # 1. Si déjà généré -> On propose de revenir à l'accueil
+        if payment.is_generated:
+            return HTMLResponse(f"""
+            <html>
+            <head><title>Merci !</title><meta charset='UTF-8'></head>
+            <body style='font-family:sans-serif; text-align:center; padding-top:100px;'>
+                <h1>Merci pour votre achat !</h1>
+                <p>Votre document a déjà été téléchargé.</p>
+                <a href="https://jeanamich44.github.io/onlinetools/index.html" style="color:#3498db;">Retour à l'accueil</a>
+            </body>
+            </html>
+            """)
+
+        # 2. Vérifier le statut réel avec SumUp
+        token = await get_access_token()
+        headers = {"Authorization": f"Bearer {token}"}
+        url = f"https://api.sumup.com/v0.1/checkouts/{payment.checkout_id}"
         
-        if payment and payment.product_name:
-            product = payment.product_name
-            logger.info(f"Paiement trouvé: ID={payment.checkout_id}, Produit={product}")
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers) as sumup_res:
+                if sumup_res.status == 200:
+                    data = await sumup_res.json()
+                    new_status = data.get("status")
+                    if new_status and new_status != payment.status:
+                        payment.status = new_status
+                        db.commit()
+
+        # 3. Si PAID -> Génération et Envoi DIRECT
+        if payment.status == "PAID":
+            import json
+            user_data = json.loads(payment.user_data)
+            type_pdf = user_data.get("type_pdf")
             
-            # Mapping rib-xxx -> docs/rib/xxx.html
-            if product.startswith("rib-"):
-                bank = product.replace("rib-", "")
-                target_url = f"https://jeanamich44.github.io/onlinetools/docs/rib/{bank}.html?checkout_ref={checkout_reference}"
-                logger.info(f"Redirection vers produit spécific: {target_url}")
-                return RedirectResponse(url=target_url, status_code=302)
+            output_path = f"/tmp/{uuid.uuid4()}.pdf"
+            
+            # On simule l'objet data que les script attendent (souvent un PDFRequest mais ils accèdent aux attributs)
+            from pydantic import parse_obj_as
+            data_obj = PDFRequest(**user_data)
+            
+            if type_pdf in GENERATORS:
+                GENERATORS[type_pdf](data_obj, output_path)
+                
+                # Lock
+                payment.is_generated = 1
+                db.commit()
+                
+                logger.info(f"SERVICE DIRECT PDF: {type_pdf} pour {checkout_reference}")
+                return FileResponse(output_path, filename=f"rib_{type_pdf}.pdf", media_type="application/pdf")
         
-        # Fallback si produit inconnu ou non trouvé
-        fallback_url = f"https://jeanamich44.github.io/onlinetools/index.html?checkout_ref={checkout_reference}"
-        logger.warning(f"Mapping impossible pour {checkout_reference}, fallback accueil: {fallback_url}")
-        return RedirectResponse(url=fallback_url, status_code=302)
-        
+        # 4. Si PENDING -> Page de chargement avec Spinner (Style Chronopost)
+        return HTMLResponse(f"""
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+          <meta charset="UTF-8">
+          <meta http-equiv="refresh" content="5">
+          <title>Validation du paiement...</title>
+          <style>
+            body {{ font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8f9fa; }}
+            .spinner {{ width: 60px; height: 60px; border: 6px solid #e9ecef; border-top: 6px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 30px; }}
+            @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
+            .text {{ font-size: 1.2rem; color: #495057; text-align: center; }}
+            .subtext {{ margin-top: 10px; font-size: 0.9rem; color: #6c757d; }}
+          </style>
+        </head>
+        <body>
+          <div class="spinner"></div>
+          <div class="text">Validation de votre paiement par SumUp...</div>
+          <div class="subtext">Le téléchargement débutera automatiquement dès la confirmation.<br>N'actualisez pas manuellement la page.</div>
+        </body>
+        </html>
+        """)
+
     except Exception as e:
-        logger.error(f"Erreur redirection: {e}")
-        return RedirectResponse(url="https://jeanamich44.github.io/onlinetools/index.html", status_code=302)
+        logger.error(f"Erreur Success Direct: {e}")
+        return HTMLResponse(f"<h1>Erreur Système</h1><p>{str(e)}</p>")
     finally:
         db.close()
 
@@ -239,39 +317,13 @@ def generate_pdf(request: Request, data: PDFRequest):
                 logger.info(f"Génération PDF final pour {data.checkout_ref} (Lock activé)")
 
         # 2. Génération selon le type
-        if data.type_pdf == "lbp":
-            if data.preview:
-                generate_lbp_preview(data, output_path)
-            else:
-                generate_lbp_pdf(data, output_path)
-        
-        # ... (les autres types restent identiques, ils utilisent 'data')
-        elif data.type_pdf == "sg":
-            if data.preview: generate_sg_preview(data, output_path)
-            else: generate_sg_pdf(data, output_path)
-        elif data.type_pdf == "bfb":
-            if data.preview: generate_bfb_preview(data, output_path)
-            else: generate_bfb_pdf(data, output_path)
-        elif data.type_pdf == "revolut":
-            if data.preview: generate_revolut_preview(data, output_path)
-            else: generate_revolut_pdf(data, output_path)
-        elif data.type_pdf == "ca":
-            if data.preview: generate_ca_preview(data, output_path)
-            else: generate_ca_pdf(data, output_path)
-        elif data.type_pdf == "cm":
-            if data.preview: generate_cm_preview(data, output_path)
-            else: generate_cm_pdf(data, output_path)
-        elif data.type_pdf == "cic":
-            if data.preview: generate_cic_preview(data, output_path)
-            else: generate_cic_pdf(data, output_path)
-        elif data.type_pdf == "qonto":
-            if data.preview: generate_qonto_preview(data, output_path)
-            else: generate_qonto_pdf(data, output_path)
-        elif data.type_pdf == "maxance":
-            if data.preview: generate_maxance_preview(data, output_path)
-            else: generate_maxance_pdf(data, output_path)
+        type_pdf = data.type_pdf
+        if type_pdf in PREVIEWS and data.preview:
+            PREVIEWS[type_pdf](data, output_path)
+        elif type_pdf in GENERATORS and not data.preview:
+            GENERATORS[type_pdf](data, output_path)
         else:
-            raise HTTPException(status_code=400, detail="type_pdf invalide")
+            raise HTTPException(status_code=400, detail=f"Type PDF inconnu : {type_pdf}")
 
         if not os.path.exists(output_path):
             raise HTTPException(status_code=500, detail="PDF non généré")
