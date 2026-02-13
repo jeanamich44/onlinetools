@@ -105,7 +105,7 @@ def get_access_token_sync():
         raise Exception(f"Erreur Récupération Token (Sync): {str(e)}")
 
 
-async def create_checkout(db_session_unused: Session, amount=1.0, currency="EUR", ip_address=None, product_name=None):
+async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=None, product_name=None):
     """
     Crée une session de paiement.
     Nouveau flux : Insertion DB immédiate -> Appel API SumUp -> Mise à jour DB.
