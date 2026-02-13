@@ -129,7 +129,7 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
         db.commit()
         db.refresh(new_payment) # On récupère l'ID pour être sûr
         db_id = new_payment.id
-        logger.info(f"DB Pre-insertion OK (ID={db_id}) en {time.time()-start_init:.3f}s")
+        logger.info(f"[PERF] DB Pre-insertion SUCCESS: ID={db_id} en {time.time()-start_init:.3f}s (Ref={checkout_ref})")
         
         # 3. Appel API SumUp
         token = await get_access_token()
@@ -174,7 +174,7 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
                 new_payment.payment_url = payment_url
                 new_payment.status = "PENDING"
                 db.commit()
-                logger.info(f"DB Update SUCCESS: {checkout_id} enregistré en {time.time()-start_update:.3f}s")
+                logger.info(f"[PERF] DB Final Update SUCCESS: {checkout_id} (Status=PENDING) en {time.time()-start_update:.3f}s")
                 
                 return (payment_url, checkout_ref, checkout_id)
 
