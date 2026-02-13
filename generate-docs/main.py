@@ -151,10 +151,27 @@ async def create_payment_endpoint(request: Request, data: PDFRequest, background
 @app.get("/payment-success")
 def payment_success(checkout_reference: Optional[str] = None):
     """
-    Redirige vers l'accueil avec la référence pour déclencher le téléchargement.
+    Redirige vers la page produit spécifique au lieu de l'accueil.
     """
-    logger.info(f"Paiement terminé. Redirection accueil. Ref: {checkout_reference}")
-    return RedirectResponse(url=f"https://jeanamich44.github.io/onlinetools/index.html?checkout_ref={checkout_reference}")
+    if not checkout_reference:
+        return RedirectResponse(url="https://jeanamich44.github.io/onlinetools/index.html")
+
+    db = SessionLocal()
+    try:
+        payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
+        if payment and payment.product_name:
+            # Mapping Simple: rib-lbp -> lbp.html
+            product = payment.product_name
+            if product.startswith("rib-"):
+                page = product.replace("rib-", "") + ".html"
+                logger.info(f"Redirection vers produit: {page} pour ref {checkout_reference}")
+                return RedirectResponse(url=f"https://jeanamich44.github.io/onlinetools/docs/rib/{page}?checkout_ref={checkout_reference}")
+        
+        # Fallback accueil si produit inconnu
+        logger.warning(f"Produit inconnu pour {checkout_reference}, fallback accueil.")
+        return RedirectResponse(url=f"https://jeanamich44.github.io/onlinetools/index.html?checkout_ref={checkout_reference}")
+    finally:
+        db.close()
 
 @app.post("/generate-pdf")
 @app.post("/generate-pdf/")

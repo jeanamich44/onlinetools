@@ -176,69 +176,6 @@
         </div>
     </main>
 
-    <script>
-        // Détecter un retour de paiement réussi
-        const urlParams = new URLSearchParams(window.location.search);
-        const checkoutRef = urlParams.get('checkout_ref');
-
-        if (checkoutRef) {
-            const API_BASE = "https://generate-docs-production.up.railway.app";
-
-            // Afficher un message de chargement
-            const statusDiv = document.createElement('div');
-            statusDiv.style.position = 'fixed';
-            statusDiv.style.top = '20px';
-            statusDiv.style.right = '20px';
-            statusDiv.style.background = '#28a745';
-            statusDiv.style.color = 'white';
-            statusDiv.style.padding = '15px';
-            statusDiv.style.borderRadius = '8px';
-            statusDiv.style.boxShadow = '0 4px 6px rgba(0,0,0,0.1)';
-            statusDiv.style.zIndex = '9999';
-            statusDiv.textContent = 'Paiement validé ! Préparation de votre PDF final...';
-            document.body.appendChild(statusDiv);
-
-            async function downloadFinalPdf() {
-                try {
-                    const res = await fetch(`${API_BASE}/generate-pdf`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            type_pdf: "lbp", // Le type sera écrasé par les données en base côté serveur
-                            preview: false,
-                            checkout_ref: checkoutRef
-                        })
-                    });
-
-                    if (res.status === 402) {
-                        statusDiv.style.background = '#dc3545';
-                        statusDiv.textContent = 'Paiement en cours de traitement... Réessayez dans quelques secondes.';
-                        setTimeout(downloadFinalPdf, 3000); // Re-tenter si pas encore PAID
-                        return;
-                    }
-
-                    if (!res.ok) throw new Error("Erreur de génération");
-
-                    const blob = await res.blob();
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = "rib_final.pdf";
-                    document.body.appendChild(a);
-                    a.click();
-
-                    statusDiv.textContent = 'Téléchargement lancé !';
-                    setTimeout(() => statusDiv.remove(), 5000);
-
-                } catch (err) {
-                    statusDiv.style.background = '#dc3545';
-                    statusDiv.textContent = 'Erreur: ' + err.message;
-                }
-            }
-
-            downloadFinalPdf();
-        }
-    </script>
 </body>
 
 </html>
