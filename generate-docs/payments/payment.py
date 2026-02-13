@@ -5,6 +5,9 @@ import uuid
 import time
 import logging
 from datetime import datetime, timedelta
+from .database import Payment, SessionLocal
+from sqlalchemy.orm import Session
+import logging
 
 # Configuration
 CLIENT_ID = "cc_classic_ju7wWXPLFWeNtFgwerzub54kOSlsh".strip()
@@ -16,10 +19,7 @@ API_KEY = "sup_sk_3pYZm9Maezj1XgpL76qxKvKUc".strip()
 TOKEN_URL = "https://api.sumup.com/token"
 CHECKOUT_URL = "https://api.sumup.com/v0.1/checkouts"
 
-from .database import Payment
-from sqlalchemy.orm import Session
 
-import logging
 logger = logging.getLogger(__name__)
 
 # Cache de Token
@@ -103,7 +103,6 @@ def get_access_token_sync():
 
     except Exception as e:
         raise Exception(f"Erreur Récupération Token (Sync): {str(e)}")
-
 
 async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=None, product_name=None):
     """
