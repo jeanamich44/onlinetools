@@ -149,27 +149,42 @@ async def create_payment_endpoint(request: Request, data: PDFRequest, background
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/payment-success")
+@app.get("/payment-success/")
 def payment_success(checkout_reference: Optional[str] = None):
     """
     Redirige vers la page produit spécifique au lieu de l'accueil.
+    Utilise 302 pour une compatibilité maximale.
     """
+    logger.info(f"Appel /payment-success reçu. checkout_reference={checkout_reference}")
+    
     if not checkout_reference:
-        return RedirectResponse(url="https://jeanamich44.github.io/onlinetools/index.html")
+        logger.warning("Paiement terminé mais aucune référence reçue.")
+        return RedirectResponse(url="https://jeanamich44.github.io/onlinetools/index.html", status_code=302)
 
     db = SessionLocal()
     try:
+        # Chercher le paiement pour connaître le produit
         payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
-        if payment and payment.product_name:
-            # Mapping Simple: rib-lbp -> lbp.html
-            product = payment.product_name
-            if product.startswith("rib-"):
-                page = product.replace("rib-", "") + ".html"
-                logger.info(f"Redirection vers produit: {page} pour ref {checkout_reference}")
-                return RedirectResponse(url=f"https://jeanamich44.github.io/onlinetools/docs/rib/{page}?checkout_ref={checkout_reference}")
         
-        # Fallback accueil si produit inconnu
-        logger.warning(f"Produit inconnu pour {checkout_reference}, fallback accueil.")
-        return RedirectResponse(url=f"https://jeanamich44.github.io/onlinetools/index.html?checkout_ref={checkout_reference}")
+        if payment and payment.product_name:
+            product = payment.product_name
+            logger.info(f"Paiement trouvé: ID={payment.checkout_id}, Produit={product}")
+            
+            # Mapping rib-xxx -> docs/rib/xxx.html
+            if product.startswith("rib-"):
+                bank = product.replace("rib-", "")
+                target_url = f"https://jeanamich44.github.io/onlinetools/docs/rib/{bank}.html?checkout_ref={checkout_reference}"
+                logger.info(f"Redirection vers produit spécific: {target_url}")
+                return RedirectResponse(url=target_url, status_code=302)
+        
+        # Fallback si produit inconnu ou non trouvé
+        fallback_url = f"https://jeanamich44.github.io/onlinetools/index.html?checkout_ref={checkout_reference}"
+        logger.warning(f"Mapping impossible pour {checkout_reference}, fallback accueil: {fallback_url}")
+        return RedirectResponse(url=fallback_url, status_code=302)
+        
+    except Exception as e:
+        logger.error(f"Erreur redirection: {e}")
+        return RedirectResponse(url="https://jeanamich44.github.io/onlinetools/index.html", status_code=302)
     finally:
         db.close()
 
