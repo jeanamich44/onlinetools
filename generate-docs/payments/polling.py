@@ -24,7 +24,7 @@ async def poll_sumup_status(checkout_id: str):
         async with aiohttp.ClientSession() as session:
             while time.time() - start_time < timeout:
                 try:
-                    # 1. Obtenir une session courte uniquement pour cette vérification
+                    # 1. Obtenir une session courte uniquement pour cette vérifications
                     db = SessionLocal()
                     try:
                         payment = db.query(Payment).filter(Payment.checkout_id == checkout_id).first()
