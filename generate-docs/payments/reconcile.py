@@ -16,19 +16,19 @@ async def reconcile_all_pending_payments():
     logger.info("Démarrage de la réconciliation globale (ASYNCHRONE) des paiements PENDING...")
     
     # On utilise SessionLocal() dans un bloc contextuel pour assurer la fermeture
-    db = SessionLocal()
     try:
-        # Récupérer tous les paiements marqués PENDING
-        # On utilise une opération synchrone simple (normalement rapide)
-        start_query = time.time()
-        pending_payments = db.query(Payment).filter(Payment.status == "PENDING").all()
-        query_duration = time.time() - start_query
-        
-        if pending_payments:
-            logger.info(f"DB Query (Reconcile): {len(pending_payments)} paiements trouvés en {query_duration:.3f}s")
-        else:
+        # 1. Récupérer les IDs des paiements PENDING (Session courte)
+        db = SessionLocal()
+        try:
+            pending_payments_data = db.query(Payment.checkout_id, Payment.status).filter(Payment.status == "PENDING").all()
+        finally:
+            db.close()
+            
+        if not pending_payments_data:
             logger.info("Aucun paiement PENDING à réconcilier.")
             return
+
+        logger.info(f"Réconciliation : {len(pending_payments_data)} paiements à vérifier.")
 
         token = await get_access_token()
         headers = {
@@ -37,35 +37,37 @@ async def reconcile_all_pending_payments():
         }
 
         async with aiohttp.ClientSession() as session:
-            for p in pending_payments:
+            for checkout_id, current_status in pending_payments_data:
                 try:
-                    CHECKOUT_URL = f"https://api.sumup.com/v0.1/checkouts/{p.checkout_id}"
-                    async with session.get(CHECKOUT_URL, headers=headers) as response:
+                    url = f"https://api.sumup.com/v0.1/checkouts/{checkout_id}"
+                    async with session.get(url, headers=headers) as response:
                         if response.status == 200:
                             data = await response.json()
                             new_status = data.get("status")
                             
-                            if new_status and new_status != p.status:
-                                logger.info(f"Réconciliation : {p.checkout_id} passé de {p.status} à {new_status}")
+                            if new_status and new_status != current_status:
+                                logger.info(f"Réconciliation : {checkout_id} -> {new_status}")
                                 
-                                start_db = time.time()
-                                p.status = new_status
-                                db.commit()
-                                db_duration = time.time() - start_db
-                                logger.info(f"DB Update (Reconcile): Succès en {db_duration:.3f}s pour {p.checkout_id}")
+                                # Mise à jour (Session courte)
+                                db_update = SessionLocal()
+                                try:
+                                    p = db_update.query(Payment).filter(Payment.checkout_id == checkout_id).first()
+                                    if p:
+                                        p.status = new_status
+                                        db_update.commit()
+                                finally:
+                                    db_update.close()
                         else:
                             text = await response.text()
-                            logger.warning(f"Réconciliation : Impossible de vérifier {p.checkout_id} (Code {response.status}): {text}")
+                            logger.warning(f"Réconciliation : Erreur API pour {checkout_id} ({response.status})")
                 
                 except Exception as e:
-                    logger.error(f"Erreur réconciliation pour {p.checkout_id}: {e}")
+                    logger.error(f"Erreur réconciliation pour {checkout_id}: {e}")
                 
         logger.info("Réconciliation globale terminée.")
         
     except Exception as e:
         logger.error(f"Erreur lors de la réconciliation globale : {e}")
-    finally:
-        db.close()
 
 async def start_reconciliation_loop(interval: int = 300):
     """

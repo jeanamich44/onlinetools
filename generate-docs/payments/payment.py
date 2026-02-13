@@ -105,20 +105,36 @@ def get_access_token_sync():
         raise Exception(f"Erreur Récupération Token (Sync): {str(e)}")
 
 
-async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=None, product_name=None):
-    """Crée une session de paiement de manière asynchrone et retourne l'URL de paiement."""
-    
+async def create_checkout(db_session_unused: Session, amount=1.0, currency="EUR", ip_address=None, product_name=None):
+    """
+    Crée une session de paiement.
+    Nouveau flux : Insertion DB immédiate -> Appel API SumUp -> Mise à jour DB.
+    """
     # 1. Générer une référence locale
     checkout_ref = str(uuid.uuid4())
+    logger.info(f"Début création paiement: Ref={checkout_ref}")
     
-    # 2. Appeler l'API SumUp EN PREMIER (Optimisation: Pas d'insertion DB avant l'appel API)
+    # 2. Insertion DB immédiate (Session indépendante pour commit instantané)
+    db = SessionLocal()
     try:
-        # Essayer d'obtenir un token (lèvera une exception si échoue)
-        token = await get_access_token()
+        start_init = time.time()
+        new_payment = Payment(
+            checkout_ref=checkout_ref,
+            amount=amount,
+            currency=currency,
+            status="PRE_API", # Statut temporaire
+            ip_address=ip_address,
+            product_name=product_name
+        )
+        db.add(new_payment)
+        db.commit()
+        db.refresh(new_payment) # On récupère l'ID pour être sûr
+        db_id = new_payment.id
+        logger.info(f"DB Pre-insertion OK (ID={db_id}) en {time.time()-start_init:.3f}s")
         
+        # 3. Appel API SumUp
+        token = await get_access_token()
         valid_until = (datetime.utcnow() + timedelta(minutes=15)).isoformat() + "Z"
-
-        # Utiliser le domaine de l'application
         APP_DOMAIN = "https://generate-docs-production.up.railway.app"
         
         payload = {
@@ -129,9 +145,7 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
             "description": f"Payment Ref: {checkout_ref}", 
             "valid_until": valid_until,
             "redirect_url": f"{APP_DOMAIN}/payment-success?checkout_reference={checkout_ref}",
-            "hosted_checkout": {
-                "enabled": True
-            }
+            "hosted_checkout": {"enabled": True}
         }
         
         headers = {
@@ -140,38 +154,34 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
         }
 
         async with aiohttp.ClientSession() as session:
+            logger.info(f"Appel API SumUp...")
             async with session.post(CHECKOUT_URL, json=payload, headers=headers) as response:
-            
-                if response.status >= 400:
+                status_code = response.status
+                if status_code >= 400:
                     text = await response.text()
-                    raise Exception(f"Echec Checkout: {response.status} {text}")
+                    logger.error(f"Echec API SumUp ({status_code}): {text}")
+                    # On marque en FAILED en base avant de lever l'erreur
+                    new_payment.status = "API_ERROR"
+                    db.commit()
+                    raise Exception(f"Echec Checkout: {status_code} {text}")
                     
                 data = await response.json()
+                checkout_id = data.get("id")
+                payment_url = data.get("hosted_checkout_url")
                 
-                # 3. Créer l'enregistrement en DB
-                # On le fait de manière synchrone et directe.
-                # Ajout de logs de temps pour identifier si c'est le commit qui est lent.
-                start_db = time.time()
-                
-                new_payment = Payment(
-                    checkout_ref=checkout_ref,
-                    amount=amount,
-                    currency=currency,
-                    status="PENDING", 
-                    ip_address=ip_address,
-                    product_name=product_name,
-                    checkout_id=data.get("id"),
-                    payment_url=data.get("hosted_checkout_url")
-                )
-                db.add(new_payment)
+                # 4. Mise à jour finale
+                start_update = time.time()
+                new_payment.checkout_id = checkout_id
+                new_payment.payment_url = payment_url
+                new_payment.status = "PENDING"
                 db.commit()
-                # On évite refresh() qui peut être lent (refait un SELECT)
+                logger.info(f"DB Update SUCCESS: {checkout_id} enregistré en {time.time()-start_update:.3f}s")
                 
-                db_duration = time.time() - start_db
-                logger.info(f"DB Write: Enregistrement créé en {db_duration:.3f}s pour {checkout_ref}")
-                
-                return (data.get("hosted_checkout_url"), checkout_ref, data.get("id"))
+                return (payment_url, checkout_ref, checkout_id)
 
     except Exception as e:
-        logger.error(f"Erreur dans create_checkout (Async): {e}")
+        logger.error(f"Erreur globale create_checkout: {e}")
+        db.rollback()
         raise e
+    finally:
+        db.close()

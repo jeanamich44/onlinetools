@@ -25,9 +25,11 @@ else:
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    pool_pre_ping=True,  # Vérifie la connexion avant de l'utiliser (évite les déconnexions)
-    pool_size=10,        # Nombre de connexions persistantes
-    max_overflow=20      # Connexions supplémentaires autorisées si besoin
+    pool_pre_ping=True,
+    pool_size=5,          # Plus petit pour Railway
+    max_overflow=10,      # Limite le débordement
+    pool_recycle=300,     # Recycle les connexions toutes les 5 min
+    connect_args={"connect_timeout": 10}
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
