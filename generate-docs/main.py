@@ -11,12 +11,12 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Request, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 # Database & Payment
-from payments.database import init_db, get_db, Payment
+from payments.database import init_db, get_db, Payment, SessionLocal
 from payments.payment import create_checkout, get_access_token
 from payments.polling import poll_sumup_status
 from payments.reconcile import start_reconciliation_loop
@@ -112,6 +112,7 @@ class PDFRequest(BaseModel):
     norias: Optional[str] = None
     plaque: Optional[str] = None
     typevehicule: Optional[str] = None
+    checkout_ref: Optional[str] = None # Added for paid PDF generation
 
 
 # =========================
@@ -119,26 +120,26 @@ class PDFRequest(BaseModel):
 # =========================
 
 @app.post("/create-payment")
-async def create_payment_endpoint(request: Request, background_tasks: BackgroundTasks, product_name: str = "default", db: Session = Depends(get_db)):
+async def create_payment_endpoint(request: Request, data: PDFRequest, background_tasks: BackgroundTasks, product_name: str = "default", db: Session = Depends(get_db)):
     """
-    Crée une nouvelle session de paiement de manière asynchrone.
-    Capture automatiquement l'IP du client (gère les proxys) et le contexte du produit.
-    Démarre le polling en arrière-plan immédiatement pour des mises à jour de statut plus rapides.
+    Crée une nouvelle session de paiement.
     """
     try:
-        # Obtenir l'IP réelle du client s'il est derrière un proxy (comme Railway)
         client_ip = request.headers.get("x-forwarded-for", request.client.host)
-        
         logger.info(f"Création paiement (Async) pour Produit: {product_name}, IP: {client_ip}")
 
+        # Convertir data en JSON pour le stocker
+        import json
+        user_data_str = json.dumps(data.dict())
+
         # create_checkout retourne maintenant (url, ref, id)
-        url, ref, checkout_id = await create_checkout(db=db, amount=1.0, ip_address=client_ip, product_name=product_name)
+        url, ref, checkout_id = await create_checkout(db=db, amount=1.0, ip_address=client_ip, product_name=product_name, user_data=user_data_str)
         
         # Démarrer le polling immédiatement en arrière-plan
         if checkout_id:
              background_tasks.add_task(poll_sumup_status, checkout_id)
         
-        return {"payment_url": url}
+        return {"payment_url": url, "checkout_ref": ref}
     except Exception as e:
         logger.error(f"Erreur création paiement: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -146,90 +147,105 @@ async def create_payment_endpoint(request: Request, background_tasks: Background
 @app.get("/payment-success")
 def payment_success(checkout_reference: Optional[str] = None):
     """
-    Redirige immédiatement vers la page d'accueil après le paiement.
-    Le statut est mis à jour en arrière-plan par le polling serveur.
+    Redirige vers l'accueil avec la référence pour déclencher le téléchargement.
     """
     logger.info(f"Paiement terminé. Redirection accueil. Ref: {checkout_reference}")
-    return RedirectResponse(url="https://jeanamich44.github.io/onlinetools/index.html")
-
-# =========================
-# PDF GENERATION ROUTES
-# =========================
+    return RedirectResponse(url=f"https://jeanamich44.github.io/onlinetools/index.html?checkout_ref={checkout_reference}")
 
 @app.post("/generate-pdf")
-def generate_pdf(data: PDFRequest):
+def generate_pdf(request: Request, data: PDFRequest):
     """
-    Generates a PDF based on the requested type (LBP, SG, etc.).
-    Supports preview mode.
+    Génère un PDF. Gère la preview libre et le PDF final payé.
     """
     output_path = f"/tmp/{uuid.uuid4()}.pdf"
+    db = SessionLocal()
 
     try:
+        # 1. Vérification du paiement si ce n'est pas une preview
+        if not data.preview:
+            if not data.checkout_ref:
+                raise HTTPException(status_code=402, detail="Paiement requis pour le PDF final")
+            
+            # Vérifier en base si le paiement est PAID
+            payment = db.query(Payment).filter(Payment.checkout_ref == data.checkout_ref).first()
+            if not payment or payment.status != "PAID":
+                logger.warning(f"Tentative téléchargement PDF sans paiement valide: {data.checkout_ref}")
+                raise HTTPException(status_code=402, detail="Paiement non confirmé")
+            
+            # 1.3 Sécurité : Vérifier si déjà généré (Anti-Fraude)
+            if payment.is_generated:
+                client_ip = request.headers.get("x-forwarded-for", request.client.host)
+                now = datetime.utcnow().isoformat()
+                logger.warning(
+                    f"\n🚨 [SUSPICION DE FRAUDE] "
+                    f"\n- IP: {client_ip} "
+                    f"\n- REF: {data.checkout_ref} "
+                    f"\n- DATE: {now} "
+                    f"\n- TENTATIVE DATA: {data.dict()}"
+                    f"\n- ORIGINALE DATA: {payment.user_data}\n"
+                )
+                # On ne renvoie RIEN d'explicite (403 Forbidden est le plus discret)
+                return Response(status_code=403)
+
+            # Si on a un checkout_ref, on utilise les données sauvegardées en base au moment du paiement
+            # pour éviter que l'utilisateur ne change les infos après avoir payé.
+            if payment.user_data:
+                import json
+                saved_data = json.loads(payment.user_data)
+                # Fusionner/Ecraser avec les données de la base
+                for key, value in saved_data.items():
+                    setattr(data, key, value)
+                
+                # Marquer comme généré immédiatement (Lock)
+                payment.is_generated = 1
+                db.commit()
+                logger.info(f"Génération PDF final pour {data.checkout_ref} (Lock activé)")
+
+        # 2. Génération selon le type
         if data.type_pdf == "lbp":
             if data.preview:
                 generate_lbp_preview(data, output_path)
             else:
                 generate_lbp_pdf(data, output_path)
-
+        
+        # ... (les autres types restent identiques, ils utilisent 'data')
         elif data.type_pdf == "sg":
-            if data.preview:
-                generate_sg_preview(data, output_path)
-            else:
-                generate_sg_pdf(data, output_path)
-
+            if data.preview: generate_sg_preview(data, output_path)
+            else: generate_sg_pdf(data, output_path)
         elif data.type_pdf == "bfb":
-            if data.preview:
-                generate_bfb_preview(data, output_path)
-            else:
-                generate_bfb_pdf(data, output_path)
-
+            if data.preview: generate_bfb_preview(data, output_path)
+            else: generate_bfb_pdf(data, output_path)
         elif data.type_pdf == "revolut":
-            if data.preview:
-                generate_revolut_preview(data, output_path)
-            else:
-                generate_revolut_pdf(data, output_path)
-
+            if data.preview: generate_revolut_preview(data, output_path)
+            else: generate_revolut_pdf(data, output_path)
         elif data.type_pdf == "ca":
-            if data.preview:
-                generate_ca_preview(data, output_path)
-            else:
-                generate_ca_pdf(data, output_path)
-
+            if data.preview: generate_ca_preview(data, output_path)
+            else: generate_ca_pdf(data, output_path)
         elif data.type_pdf == "cm":
-            if data.preview:
-                generate_cm_preview(data, output_path)
-            else:
-                generate_cm_pdf(data, output_path)
-
+            if data.preview: generate_cm_preview(data, output_path)
+            else: generate_cm_pdf(data, output_path)
         elif data.type_pdf == "cic":
-            if data.preview:
-                generate_cic_preview(data, output_path)
-            else:
-                generate_cic_pdf(data, output_path)
-
+            if data.preview: generate_cic_preview(data, output_path)
+            else: generate_cic_pdf(data, output_path)
         elif data.type_pdf == "qonto":
-            if data.preview:
-                generate_qonto_preview(data, output_path)
-            else:
-                generate_qonto_pdf(data, output_path)
-
+            if data.preview: generate_qonto_preview(data, output_path)
+            else: generate_qonto_pdf(data, output_path)
         elif data.type_pdf == "maxance":
-            if data.preview:
-                generate_maxance_preview(data, output_path)
-            else:
-                generate_maxance_pdf(data, output_path)
-
+            if data.preview: generate_maxance_preview(data, output_path)
+            else: generate_maxance_pdf(data, output_path)
         else:
             raise HTTPException(status_code=400, detail="type_pdf invalide")
 
         if not os.path.exists(output_path):
             raise HTTPException(status_code=500, detail="PDF non généré")
 
-        return FileResponse(
-            output_path,
-            media_type="application/pdf",
-            filename="rib.pdf",
-        )
+        filename = "preview.pdf" if data.preview else "rib.pdf"
+        return FileResponse(output_path, media_type="application/pdf", filename=filename)
 
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Erreur generate_pdf: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()

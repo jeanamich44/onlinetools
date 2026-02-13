@@ -47,6 +47,8 @@ class Payment(Base):
     ip_address = Column(String, nullable=True) # User IP
     product_name = Column(String, nullable=True) # e.g. "lbp", "sg", "assurance"
     payment_url = Column(String, nullable=True)
+    user_data = Column(String, nullable=True) # JSON store for PDF fields
+    is_generated = Column(Integer, default=0) # 0 = No, 1 = Yes (Anti-fraud lock)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 def init_db():
