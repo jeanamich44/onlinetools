@@ -23,6 +23,9 @@
 
     <form id="cicForm">
       <input name="nom_prenom" placeholder="Nom Prénom">
+      <div id="error-nom"
+        style="color: #dc3545; font-size: 0.85rem; margin-top: -12px; margin-bottom: 12px; display: none; text-align: left; font-weight: bold;">
+        ⚠️ Le nom et prénom sont obligatoires pour le PDF final.</div>
       <input name="adresse" placeholder="Adresse">
       <input name="cp_ville" placeholder="CP Ville">
 
@@ -73,14 +76,22 @@
     const ribForm = document.getElementById("cicForm");
     const message = document.getElementById("message");
     const btnPay = document.getElementById("btnPay");
+    const errorNom = document.getElementById("error-nom");
+    const inputNom = document.getElementsByName("nom_prenom")[0];
 
     /* ===== PAIEMENT SUMUP ===== */
     btnPay.onclick = async () => {
       const formData = Object.fromEntries(new FormData(ribForm).entries());
+
       if (!formData.nom_prenom) {
-        alert("Veuillez remplir au moins le nom pour le paiement.");
+        errorNom.style.display = "block";
+        inputNom.style.borderColor = "#dc3545";
+        inputNom.focus();
         return;
       }
+
+      errorNom.style.display = "none";
+      inputNom.style.borderColor = "";
 
       message.textContent = "Préparation du paiement...";
       message.className = "";

@@ -7,20 +7,22 @@ import uuid
 import asyncio
 import logging
 import requests
+import aiohttp
+import json
+from datetime import datetime
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Request, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, parse_obj_as
 from sqlalchemy.orm import Session
 
-# Database & Payment
+# Base de données & Paiement
 from payments.database import init_db, get_db, Payment, SessionLocal
 from payments.payment import create_checkout, get_access_token
 from payments.polling import poll_sumup_status
 from payments.reconcile import start_reconciliation_loop
-import aiohttp
 
 # Scripts (PDF Generation)
 from script.lbp import generate_lbp_pdf, generate_lbp_preview
@@ -216,14 +218,12 @@ async def payment_success(request: Request, checkout_reference: str):
 
         # 3. Si PAID -> Génération et Envoi DIRECT
         if payment.status == "PAID":
-            import json
             user_data = json.loads(payment.user_data)
             type_pdf = user_data.get("type_pdf")
             
             output_path = f"/tmp/{uuid.uuid4()}.pdf"
             
-            # On simule l'objet data que les script attendent (souvent un PDFRequest mais ils accèdent aux attributs)
-            from pydantic import parse_obj_as
+            # On simule l'objet data que les scripts attendent
             data_obj = PDFRequest(**user_data)
             
             if type_pdf in GENERATORS:
@@ -305,7 +305,6 @@ def generate_pdf(request: Request, data: PDFRequest):
             # Si on a un checkout_ref, on utilise les données sauvegardées en base au moment du paiement
             # pour éviter que l'utilisateur ne change les infos après avoir payé.
             if payment.user_data:
-                import json
                 saved_data = json.loads(payment.user_data)
                 # Fusionner/Ecraser avec les données de la base
                 for key, value in saved_data.items():
