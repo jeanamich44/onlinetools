@@ -286,8 +286,16 @@
             </div>
 
             <div class="action-bar">
-                <button type="submit" class="btn-validate" id="btn-validate">Valider et imprimer Label / Bordereau de
-                    Livraison </button>
+                <button type="submit" class="btn-validate" id="btn-validate">Générer Preview (Gratuit)</button>
+            </div>
+
+            <div id="message"></div>
+            <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px; text-align: center;">
+                <p style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">Le bordereau officiel sans filigrane est
+                    payant (1€).</p>
+                <button id="btnPay" type="button"
+                    style="background-color: #28a745; width: 100%; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-size: 1.1rem; font-weight: bold;">Valider
+                    et Payer le Bordereau (1€)</button>
             </div>
 
 
@@ -298,6 +306,18 @@
     <script src="../js/chronopost-autocomplete.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Check for success from payment redirect
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('success')) {
+                const savedData = localStorage.getItem('chronoData');
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    localStorage.removeItem('chronoData');
+                    // Automatically trigger the generation
+                    performGeneration(data);
+                }
+            }
+
             try {
                 // Handle checkbox to hidden input sync
                 document.querySelectorAll('input[type="checkbox"]').forEach(box => {
@@ -355,6 +375,63 @@
                     });
                 }
 
+                /* ===== PAIEMENT SUMUP ===== */
+                const btnPay = document.getElementById("btnPay");
+                btnPay.onclick = async () => {
+                    const form = document.getElementById("chronoForm");
+                    const formData = new FormData(form);
+                    const data = Object.fromEntries(formData.entries());
+
+                    // Validation minimale (comme RIB)
+                    if (!data.receiverLastname || !data.receiverFirstname || !data.receiverEmail) {
+                        alert("Veuillez remplir les informations obligatoires du destinataire (Nom, Prénom, Email).");
+                        return;
+                    }
+
+                    // On sauvegarde les données pour les retrouver au retour du paiement
+                    if (data.shippingDate_input) {
+                        const parts = data.shippingDate_input.split('-');
+                        if (parts.length === 3) {
+                            const [y, m, d] = parts;
+                            data.shippingDate = `${d}/${m}/${y}`;
+                        }
+                    }
+                    delete data.shippingDate_input;
+
+                    localStorage.setItem('chronoData', JSON.stringify(data));
+
+                    const statusDiv = document.getElementById('statusMessage');
+                    statusDiv.textContent = "Préparation du paiement...";
+                    statusDiv.className = "";
+
+                    try {
+                        const API_BASE_PAY = "https://generate-docs-production.up.railway.app";
+                        const res = await fetch(`${API_BASE_PAY}/create-payment?product_name=chrono-10`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                type_pdf: "chrono10",
+                                ...data
+                            })
+                        });
+
+                        if (!res.ok) {
+                            const err = await res.json();
+                            throw new Error(err.detail || "Erreur lors de la création du paiement");
+                        }
+
+                        const result = await res.json();
+                        if (result.payment_url) {
+                            window.location.href = result.payment_url;
+                        } else {
+                            throw new Error("Pas d'URL de paiement reçue");
+                        }
+                    } catch (err) {
+                        statusDiv.textContent = "Erreur Paiement: " + err.message;
+                        statusDiv.className = "error-message";
+                    }
+                };
+
             } catch (err) {
                 console.error("Critical JS Error:", err);
                 const statusDiv = document.getElementById('statusMessage');
@@ -376,7 +453,6 @@
             const data = Object.fromEntries(formData.entries());
 
             // Date processing
-            // Input name is 'shippingDate_input', backend wants 'shippingDate'
             if (data.shippingDate_input) {
                 const parts = data.shippingDate_input.split('-');
                 if (parts.length === 3) {
@@ -384,9 +460,15 @@
                     data.shippingDate = `${d}/${m}/${y}`;
                 }
             }
-            // If empty, we just don't send it (or send empty), backend handles default.
             delete data.shippingDate_input;
 
+            // Mark as preview
+            data.preview = true;
+
+            performGeneration(data);
+        }
+
+        async function performGeneration(data) {
             const statusDiv = document.getElementById('statusMessage');
             statusDiv.innerHTML = '';
             statusDiv.className = '';
@@ -394,16 +476,12 @@
             const overlay = document.getElementById('overlay');
             if (overlay) overlay.style.visibility = 'visible';
 
-            // TIMER & BUTTON LOGIC
             const btn = document.getElementById('btn-validate');
             const timerContainer = document.getElementById('timerContainer');
             const timerSpan = document.getElementById('timer');
 
-            // Save original text if not already saved (or just hardcode restoration)
-            const originalBtnText = "Valider et imprimer Label / Bordereau de Livraison";
-
-            btn.disabled = true;
-            btn.textContent = "Génération en cours... (Ne quittez pas !)";
+            if (btn) btn.disabled = true;
+            if (btn) btn.textContent = "Génération en cours... (Ne quittez pas !)";
 
             timerContainer.style.display = 'block';
             let seconds = 0;
@@ -417,25 +495,19 @@
             }, 1000);
 
             try {
-                // Send to Backend
                 const response = await fetch('https://chronopost.up.railway.app/generate-chronopost/generate-chronopost', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ data: data })
                 });
 
                 const result = await response.json();
 
                 if (response.ok && result.status === 'success') {
-                    statusDiv.textContent = "Génération réussie ! Durée: " + (result.duration ? result.duration.toFixed(2) : "?") + "s";
+                    statusDiv.textContent = "Génération réussie ! Le bordereau a été envoyé par mail.";
                     statusDiv.className = "success-message";
-                    // No PDF download as per user request (sent by email)
-
                 } else {
                     const msg = result.message || "Erreur inconnue du serveur";
-                    // No debug payload download as per user request
                     throw new Error(msg);
                 }
 
@@ -445,15 +517,12 @@
                 statusDiv.className = "error-message";
             } finally {
                 if (overlay) overlay.style.visibility = 'hidden';
-
-                // Stop Timer & Restore Button
                 if (timerInterval) clearInterval(timerInterval);
                 if (timerContainer) timerContainer.style.display = 'none';
 
-                const btn = document.getElementById('btn-validate');
                 if (btn) {
                     btn.disabled = false;
-                    btn.textContent = "Valider et imprimer Label / Bordereau de Livraison";
+                    btn.textContent = "Générer Preview (Gratuit)";
                 }
             }
         }
