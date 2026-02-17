@@ -161,16 +161,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const inputs = document.querySelectorAll('input[required], input[pattern], input[type="email"], input[type="tel"]');
-        
+
         inputs.forEach(input => {
             // Helper to show/hide error
             function validateField() {
                 // If it's valid check
                 const isValid = input.checkValidity();
-                
+
                 // Find existing error msg
                 let errorSpan = input.parentNode.querySelector('.validation-error-msg');
-                
+
                 if (!isValid) {
                     input.classList.add('input-invalid');
                     if (!errorSpan) {
@@ -189,18 +189,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Real-time on input (for length/pattern)
             input.addEventListener('input', () => {
-                 // Only show error if it was already marked invalid or if user is typing
-                 // actually standard UX is show success immediately, show error on blur OR if typing and it becomes valid
-                 // User asked "dynamic and automatic". 
-                 // Let's validate on input IF the field is dirty or invalid.
-                 if(input.classList.contains('input-invalid')) {
-                     validateField();
-                 }
+                // Only show error if it was already marked invalid or if user is typing
+                // actually standard UX is show success immediately, show error on blur OR if typing and it becomes valid
+                // User asked "dynamic and automatic". 
+                // Let's validate on input IF the field is dirty or invalid.
+                if (input.classList.contains('input-invalid')) {
+                    validateField();
+                }
             });
 
             // On Blur (when leaving the field)
             input.addEventListener('blur', validateField);
-            
+
             // On Change
             input.addEventListener('change', validateField);
         });

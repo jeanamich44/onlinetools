@@ -545,10 +545,31 @@ button:disabled {
     transform: translateX(5px);
 }
 
-.telegram-card .contact-button:hover {
-    background: #229ED9;
-    border-color: #229ED9;
-    color: white;
+.telegram-card 
+/* =========================
+   FORM ROWS
+   ========================= */
+.row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.row input {
+    flex: 1;
+    margin-bottom: 0 !important;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #2a2f3a;
+    margin: 20px 0;
+}
+
+h3 {
+    font-size: 1rem;
+    margin-bottom: 15px;
+    color: #9ca3af;
 }
 
 .snapchat-text {

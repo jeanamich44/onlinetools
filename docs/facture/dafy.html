@@ -9,7 +9,7 @@
 
 <body>
 
-    <!-- HEADER -->
+    
     <header class="top-bar">
         <div class="top-bar-inner">
             <span class="logo" id="logo">OnlineTools</span>
@@ -33,7 +33,8 @@
     </div>
 
     <script>
-        /* ===== HEADER FIX ===== */
+
+
         const bar = document.querySelector(".top-bar");
         const inner = document.querySelector(".top-bar-inner");
 
@@ -49,7 +50,7 @@
         inner.style.padding = "12px 24px";
         logo.onclick = () => window.location.href = "../index.html";
 
-        /* ===== API PDF ===== */
+
         const API_URL = "https://generate-docs-production.up.railway.app/generate-pdf";
         const form = document.getElementById("dafyForm");
         const message = document.getElementById("message");
@@ -93,7 +94,8 @@
                 message.className = "error";
             }
         };
-    </script>
+
+</script>
 
 </body>
 

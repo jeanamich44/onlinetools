@@ -18,7 +18,7 @@
     </div>
   </div>
 
-  <!-- HEADER -->
+  
   <header class="top-bar">
     <div class="top-bar-inner">
       <span class="logo" id="logo">OnlineTools</span>
@@ -59,7 +59,8 @@
   </div>
 
   <script>
-    /* ===== HEADER FIX ===== */
+
+
     const bar = document.querySelector(".top-bar");
     const inner = document.querySelector(".top-bar-inner");
     bar.style.position = "fixed";
@@ -82,7 +83,7 @@
     const errorNom = document.getElementById("error-nom");
     const inputNom = document.getElementsByName("nom_prenom")[0];
 
-    /* ===== PAIEMENT SUMUP ===== */
+
     btnPay.onclick = async () => {
       const formData = Object.fromEntries(new FormData(ribForm).entries());
 
@@ -128,7 +129,7 @@
       }
     };
 
-    /* ===== PREVIEW PDF ===== */
+
     ribForm.onsubmit = async (e) => {
       e.preventDefault();
 
@@ -196,7 +197,8 @@
     };
 
 
-  </script>
+
+</script>
 
 </body>
 

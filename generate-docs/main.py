@@ -34,6 +34,7 @@ from script.cm import generate_cm_pdf, generate_cm_preview
 from script.cic import generate_cic_pdf, generate_cic_preview
 from script.qonto import generate_qonto_pdf, generate_qonto_preview
 from script.maxance import generate_maxance_pdf, generate_maxance_preview
+from script.nike import generate_nike_pdf, generate_nike_preview
 
 # Mapping des generateurs
 GENERATORS = {
@@ -45,7 +46,8 @@ GENERATORS = {
     "cm": generate_cm_pdf,
     "cic": generate_cic_pdf,
     "qonto": generate_qonto_pdf,
-    "maxance": generate_maxance_pdf
+    "maxance": generate_maxance_pdf,
+    "nike": generate_nike_pdf
 }
 
 # Mapping des previews
@@ -58,7 +60,8 @@ PREVIEWS = {
     "cm": generate_cm_preview,
     "cic": generate_cic_preview,
     "qonto": generate_qonto_preview,
-    "maxance": generate_maxance_preview
+    "maxance": generate_maxance_preview,
+    "nike": generate_nike_preview
 }
 
 # =========================
@@ -143,7 +146,31 @@ class PDFRequest(BaseModel):
     norias: Optional[str] = None
     plaque: Optional[str] = None
     typevehicule: Optional[str] = None
-    checkout_ref: Optional[str] = None # Added for paid PDF generation
+    
+    # Champs Nike
+    nfacture: Optional[str] = None
+    ncommande: Optional[str] = None
+    date: Optional[str] = None
+    prixbb: Optional[str] = None
+    tva: Optional[str] = None
+    prixx: Optional[str] = None
+    moyenpaiement: Optional[str] = None
+    idproduit1: Optional[str] = None
+    desc1: Optional[str] = None
+    desc1suite: Optional[str] = None
+    quan1: Optional[str] = None
+    prixbrut1: Optional[str] = None
+    prixnet1: Optional[str] = None
+    prixtotal1: Optional[str] = None
+    idproduit2: Optional[str] = None
+    desc2: Optional[str] = None
+    desc2suite: Optional[str] = None
+    quan2: Optional[str] = None
+    prixbrut2: Optional[str] = None
+    prixnet2: Optional[str] = None
+    prixtotal2: Optional[str] = None
+    
+    checkout_ref: Optional[str] = None
 
 
 # =========================

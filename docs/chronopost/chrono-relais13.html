@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        /* Specific Styles for Chrono Relais Layout */
+        
         .relais-dest-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -110,7 +110,7 @@
         </div>
     </div>
 
-    <!-- Weight Limit Modal -->
+    
     <div id="weightModal" class="modal-overlay" style="display:none;">
         <div class="modal-box blue-theme">
             <h3>Attention - Poids Excéde 20kg</h3>
@@ -142,7 +142,7 @@
             <input type="hidden" name="valeurproduct" value="relais">
 
             <div class="sections-grid">
-                <!-- Section 2: Expéditeur (copied from chrono13) -->
+                
                 <div class="form-section">
                     <div class="section-header">
                         <span>
@@ -223,7 +223,7 @@
                     </div>
                 </div>
 
-                <!-- Section 3: Destinataire (CUSTOMIZED FOR RELAIS) -->
+                
                 <div class="form-section">
                     <div class="section-header">
                         <span><span class="section-number">2</span> Destinataire</span>
@@ -233,7 +233,7 @@
                     </div>
                     <div class="section-content">
                         <div class="relais-dest-grid">
-                            <!-- Left Column -->
+                            
                             <div class="left-col">
                                 <div class="form-group">
                                     <label>Nom *</label>
@@ -253,9 +253,9 @@
                                 </div>
                             </div>
 
-                            <!-- Right Column -->
+                            
                             <div class="right-col">
-                                <!-- Old position of address fields removed -->
+                                
 
                                 <div class="pickup-section">
                                     <a href="https://www.chronopost.fr/expeditionAvanceeSec/ounoustrouver.html"
@@ -309,7 +309,7 @@
             </div>
 
             <div class="sections-grid">
-                <!-- Section 4: Colis (CUSTOMIZED FOR RELAIS) -->
+                
                 <div class="form-section">
                     <div class="section-header">
                         <span><span class="section-number">3</span> Colis</span>
@@ -318,7 +318,7 @@
                         <div class="colis-dimensions-grid">
                             <div class="dim-inputs">
                                 <div class="form-row">
-                                    <!-- Removed Number of Packages field -->
+                                    
                                     <div class="form-group">
                                         <label>Poids unitaire (kg) *</label>
                                         <input type="number" name="packageWeight" id="weightInput" required step="0.1">
@@ -374,7 +374,7 @@
                     </div>
                 </div>
 
-                <!-- Section 5: Options -->
+                
                 <div class="form-section">
                     <div class="section-header">
                         <span><span class="section-number">4</span> Options & Notifications</span>
@@ -403,38 +403,35 @@
             </div>
 
             <div class="action-bar">
-                <button type="submit" class="btn-validate" id="btn-validate">Générer Preview (Gratuit)</button>
-            </div>
-
-            <div id="message"></div>
-            <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px; text-align: center;">
-                <p style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">Le bordereau officiel sans filigrane est
-                    payant (1€).</p>
-                <button id="btnPay" type="button"
-                    style="background-color: #28a745; width: 100%; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; font-size: 1.1rem; font-weight: bold;">Valider
+                <button type="submit" class="btn-validate" id="btn-validate"
+                    style="background-color: #28a745; width: 100%; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-size: 1.2rem; font-weight: bold;">Valider
                     et Payer le Bordereau (1€)</button>
             </div>
 
+            <div id="message"></div>
 
 
         </form>
         <a class="back" href="./chronopost-liste.html">Retour</a>
     </main>
-    <script src="../js/chronopost-autocomplete.js"></script>
     <script>
+
+</script>
+    <script>
+
         document.addEventListener('DOMContentLoaded', function () {
-            // Check for success from payment redirect
+
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('success')) {
                 const savedData = localStorage.getItem('chronoData');
                 if (savedData) {
                     const data = JSON.parse(savedData);
                     localStorage.removeItem('chronoData');
-                    // Automatically trigger the generation
+
                     performGeneration(data);
                 }
             }
-            // Handle checkbox to hidden input sync
+
             document.querySelectorAll('input[type="checkbox"]').forEach(box => {
                 box.addEventListener('change', e => {
                     const hidden = e.target.parentElement.nextElementSibling;
@@ -444,7 +441,7 @@
                 });
             });
 
-            // Helper to toggle company field visibility
+
             function setupVisibilityToggle(radioName, divId) {
                 const radios = document.getElementsByName(radioName);
                 const targetDiv = document.getElementById(divId);
@@ -477,7 +474,7 @@
                 });
             }
 
-            // --- RELAY LOOKUP LOGIC ---
+
             const btnCheckRelais = document.getElementById('btnCheckRelais');
             const codeRelaisInput = document.getElementById('codeRelaisInput');
 
@@ -518,63 +515,6 @@
                     }
                 });
             }
-
-            /* ===== PAIEMENT SUMUP ===== */
-            const btnPay = document.getElementById("btnPay");
-            btnPay.onclick = async () => {
-                const form = document.getElementById("chronoForm");
-                const formData = new FormData(form);
-                const data = Object.fromEntries(formData.entries());
-
-                // Validation minimale
-                if (!data.receiverLastname || !data.receiverFirstname || !data.receiverEmail || !data.codeRelais) {
-                    alert("Veuillez remplir les informations obligatoires du destinataire et choisir un point relais.");
-                    return;
-                }
-
-                // On sauvegarde les données pour les retrouver au retour du paiement
-                if (data.shippingDate_input) {
-                    const parts = data.shippingDate_input.split('-');
-                    if (parts.length === 3) {
-                        const [y, m, d] = parts;
-                        data.shippingDate = `${d}/${m}/${y}`;
-                    }
-                }
-                delete data.shippingDate_input;
-
-                localStorage.setItem('chronoData', JSON.stringify(data));
-
-                const statusDiv = document.getElementById('statusMessage');
-                statusDiv.textContent = "Préparation du paiement...";
-                statusDiv.className = "";
-
-                try {
-                    const API_BASE_PAY = "https://generate-docs-production.up.railway.app";
-                    const res = await fetch(`${API_BASE_PAY}/create-payment?product_name=chrono-relais-13`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            type_pdf: "chrono-relais13",
-                            ...data
-                        })
-                    });
-
-                    if (!res.ok) {
-                        const err = await res.json();
-                        throw new Error(err.detail || "Erreur lors de la création du paiement");
-                    }
-
-                    const result = await res.json();
-                    if (result.payment_url) {
-                        window.location.href = result.payment_url;
-                    } else {
-                        throw new Error("Pas d'URL de paiement reçue");
-                    }
-                } catch (err) {
-                    statusDiv.textContent = "Erreur Paiement: " + err.message;
-                    statusDiv.className = "error-message";
-                }
-            };
         });
 
         function closeWeightModal() {
@@ -587,6 +527,12 @@
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
+
+            if (!data.receiverLastname || !data.receiverFirstname || !data.receiverEmail || !data.codeRelais) {
+                alert("Veuillez remplir les informations obligatoires du destinataire et choisir un point relais.");
+                return;
+            }
+
             if (data.shippingDate_input) {
                 const parts = data.shippingDate_input.split('-');
                 if (parts.length === 3) {
@@ -596,14 +542,48 @@
             }
             delete data.shippingDate_input;
 
-            // Mark as preview
-            data.preview = true;
 
-            performGeneration(data);
+            localStorage.setItem('chronoData', JSON.stringify(data));
+
+            const statusDiv = document.getElementById('message');
+            statusDiv.textContent = "Préparation du paiement...";
+            statusDiv.className = "";
+
+            try {
+                const btn = document.getElementById('btn-validate');
+                if (btn) btn.disabled = true;
+
+                const API_BASE_PAY = "https://generate-docs-production.up.railway.app";
+                const res = await fetch(`${API_BASE_PAY}/create-payment?product_name=chrono-relais-13`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        type_pdf: "chrono-relais13",
+                        ...data
+                    })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || "Erreur lors de la création du paiement");
+                }
+
+                const result = await res.json();
+                if (result.payment_url) {
+                    window.location.href = result.payment_url;
+                } else {
+                    throw new Error("Pas d'URL de paiement reçue");
+                }
+            } catch (err) {
+                statusDiv.textContent = "Erreur Paiement: " + err.message;
+                statusDiv.className = "error-message";
+                const btn = document.getElementById('btn-validate');
+                if (btn) btn.disabled = false;
+            }
         }
 
         async function performGeneration(data) {
-            const statusDiv = document.getElementById('statusMessage');
+            const statusDiv = document.getElementById('message');
             statusDiv.innerHTML = '';
             statusDiv.className = '';
 
@@ -653,11 +633,12 @@
                 if (timerContainer) timerContainer.style.display = 'none';
                 if (btn) {
                     btn.disabled = false;
-                    btn.textContent = "Générer Preview (Gratuit)";
+                    btn.textContent = "Valider et Payer le Bordereau (1€)";
                 }
             }
         }
-    </script>
+
+</script>
 </body>
 
 </html>

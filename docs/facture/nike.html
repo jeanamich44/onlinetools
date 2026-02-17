@@ -9,7 +9,7 @@
 
 <body>
 
-    <!-- HEADER -->
+
     <header class="top-bar">
         <div class="top-bar-inner">
             <span class="logo" id="logo">OnlineTools</span>
@@ -22,12 +22,46 @@
         <p class="subtitle">Génération PDF – Nike</p>
 
         <form id="nikeForm">
-            <input name="nom_prenom" placeholder="Nom Prénom">
-            <input name="adresse" placeholder="Adresse">
-            <input name="cp_ville" placeholder="CP Ville">
+            <div class="row">
+                <input name="nom_prenom" placeholder="Nom Prénom" required>
+            </div>
+            <div class="row">
+                <input name="adresse" placeholder="Adresse" required>
+            </div>
+            <div class="row">
+                <input name="cp_ville" placeholder="CP Ville" required>
+            </div>
+
+            <hr>
+
+            <div class="row">
+                <input name="date" placeholder="Date (JJ/MM/AAAA)">
+                <input name="prixx" placeholder="Prix Total (ex: 129.99 €)">
+            </div>
+
+            <div class="row">
+                <input name="nfacture" placeholder="N° Facture (Auto si vide)">
+                <input name="ncommande" placeholder="N° Commande (Auto si vide)">
+            </div>
+
+            <div class="row">
+                <input name="moyenpaiement" placeholder="Moyen de paiement">
+            </div>
+
+            <hr>
+            <h3>Détails du Produit</h3>
+            <div class="row">
+                <input name="idproduit1" placeholder="Code Produit (ex: DJ6188-002)">
+            </div>
+            <div class="row">
+                <input name="desc1" placeholder="Nom du Produit (ex: Nike Air Force 1)">
+            </div>
+            <div class="row">
+                <input name="desc1suite" placeholder="Variante (ex: Black/White)">
+                <input name="quan1" placeholder="Quantité" value="1">
+            </div>
 
             <button type="submit">Générer PDF</button>
-
         </form>
 
         <div id="message"></div>
@@ -35,7 +69,8 @@
     </div>
 
     <script>
-        /* ===== HEADER FIX ===== */
+
+
         const bar = document.querySelector(".top-bar");
         const inner = document.querySelector(".top-bar-inner");
 
@@ -54,7 +89,7 @@
 
 
 
-        /* ===== API PDF ===== */
+
         const API_URL = "https://generate-docs-production.up.railway.app/generate-pdf";
         const form = document.getElementById("nikeForm");
         const message = document.getElementById("message");
@@ -98,6 +133,7 @@
                 message.className = "error";
             }
         };
+
 
 
     </script>
