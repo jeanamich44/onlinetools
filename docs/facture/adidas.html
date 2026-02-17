@@ -9,7 +9,7 @@
 
 <body>
 
-    
+
     <header class="top-bar">
         <div class="top-bar-inner">
             <span class="logo" id="logo">OnlineTools</span>
@@ -25,12 +25,18 @@
             <input name="nom_prenom" placeholder="Nom Prénom">
             <input name="adresse" placeholder="Adresse">
             <input name="cp_ville" placeholder="CP Ville">
-
-            <button type="submit">Générer PDF</button>
+            <button type="submit">Générer Preview (Gratuit)</button>
 
         </form>
 
         <div id="message"></div>
+        <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">
+            <p style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">Le PDF final sans filigrane est payant (1€).
+            </p>
+            <button id="btnPay" type="button"
+                style="background-color: #28a745; width: 100%; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Acheter
+                le PDF Final (1€)</button>
+        </div>
         <a class="back" href="./facture-liste.html">Retour</a>
     </div>
 
@@ -51,26 +57,80 @@
         inner.style.alignItems = "center";
         inner.style.justifyContent = "space-between";
         inner.style.padding = "12px 24px";
+
+        const logo = document.getElementById("logo");
         logo.onclick = () => window.location.href = "../index.html";
 
 
-
-
-        const API_URL = "https://generate-docs-production.up.railway.app/generate-pdf";
+        const API_BASE = "https://generate-docs-production.up.railway.app";
         const form = document.getElementById("adidasForm");
         const message = document.getElementById("message");
+        const btnPay = document.getElementById("btnPay");
+
+        btnPay.onclick = async () => {
+            const data = Object.fromEntries(new FormData(form));
+            data.type_pdf = "adidas";
+
+            if (!data.nom_prenom) {
+                message.textContent = "Le nom et prénom sont obligatoires.";
+                message.className = "error";
+                return;
+            }
+
+            message.textContent = "Préparation du paiement...";
+            message.className = "";
+
+            try {
+                const res = await fetch(`${API_BASE}/create-payment?product_name=facture-adidas`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || "Erreur création paiement");
+                }
+
+                const d = await res.json();
+                const ref = d.checkout_ref;
+
+                if (d.payment_url) {
+                    window.open(d.payment_url, "_blank");
+                    message.textContent = "Paiement en cours... Le téléchargement débutera ici automatiquement.";
+                    message.style.color = "#3498db";
+
+                    const pollInterval = setInterval(async () => {
+                        try {
+                            const sRes = await fetch(`${API_BASE}/api/payment-status/${ref}`);
+                            const sData = await sRes.json();
+                            if (sData.is_generated) {
+                                clearInterval(pollInterval);
+                                message.textContent = "✅ Validé !";
+                                message.style.color = "#28a745";
+                                window.location.href = `${API_BASE}/api/download-pdf/${ref}`;
+                            }
+                        } catch (e) { }
+                    }, 4000);
+                }
+            } catch (err) {
+                message.textContent = "Erreur: " + err.message;
+                message.className = "error";
+            }
+        };
 
         form.onsubmit = async (e) => {
             e.preventDefault();
 
-            message.textContent = "Génération en cours...";
+            message.textContent = "Génération de la preview...";
             message.className = "";
 
             const data = Object.fromEntries(new FormData(form));
             data.type_pdf = "adidas";
+            data.preview = true;
 
             try {
-                const res = await fetch(API_URL, {
+                const res = await fetch(`${API_BASE}/generate-pdf`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(data)
@@ -86,12 +146,12 @@
 
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = "facture_adidas.pdf";
+                a.download = "preview_adidas.pdf";
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
 
-                message.textContent = "PDF généré avec succès";
+                message.textContent = "Preview générée ! Vérifiez vos infos avant de payer.";
                 message.className = "success";
 
             } catch (err) {
@@ -102,7 +162,7 @@
 
 
 
-</script>
+    </script>
 
 </body>
 

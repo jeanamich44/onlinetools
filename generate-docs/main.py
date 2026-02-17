@@ -21,8 +21,8 @@ from sqlalchemy.orm import Session
 # Base de données & Paiement
 from payments.database import init_db, get_db, Payment, SessionLocal
 from payments.payment import create_checkout, get_access_token
-from payments.polling import poll_sumup_status
-from payments.reconcile import start_reconciliation_loop
+# from payments.polling import poll_sumup_status
+# from payments.reconcile import start_reconciliation_loop
 
 # Scripts (PDF Generation)
 from script.lbp import generate_lbp_pdf, generate_lbp_preview
@@ -87,6 +87,7 @@ app = FastAPI()
 @app.on_event("startup")
 async def startup_event():
     """Au démarrage du serveur."""
+    from payments.reconcile import start_reconciliation_loop
     # Lancer la boucle de réconciliation asynchrone (non-bloquante)
     asyncio.create_task(start_reconciliation_loop(interval=900))
     logger.info("Serveur démarré - Tâche de réconciliation ASYNC lancée (Toutes les 15 min).")
@@ -171,6 +172,7 @@ class PDFRequest(BaseModel):
     prixtotal2: Optional[str] = None
     
     checkout_ref: Optional[str] = None
+    sendToThirdPersonInfo: Optional[str] = None
 
 
 # =========================
@@ -195,12 +197,43 @@ async def create_payment_endpoint(request: Request, data: PDFRequest, background
         
         # Démarrer le polling immédiatement en arrière-plan
         if checkout_id:
+             from payments.polling import poll_sumup_status
              background_tasks.add_task(poll_sumup_status, checkout_id)
         
         return {"payment_url": url, "checkout_ref": ref}
     except Exception as e:
         logger.error(f"Erreur création paiement: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/payment-status/{checkout_reference}")
+async def get_payment_status(checkout_reference: str, db: Session = Depends(get_db)):
+    """Retourne le statut du paiement et si le PDF est prêt."""
+    payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
+    if not payment:
+        raise HTTPException(status_code=404, detail="Paiement non trouvé")
+    
+    return {
+        "status": payment.status,
+        "is_generated": payment.is_generated == 1
+    }
+
+@app.get("/api/download-pdf/{checkout_reference}")
+async def download_paid_pdf(checkout_reference: str, db: Session = Depends(get_db)):
+    """Permet de télécharger le PDF généré en arrière-plan."""
+    payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
+    if not payment or payment.status != "PAID":
+        raise HTTPException(status_code=402, detail="Paiement non confirmé ou non trouvé")
+    
+    file_path = os.path.join("paid_pdfs", f"{checkout_reference}.pdf")
+    if not os.path.exists(file_path):
+        # Si le fichier n'existe pas encore (génération en cours), on tente de le générer en direct
+        from payments.automation import trigger_automatic_generation
+        await trigger_automatic_generation(payment, db)
+        
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename=f"document_{checkout_reference}.pdf", media_type="application/pdf")
+    
+    raise HTTPException(status_code=404, detail="Le fichier n'a pas pu être généré. Contactez le support.")
 
 @app.get("/payment-success")
 @app.get("/payment-success/")

@@ -55,6 +55,10 @@ async def reconcile_all_pending_payments():
                                     if p:
                                         p.status = new_status
                                         db_update.commit()
+                                        
+                                        if new_status == "PAID" and not p.is_generated:
+                                            from .automation import trigger_automatic_generation
+                                            await trigger_automatic_generation(p, db=db_update)
                                 finally:
                                     db_update.close()
                         else:

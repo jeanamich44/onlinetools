@@ -18,7 +18,7 @@
     </div>
   </div>
 
-  
+
   <header class="top-bar">
     <div class="top-bar-inner">
       <span class="logo" id="logo">OnlineTools</span>
@@ -36,7 +36,6 @@
         style="color: #dc3545; font-size: 0.85rem; margin-top: -12px; margin-bottom: 12px; display: none; text-align: left; font-weight: bold;">
         ⚠️ Le nom et prénom sont obligatoires pour le PDF final.</div>
 
-      <input name="sexe" placeholder="M / F">
       <input name="banque" placeholder="Banque">
       <input name="guichet" placeholder="Guichet">
       <input name="compte" placeholder="Compte">
@@ -45,7 +44,6 @@
       <input name="bic" placeholder="BIC">
       <input name="adresse" placeholder="Adresse">
       <input name="cp_ville" placeholder="CP Ville">
-      <input name="domiciliation" placeholder="Domiciliation">
 
       <button type="submit">Générer Preview (Gratuit)</button>
     </form>
@@ -122,8 +120,32 @@
         }
 
         const data = await res.json();
+        const ref = data.checkout_ref;
+
         if (data.payment_url) {
-          window.location.href = data.payment_url;
+          // On ouvre le paiement dans un nouvel onglet pour garder cette page active
+          window.open(data.payment_url, "_blank");
+
+          message.textContent = "Paiement en cours... Restez sur cette page, le téléchargement débutera automatiquement après validation.";
+          message.style.color = "#3498db";
+
+          // Lancement du Polling
+          const pollInterval = setInterval(async () => {
+            try {
+              const statusRes = await fetch(`${API_BASE}/api/payment-status/${ref}`);
+              const statusData = await statusRes.json();
+
+              if (statusData.is_generated) {
+                clearInterval(pollInterval);
+                message.textContent = "✅ Paiement validé ! Téléchargement en cours...";
+                message.style.color = "#28a745";
+                window.location.href = `${API_BASE}/api/download-pdf/${ref}`;
+              }
+            } catch (pollErr) {
+              console.error("Polling error:", pollErr);
+            }
+          }, 4000);
+
         } else {
           throw new Error("Pas d'URL de paiement reçue");
         }
@@ -202,7 +224,7 @@
 
 
 
-</script>
+  </script>
 
 </body>
 

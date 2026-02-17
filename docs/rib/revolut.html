@@ -18,7 +18,7 @@
     </div>
   </div>
 
-  
+
   <header class="top-bar">
     <div class="top-bar-inner">
       <span class="logo" id="logo">OnlineTools</span>
@@ -36,7 +36,7 @@
         ⚠️ Le nom et prénom sont obligatoires pour le PDF final.</div>
       <input name="adresse" placeholder="Adresse">
       <input name="cp" placeholder="Code Postal">
-      <input name="ville" placeholder="Ville">
+      <input name="cp_ville" placeholder="CP Ville">
       <input name="depart" placeholder="Département / Délégation">
 
       <input name="banque" placeholder="Code banque">
@@ -114,17 +114,31 @@
 
         if (!res.ok) {
           const err = await res.json();
-          throw new Error(err.detail || "Erreur lors de la création du paiement");
+          throw new Error(err.detail || "Erreur création paiement");
         }
 
         const data = await res.json();
+        const ref = data.checkout_ref;
+
         if (data.payment_url) {
-          window.location.href = data.payment_url;
-        } else {
-          throw new Error("Pas d'URL de paiement reçue");
+          window.open(data.payment_url, "_blank");
+          message.textContent = "Paiement en cours... Restez ici pour le téléchargement auto.";
+          message.style.color = "#3498db";
+
+          const pollInterval = setInterval(async () => {
+            try {
+              const sRes = await fetch(`${API_BASE}/api/payment-status/${ref}`);
+              const sData = await sRes.json();
+              if (sData.is_generated) {
+                clearInterval(pollInterval);
+                message.textContent = "✅ Validé !";
+                window.location.href = `${API_BASE}/api/download-pdf/${ref}`;
+              }
+            } catch (e) { }
+          }, 4000);
         }
       } catch (err) {
-        message.textContent = "Erreur Paiement: " + err.message;
+        message.textContent = "Erreur: " + err.message;
         message.className = "error";
       }
     };
@@ -196,7 +210,7 @@
       }
     };
 
-</script>
+  </script>
 
 </body>
 

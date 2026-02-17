@@ -51,6 +51,10 @@ async def poll_sumup_status(checkout_id: str):
                                     payment.status = new_status
                                     db.commit()
                                     
+                                    if new_status == "PAID":
+                                        from .automation import trigger_automatic_generation
+                                        await trigger_automatic_generation(payment, db=db)
+
                                     if new_status in ["PAID", "FAILED"]:
                                         break # Terminé
                             else:
