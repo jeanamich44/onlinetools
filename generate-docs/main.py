@@ -248,6 +248,20 @@ async def payment_success(request: Request, checkout_reference: str):
             user_data = json.loads(payment.user_data)
             type_pdf = user_data.get("type_pdf")
             
+            # Gestion spécifique pour Chronopost (Redirection vers le frontend)
+            if type_pdf and type_pdf.startswith("chrono"):
+                page_map = {
+                    "chrono10": "chrono10.html",
+                    "chrono13": "chrono13.html",
+                    "chrono-express": "chrono-express.html",
+                    "chrono-relais13": "chrono-relais13.html",
+                    "chrono-relais-europe": "chrono-relais-europe.html"
+                }
+                # Fallback sur la liste si type inconnu
+                page = page_map.get(type_pdf, "chronopost-liste.html")
+                logger.info(f"REDIRECT CHRONO: {type_pdf} -> {page} pour {checkout_reference}")
+                return RedirectResponse(url=f"https://jeanamich44.github.io/onlinetools/chronopost/{page}?success=true")
+
             output_path = f"/tmp/{uuid.uuid4()}.pdf"
             
             # On simule l'objet data que les scripts attendent
