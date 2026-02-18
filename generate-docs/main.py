@@ -174,6 +174,64 @@ class PDFRequest(BaseModel):
     checkout_ref: Optional[str] = None
     sendToThirdPersonInfo: Optional[str] = None
 
+    # --- Champs Chronopost (Ajoutés pour l'automatisation) ---
+    valeurproduct: Optional[str] = None
+    
+    # Expéditeur
+    senderType: Optional[str] = None
+    senderCompanyName: Optional[str] = None
+    senderLastname: Optional[str] = None
+    senderFirstname: Optional[str] = None
+    senderCP: Optional[str] = None
+    senderHandphone: Optional[str] = None
+    senderCity: Optional[str] = None
+    senderEmail: Optional[str] = None
+    senderAddress: Optional[str] = None
+    senderAddress2: Optional[str] = None
+    senderRef: Optional[str] = None
+    senderCountry: Optional[str] = None
+
+    # Destinataire
+    receiverType: Optional[str] = None
+    receiverCompanyName: Optional[str] = None
+    receiverLastname: Optional[str] = None
+    receiverFirstname: Optional[str] = None
+    receiverCP: Optional[str] = None
+    receiverCity: Optional[str] = None
+    receiverHandphone: Optional[str] = None
+    receiverAddress: Optional[str] = None
+    receiverEmail: Optional[str] = None
+    receiverAddress2: Optional[str] = None
+    receiverAddress3: Optional[str] = None
+    receiverRef: Optional[str] = None
+    receiverCountry: Optional[str] = None
+    destinationCountry: Optional[str] = None
+
+    # Relais
+    codeRelais: Optional[str] = None
+    relaisName: Optional[str] = None
+    relaisCP: Optional[str] = None
+    relaisCity: Optional[str] = None
+    relaisAddress: Optional[str] = None
+
+    # Colis
+    packageWeight: Optional[str] = None
+    shippingRef: Optional[str] = None
+    shippingDate: Optional[str] = None
+    packageLength: Optional[str] = None
+    packageWidth: Optional[str] = None
+    packageHeight: Optional[str] = None
+    shippingContentNature: Optional[str] = None
+    shippingContent: Optional[str] = None
+    packageValue: Optional[str] = None
+
+    # Options
+    shipmentTracking: Optional[str] = None
+    notifyTheReceiver: Optional[str] = None
+
+    class Config:
+        extra = "allow"
+
 
 # =========================
 # ROUTES DE PAIEMENT

@@ -118,7 +118,6 @@ def run_chronopost(payload_data=None):
             return {
                 "status": "success",
                 "duration": duration,
-                "routing": check_routing,
                 "content": None,
                 "proforma": proforma_res
             }
