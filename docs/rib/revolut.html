@@ -100,6 +100,9 @@
       message.textContent = "Préparation du paiement...";
       message.className = "";
 
+      const overlay = document.getElementById("overlay");
+      overlay.style.visibility = "visible";
+
       try {
         const payload = {
           type_pdf: "revolut",
@@ -122,7 +125,7 @@
 
         if (data.payment_url) {
           window.open(data.payment_url, "_blank");
-          message.textContent = "Paiement en cours... Restez ici pour le téléchargement auto.";
+          message.textContent = "Paiement en cours... Le téléchargement débutera automatiquement.";
           message.style.color = "#3498db";
 
           const pollInterval = setInterval(async () => {
@@ -132,6 +135,7 @@
               if (sData.is_generated) {
                 clearInterval(pollInterval);
                 message.textContent = "✅ Validé !";
+                message.style.color = "#28a745";
                 window.location.href = `${API_BASE}/api/download-pdf/${ref}`;
               }
             } catch (e) { }
@@ -140,6 +144,7 @@
       } catch (err) {
         message.textContent = "Erreur: " + err.message;
         message.className = "error";
+        overlay.style.visibility = "hidden";
       }
     };
 

@@ -97,16 +97,30 @@
       errorNom.style.display = "none";
       inputNom.style.borderColor = "";
 
-      message.textContent = "Préparation du paiement...";
-      message.className = "";
+      const overlay = document.getElementById("overlay");
+      overlay.style.visibility = "visible";
+      const timerSpan = document.getElementById("timer");
+      const timerContainer = document.getElementById("timerContainer");
+
+      timerContainer.style.display = "block";
+      let seconds = 0;
+      timerSpan.textContent = "00:00";
+      let timerInterval = setInterval(() => {
+        seconds++;
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        timerSpan.textContent = `${m}:${s}`;
+      }, 1000);
+
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       try {
         const payload = {
-          type_pdf: "bfb",
+          type_pdf: "ca",
           ...formData
         };
 
-        const res = await fetch(`${API_BASE}/create-payment?product_name=rib-bfb`, {
+        const res = await fetch(`${API_BASE}/create-payment?product_name=rib-ca`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
@@ -122,7 +136,7 @@
 
         if (data.payment_url) {
           window.open(data.payment_url, "_blank");
-          message.textContent = "Paiement en cours... Restez ici pour le téléchargement auto.";
+          message.textContent = "Paiement en cours... Le téléchargement débutera automatiquement.";
           message.style.color = "#3498db";
 
           const pollInterval = setInterval(async () => {
@@ -137,10 +151,16 @@
               }
             } catch (e) { }
           }, 4000);
+        } else {
+          throw new Error("Pas d'URL de paiement reçue");
         }
       } catch (err) {
         message.textContent = "Erreur: " + err.message;
         message.className = "error";
+      } finally {
+        overlay.style.visibility = "hidden";
+        if (timerInterval) clearInterval(timerInterval);
+        if (timerContainer) timerContainer.style.display = "none";
       }
     };
 

@@ -550,6 +550,9 @@
                 const btn = document.getElementById('btn-validate');
                 if (btn) btn.disabled = true;
 
+                const overlay = document.getElementById('overlay');
+                if (overlay) overlay.style.visibility = 'visible';
+
                 const API_BASE_PAY = "https://generate-docs-production.up.railway.app";
                 const res = await fetch(`${API_BASE_PAY}/create-payment?product_name=chrono-relais-13`, {
                     method: "POST",
@@ -615,8 +618,9 @@
                 const result = await response.json();
 
                 if (response.ok && result.status === 'success') {
-                    statusDiv.textContent = "Génération réussie ! Le bordereau a été envoyé par mail.";
+                    statusDiv.textContent = "✅ Génération réussie ! Le bordereau a été envoyé sur votre boîte mail. Pensez à vérifier vos spams.";
                     statusDiv.className = "success-message";
+                    statusDiv.style.boxShadow = "0 0 20px rgba(34, 197, 94, 0.5)";
                 } else {
                     throw new Error(result.message || "Erreur inconnue");
                 }

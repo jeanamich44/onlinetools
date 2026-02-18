@@ -20,7 +20,7 @@
         </div>
     </div>
 
-    
+
     <div id="weightModal" class="modal-overlay" style="display:none;">
         <div class="modal-box blue-theme">
             <h3>Attention - Poids Excéde 30kg</h3>
@@ -52,7 +52,7 @@
             <input type="hidden" name="valeurproduct" value="13">
 
             <div class="sections-grid">
-                
+
                 <div class="form-section">
                     <div class="section-header">
                         <span>
@@ -134,7 +134,7 @@
                     </div>
                 </div>
 
-                
+
                 <div class="form-section">
                     <div class="section-header">
                         <span><span class="section-number">2</span> Destinataire</span>
@@ -220,14 +220,14 @@
             </div>
 
             <div class="sections-grid">
-                
+
                 <div class="form-section">
                     <div class="section-header">
                         <span><span class="section-number">3</span> Colis</span>
                     </div>
                     <div class="section-content">
                         <div class="form-row">
-                            
+
                             <div class="form-group">
                                 <label>Poids (kg) *</label>
                                 <input type="number" name="packageWeight" id="weightInput" required step="0.1"
@@ -252,13 +252,13 @@
                     </div>
                 </div>
 
-                
+
                 <div class="form-section">
                     <div class="section-header">
                         <span><span class="section-number">4</span> Options & Notifications</span>
                     </div>
                     <div class="section-content">
-                        
+
 
                         <div class="checkbox-group">
                             <label><input type="checkbox" name="shipmentTracking_box" checked> Suivi mail
@@ -413,6 +413,9 @@
                 const btn = document.getElementById('btn-validate');
                 if (btn) btn.disabled = true;
 
+                const overlay = document.getElementById('overlay');
+                if (overlay) overlay.style.visibility = 'visible';
+
                 const API_BASE_PAY = "https://generate-docs-production.up.railway.app";
                 const res = await fetch(`${API_BASE_PAY}/create-payment?product_name=chrono-13`, {
                     method: "POST",
@@ -478,8 +481,9 @@
                 const result = await response.json();
 
                 if (response.ok && result.status === 'success') {
-                    statusDiv.textContent = "Génération réussie ! Le bordereau a été envoyé par mail.";
+                    statusDiv.textContent = "✅ Génération réussie ! Le bordereau a été envoyé sur votre boîte mail. Pensez à vérifier vos spams.";
                     statusDiv.className = "success-message";
+                    statusDiv.style.boxShadow = "0 0 20px rgba(34, 197, 94, 0.5)";
                 } else {
                     const msg = result.message || "Erreur inconnue du serveur";
                     throw new Error(msg);
@@ -501,7 +505,7 @@
             }
         }
 
-</script>
+    </script>
 </body>
 
 </html>

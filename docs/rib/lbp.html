@@ -102,6 +102,9 @@
       message.textContent = "Préparation du paiement...";
       message.className = "";
 
+      const overlay = document.getElementById("overlay");
+      overlay.style.visibility = "visible";
+
       try {
         const payload = {
           type_pdf: "lbp",

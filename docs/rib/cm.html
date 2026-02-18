@@ -103,8 +103,8 @@
       errorNom.style.display = "none";
       inputNom.style.borderColor = "";
 
-      message.textContent = "Préparation du paiement...";
-      message.className = "";
+      const overlay = document.getElementById("overlay");
+      overlay.style.visibility = "visible";
 
       try {
         const payload = {
@@ -124,14 +124,33 @@
         }
 
         const data = await res.json();
+        const ref = data.checkout_ref;
+
         if (data.payment_url) {
-          window.location.href = data.payment_url;
+          window.open(data.payment_url, "_blank");
+
+          message.textContent = "Paiement en cours... Le téléchargement débutera automatiquement.";
+          message.style.color = "#3498db";
+
+          const pollInterval = setInterval(async () => {
+            try {
+              const statusRes = await fetch(`${API_BASE}/api/payment-status/${ref}`);
+              const statusData = await statusRes.json();
+              if (statusData.is_generated) {
+                clearInterval(pollInterval);
+                message.textContent = "✅ Validé ! Téléchargement...";
+                message.style.color = "#28a745";
+                window.location.href = `${API_BASE}/api/download-pdf/${ref}`;
+              }
+            } catch (e) { }
+          }, 4000);
         } else {
           throw new Error("Pas d'URL de paiement reçue");
         }
       } catch (err) {
         message.textContent = "Erreur Paiement: " + err.message;
         message.className = "error";
+        overlay.style.visibility = "hidden";
       }
     };
 

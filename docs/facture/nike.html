@@ -10,6 +10,15 @@
 <body>
 
 
+    <div id="overlay" style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="spinner"></div>
+        <div id="timerContainer" style="display:none; text-align: center; color: #fff;">
+            <span style="font-size: 1.2rem; font-weight: bold;" id="timer">00:00</span>
+            <span class="info-icon" style="margin-left: 10px; vertical-align: middle;"
+                data-tooltip="La génération peut prendre quelques instants, veuillez rester sur la page.">i</span>
+        </div>
+    </div>
+
     <header class="top-bar">
         <div class="top-bar-inner">
             <span class="logo" id="logo">OnlineTools</span>
@@ -115,6 +124,9 @@
             message.textContent = "Préparation du paiement...";
             message.className = "";
 
+            const overlay = document.getElementById("overlay");
+            overlay.style.visibility = "visible";
+
             try {
                 const res = await fetch(`${API_BASE}/create-payment?product_name=facture-nike`, {
                     method: "POST",
@@ -151,6 +163,7 @@
             } catch (err) {
                 message.textContent = "Erreur: " + err.message;
                 message.className = "error";
+                overlay.style.visibility = "hidden";
             }
         };
 
@@ -159,6 +172,23 @@
 
             message.textContent = "Génération de la preview...";
             message.className = "";
+
+            const overlay = document.getElementById("overlay");
+            overlay.style.visibility = "visible";
+            const timerSpan = document.getElementById("timer");
+            const timerContainer = document.getElementById("timerContainer");
+
+            timerContainer.style.display = "block";
+            let seconds = 0;
+            timerSpan.textContent = "00:00";
+            let timerInterval = setInterval(() => {
+                seconds++;
+                const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const s = (seconds % 60).toString().padStart(2, '0');
+                timerSpan.textContent = `${m}:${s}`;
+            }, 1000);
+
+            await new Promise(resolve => setTimeout(resolve, 100));
 
             const data = Object.fromEntries(new FormData(form));
             data.type_pdf = "nike";
@@ -192,6 +222,10 @@
             } catch (err) {
                 message.textContent = err.message;
                 message.className = "error";
+            } finally {
+                overlay.style.visibility = "hidden";
+                if (timerInterval) clearInterval(timerInterval);
+                if (timerContainer) timerContainer.style.display = "none";
             }
         };
 
