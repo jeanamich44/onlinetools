@@ -478,8 +478,17 @@
             if (btnCheckRelais && codeRelaisInput) {
                 btnCheckRelais.addEventListener('click', async () => {
                     const code = codeRelaisInput.value.trim();
+                    const statusMsg = document.getElementById('statusMessage');
+
                     if (!code) {
-                        alert("Veuillez entrer un code relais.");
+                        statusMsg.textContent = "Veuillez entrer un code relais.";
+                        statusMsg.style.color = "white";
+                        statusMsg.style.backgroundColor = "#ef4444";
+                        statusMsg.style.padding = "10px";
+                        statusMsg.style.borderRadius = "5px";
+                        statusMsg.style.display = "inline-block";
+                        statusMsg.style.margin = "10px auto";
+                        setTimeout(() => statusMsg.style.display = "none", 5000);
                         return;
                     }
 
@@ -501,11 +510,20 @@
                             document.getElementById('relaisCity').value = res.ville || "";
                             document.getElementById('relaisAddress').value = res.adresse || "";
                         } else {
-                            alert("Erreur : " + (res.message || "Impossible de récupérer les infos relais."));
+                            statusMsg.textContent = "Erreur : " + (res.message || "Impossible de récupérer les infos relais.");
+                            statusMsg.style.color = "white";
+                            statusMsg.style.backgroundColor = "#ef4444";
+                            statusMsg.style.padding = "10px";
+                            statusMsg.style.borderRadius = "5px";
+                            statusMsg.style.display = "inline-block";
+                            setTimeout(() => statusMsg.style.display = "none", 5000);
                         }
 
                     } catch (e) {
-                        alert("Erreur réseau : " + e.message);
+                        statusMsg.textContent = "Erreur réseau : " + e.message;
+                        statusMsg.style.backgroundColor = "#ef4444";
+                        statusMsg.style.display = "inline-block";
+                        setTimeout(() => statusMsg.style.display = "none", 5000);
                     } finally {
                         btnCheckRelais.disabled = false;
                         btnCheckRelais.textContent = "OK";

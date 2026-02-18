@@ -8,7 +8,7 @@ from .payload_express import build_payload_monde, build_payload_relais_europe
 
 TIMEOUT = 60
 
-def retry_get(url, headers, stop_on_fail=False):
+def retry_get(url, headers):
     for attempt in range(2):
         r = cffi_requests.get(
             url,
@@ -18,11 +18,9 @@ def retry_get(url, headers, stop_on_fail=False):
         )
         if r.status_code == 200:
             return r
-    if stop_on_fail:
-        raise Exception("STOP: response != 200")
     return r
 
-def retry_post(url, headers, data, stop_on_fail=False, check_false=False):
+def retry_post(url, headers, data):
     for attempt in range(2):
         r = cffi_requests.post(
             url,
@@ -31,10 +29,8 @@ def retry_post(url, headers, data, stop_on_fail=False, check_false=False):
             impersonate="chrome120",
             timeout=TIMEOUT
         )
-        if r.status_code == 200 and (not check_false or "false" not in r.text.lower()):
+        if r.status_code == 200:
             return r
-    if stop_on_fail:
-        raise Exception("STOP: jsonGeoRouting failed or contained 'false'")
     return r
 
 def run_chronopost(payload_data=None):
@@ -83,9 +79,7 @@ def run_chronopost(payload_data=None):
             req4_response = retry_post(
                 URL_4,
                 HEADERS_6,
-                payload_str,
-                stop_on_fail=True,
-                check_false=True
+                payload_str
             )
 
         # ===================== REQUETE 5 =====================

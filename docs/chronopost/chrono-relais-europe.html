@@ -257,31 +257,82 @@
 
                                 <div class="form-group">
                                     <label>Pays de destination *</label>
-                                    <select name="destinationCountry" id="destinationCountry" required
-                                        style="width: 100%; padding: 8px; border: 1px solid #444; background-color: #2a2f3a; color: #fff; border-radius: 4px;">
-                                        <option value="DE">ALLEMAGNE</option>
-                                        <option value="AT">AUTRICHE</option>
-                                        <option value="BE">BELGIQUE</option>
-                                        <option value="HR">CROATIE</option>
-                                        <option value="DK">DANEMARK</option>
-                                        <option value="ES">ESPAGNE</option>
-                                        <option value="EE">ESTONIE</option>
-                                        <option value="FI">FINLANDE</option>
-                                        <option value="HU">HONGRIE</option>
-                                        <option value="IE">IRLANDE</option>
-                                        <option value="IT">ITALIE</option>
-                                        <option value="LV">LETTONIE</option>
-                                        <option value="LT">LITUANIE</option>
-                                        <option value="LU">LUXEMBOURG</option>
-                                        <option value="NL">PAYS-BAS</option>
-                                        <option value="PL">POLOGNE</option>
-                                        <option value="PT">PORTUGAL</option>
-                                        <option value="SK">SLOVAQUIE</option>
-                                        <option value="SI">SLOVÉNIE</option>
-                                        <option value="SE">SUÈDE</option>
-                                        <option value="CH">SUISSE</option>
-                                        <option value="CZ">TCHÈQUE (RÉPUBLIQUE)</option>
-                                    </select>
+                                    <div class="country-search-wrapper" style="position: relative;">
+                                        <input type="text" id="countrySearchInput" placeholder="Rechercher un pays..."
+                                            value="ALLEMAGNE"
+                                            style="width: 100%; padding: 10px; background-color: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #c9d1d9;">
+                                        <input type="hidden" name="destinationCountry" id="destinationCountry"
+                                            value="DE" required>
+                                        <ul id="countrySuggestions"
+                                            style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #161a22; border: 1px solid #2a2f3a; border-radius: 4px; z-index: 1000; list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto;">
+                                            <li data-code="DE"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                ALLEMAGNE</li>
+                                            <li data-code="AT"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                AUTRICHE</li>
+                                            <li data-code="BE"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                BELGIQUE</li>
+                                            <li data-code="HR"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                CROATIE</li>
+                                            <li data-code="DK"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                DANEMARK</li>
+                                            <li data-code="ES"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                ESPAGNE</li>
+                                            <li data-code="EE"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                ESTONIE</li>
+                                            <li data-code="FI"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                FINLANDE</li>
+                                            <li data-code="HU"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                HONGRIE</li>
+                                            <li data-code="IE"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                IRLANDE</li>
+                                            <li data-code="IT"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                ITALIE</li>
+                                            <li data-code="LV"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                LETTONIE</li>
+                                            <li data-code="LT"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                LITUANIE</li>
+                                            <li data-code="LU"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                LUXEMBOURG</li>
+                                            <li data-code="NL"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                PAYS-BAS</li>
+                                            <li data-code="PL"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                POLOGNE</li>
+                                            <li data-code="PT"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                PORTUGAL</li>
+                                            <li data-code="SK"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                SLOVAQUIE</li>
+                                            <li data-code="SI"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                SLOVÉNIE</li>
+                                            <li data-code="SE"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                SUÈDE</li>
+                                            <li data-code="CH"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                SUISSE</li>
+                                            <li data-code="CZ"
+                                                style="padding: 10px; cursor: pointer; border-bottom: 1px solid #2a2f3a;">
+                                                TCHÈQUE (RÉPUBLIQUE)</li>
+                                        </ul>
+                                    </div>
                                 </div>
 
 
@@ -506,8 +557,17 @@
             if (btnCheckRelais && codeRelaisInput) {
                 btnCheckRelais.addEventListener('click', async () => {
                     const code = codeRelaisInput.value.trim();
+                    const statusMsg = document.getElementById('statusMessage');
+
                     if (!code) {
-                        alert("Veuillez entrer un code relais.");
+                        statusMsg.textContent = "Veuillez entrer un code relais.";
+                        statusMsg.style.color = "white";
+                        statusMsg.style.backgroundColor = "#ef4444";
+                        statusMsg.style.padding = "10px";
+                        statusMsg.style.borderRadius = "5px";
+                        statusMsg.style.display = "inline-block";
+                        statusMsg.style.margin = "10px auto";
+                        setTimeout(() => statusMsg.style.display = "none", 5000);
                         return;
                     }
 
@@ -530,17 +590,59 @@
                             document.getElementById('relaisCity').value = res.ville || "";
                             document.getElementById('relaisAddress').value = res.adresse || "";
                         } else {
-                            alert("Erreur : " + (res.message || "Impossible de récupérer les infos relais."));
+                            statusMsg.textContent = "Erreur : " + (res.message || "Impossible de récupérer les infos relais.");
+                            statusMsg.style.color = "white";
+                            statusMsg.style.backgroundColor = "#ef4444";
+                            statusMsg.style.padding = "10px";
+                            statusMsg.style.borderRadius = "5px";
+                            statusMsg.style.display = "inline-block";
+                            setTimeout(() => statusMsg.style.display = "none", 5000);
                         }
 
                     } catch (e) {
-                        alert("Erreur réseau : " + e.message);
+                        statusMsg.textContent = "Erreur réseau : " + e.message;
+                        statusMsg.style.backgroundColor = "#ef4444";
+                        statusMsg.style.display = "inline-block";
+                        setTimeout(() => statusMsg.style.display = "none", 5000);
                     } finally {
                         btnCheckRelais.disabled = false;
                         btnCheckRelais.textContent = "OK";
                     }
                 });
             }
+
+            const countryInput = document.getElementById('countrySearchInput');
+            const countryHidden = document.getElementById('destinationCountry');
+            const countrySuggestions = document.getElementById('countrySuggestions');
+            const suggestionsList = countrySuggestions.querySelectorAll('li');
+
+            countryInput.addEventListener('focus', () => {
+                countrySuggestions.style.display = 'block';
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.country-search-wrapper')) {
+                    countrySuggestions.style.display = 'none';
+                }
+            });
+
+            countryInput.addEventListener('input', () => {
+                const val = countryInput.value.toUpperCase();
+                suggestionsList.forEach(li => {
+                    const text = li.textContent.toUpperCase();
+                    li.style.display = text.includes(val) ? 'block' : 'none';
+                });
+            });
+
+            suggestionsList.forEach(li => {
+                li.addEventListener('mouseenter', () => li.style.backgroundColor = '#1f2937');
+                li.addEventListener('mouseleave', () => li.style.backgroundColor = 'transparent');
+                li.addEventListener('click', () => {
+                    countryInput.value = li.textContent;
+                    countryHidden.value = li.getAttribute('data-code');
+                    countrySuggestions.style.display = 'none';
+                });
+            });
         });
 
         function closeWeightModal() {
