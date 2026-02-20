@@ -126,10 +126,7 @@ def generate_lbp_preview(data, output_path):
     # Un zoom de 1.8x offre une excellente netteté sur mobile et desktop
     pix = page.get_pixmap(matrix=fitz.Matrix(1.8, 1.8))
     
-    # On utilise pil_save pour gérer la qualité car tobytes() ne supporte pas toujours 'quality'
-    # cela demande que l'image soit sauvegardée directement via le moteur de rendu
-    pix.pil_save(output_path, format="JPEG", quality=75)
+    # sauvegarde directe en JPG avec qualité contrôlée (natif PyMuPDF)
+    pix.save(output_path, jpg_quality=75)
     
-    doc.close()
-        
     doc.close()
