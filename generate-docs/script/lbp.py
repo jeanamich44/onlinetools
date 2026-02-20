@@ -121,5 +121,15 @@ def generate_lbp_preview(data, output_path):
         
         add_watermark(page)
 
-    doc.save(output_path)
+    # Conversion de la première page en image JPG (optimisée)
+    page = doc[0]
+    # Un zoom de 1.8x offre une excellente netteté sur mobile et desktop
+    pix = page.get_pixmap(matrix=fitz.Matrix(1.8, 1.8))
+    
+    # On utilise une qualité de 75 pour réduire considérablement le poids
+    # sans dégradation visible majeure pour une simple consultation.
+    img_data = pix.tobytes("jpg", quality=75)
+    with open(output_path, "wb") as f:
+        f.write(img_data)
+        
     doc.close()

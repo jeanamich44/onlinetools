@@ -5,6 +5,7 @@ from curl_cffi import requests as cffi_requests
 from .headers import HEADERS_1, HEADERS_2, HEADERS_4
 from .payload_fr import build_payload_fr
 from .payload_express import build_payload_monde, build_payload_relais_europe
+import logging
 
 TIMEOUT = 60
 
@@ -118,14 +119,15 @@ def run_chronopost(payload_data=None):
             return {
                 "status": "success",
                 "duration": duration,
-                "content": None,
                 "proforma": proforma_res
             }
 
-        return {"status": "error", "message": "Final request failed", "routing": check_routing}
+        return {"status": "error", "message": "Final request failed"}
 
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        # Log détaillé côté serveur
+        logging.getLogger(__name__).error(f"Erreur Chronopost: {str(e)}")
+        return {"status": "error", "message": "error"}
 
 def get_proforma(nlabel, id_article, headers):
     """

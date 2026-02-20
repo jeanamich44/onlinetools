@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 # Base de données & Paiement
 from payments.database import init_db, get_db, Payment, SessionLocal
 from payments.payment import create_checkout, get_access_token
+from securite.payment_guard import is_payment_allowed_fast, security_worker, increment_payment_counter
 # from payments.polling import poll_sumup_status
 # from payments.reconcile import start_reconciliation_loop
 
@@ -88,9 +89,10 @@ app = FastAPI()
 async def startup_event():
     """Au démarrage du serveur."""
     from payments.reconcile import start_reconciliation_loop
-    # Lancer la boucle de réconciliation asynchrone (non-bloquante)
+    # Lancer les tâches de fond en parallèle pour ne pas entraver le processus de base
     asyncio.create_task(start_reconciliation_loop(interval=900))
-    logger.info("Serveur démarré - Tâche de réconciliation ASYNC lancée (Toutes les 15 min).")
+    asyncio.create_task(security_worker())
+    logger.info("Serveur démarré - Tâches de fond (Réconciliation & Sécurité) lancées.")
 
 @app.get("/")
 def read_root():
@@ -244,6 +246,16 @@ async def create_payment_endpoint(request: Request, data: PDFRequest, background
     """
     try:
         client_ip = request.headers.get("x-forwarded-for", request.client.host)
+        
+        # 1. Vérification de sécurité atomique (Tourne en continu en arrière-plan)
+        # N'intervient que si besoin, sans ralentir le processus de base car stocké en mémoire
+        if not is_payment_allowed_fast(client_ip):
+            logger.warning(f"Paiement refusé (Sécurité IP) - IP: {client_ip}")
+            raise HTTPException(status_code=429, detail="error")
+
+        # Verrouillage immédiat en mémoire pour éviter le "double-clic" ou le spam rapide
+        increment_payment_counter(client_ip)
+
         logger.info(f"Création paiement (Async) pour Produit: {product_name}, IP: {client_ip}")
 
         # Convertir data en JSON pour le stocker
@@ -458,6 +470,10 @@ def generate_pdf(request: Request, data: PDFRequest):
 
         if not os.path.exists(output_path):
             raise HTTPException(status_code=500, detail="PDF non généré")
+
+        # Pour LBP, la preview est maintenant une image JPG pour plus de sécurité et de légèreté
+        if data.preview and type_pdf == "lbp":
+            return FileResponse(output_path, media_type="image/jpeg", filename="preview.jpg")
 
         filename = "preview.pdf" if data.preview else "rib.pdf"
         return FileResponse(output_path, media_type="application/pdf", filename=filename)

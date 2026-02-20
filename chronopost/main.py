@@ -4,12 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import sys
 import os
+import logging
 
 from script.chr import run_chronopost, get_relay_detail
 
 app = FastAPI()
 
-
+# Configuration du logging
+logger = logging.getLogger(__name__)
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,7 +30,8 @@ def generate_chronopost_endpoint(req: ChronopostRequest):
         # Nous retournons le résultat même en cas d'erreur pour le debug frontend
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Erreur endpoint Chronopost: {str(e)}")
+        raise HTTPException(status_code=500, detail="error")
 
 class RelayRequest(BaseModel):
     pickup_id: str
@@ -38,15 +41,7 @@ class RelayRequest(BaseModel):
 def get_relay_info_endpoint(req: RelayRequest):
     try:
         result = get_relay_detail(req.pickup_id, req.country)
-        if result["status"] == "error":
-             # We return as 200 with error data or 400? User asked for simplicity.
-             # Let's return the dict.
-             pass
-        return result
-        if result["status"] == "error":
-             # We return as 200 with error data or 400? User asked for simplicity.
-             # Let's return the dict.
-             pass
         return result
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Erreur endpoint Relay: {str(e)}")
+        raise HTTPException(status_code=500, detail="error")
