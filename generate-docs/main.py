@@ -417,6 +417,11 @@ def generate_pdf(request: Request, data: PDFRequest):
     Génère un PDF. Gère la preview libre et le PDF final payé.
     """
     output_path = f"/tmp/{uuid.uuid4()}.pdf"
+    
+    # Si c'est une preview LBP, on veut un JPG
+    if data.preview and data.type_pdf == "lbp":
+        output_path = output_path.replace(".pdf", ".jpg")
+
     db = SessionLocal()
 
     try:
