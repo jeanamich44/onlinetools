@@ -107,6 +107,11 @@ def run_chronopost(payload_data=None):
                 try:
                     nlabel = None
                     id_article = None
+                    if "jobName>" in content:
+                        nlabel = content.split("jobName>")[1].split("<")[0]
+                    if "idArticle>" in content:
+                        id_article = content.split("idArticle>")[1].split("<")[0]
+
                     if nlabel and id_article:
                         proforma_res = get_proforma(nlabel, id_article, HEADERS_6, session=session)
                     else:
