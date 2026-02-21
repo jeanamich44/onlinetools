@@ -802,9 +802,11 @@
 
             localStorage.setItem('chronoData', JSON.stringify(data));
 
-            const statusDiv = document.getElementById('message');
-            statusDiv.textContent = "Préparation du paiement...";
-            statusDiv.className = "";
+            const statusDiv = document.getElementById('statusMessage');
+            if (statusDiv) {
+                statusDiv.textContent = "Préparation du paiement...";
+                statusDiv.className = "";
+            }
 
             try {
                 const btn = document.getElementById('btn-validate');
