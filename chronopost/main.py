@@ -11,6 +11,11 @@ from script.chr import run_chronopost, get_relay_detail
 app = FastAPI()
 
 # Configuration du logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
 logger = logging.getLogger(__name__)
 
 app.add_middleware(

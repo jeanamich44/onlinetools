@@ -35,11 +35,16 @@ def retry_post(url, headers, data):
     return r
 
 def run_chronopost(payload_data=None):
+    logger = logging.getLogger(__name__)
     start_time = time.time()
+    
+    logger.info(f"--- NOUVEAU RUN CHRONOPOST ---")
+    logger.info(f"Data reçue: {json.dumps(payload_data) if payload_data else 'None'}")
 
     try:
         valeur_product = payload_data.get("valeurproduct")
         destination_country = payload_data.get("destinationCountry")
+        logger.info(f"Produit: {valeur_product}, Pays: {destination_country}")
 
         if valeur_product == "monde":
             payload_str = build_payload_monde(data=payload_data)
@@ -103,18 +108,29 @@ def run_chronopost(payload_data=None):
             
             # Logic "monde" -> parse jobName/idArticle -> get_proforma
             if is_monde:
+                logger.info("Produit Monde détecté, tentative d'extraction LT et ID Article pour Proforma")
                 try:
                     nlabel = None
                     id_article = None
                     if "jobName>" in content:
                         nlabel = content.split("jobName>")[1].split("<")[0]
+                        logger.info(f"LT trouvé: {nlabel}")
+                    else:
+                        logger.warning("Tag <jobName> non trouvé dans la réponse Chronopost")
+                        
                     if "idArticle>" in content:
                         id_article = content.split("idArticle>")[1].split("<")[0]
+                        logger.info(f"ID Article trouvé: {id_article}")
+                    else:
+                        logger.warning("Tag <idArticle> non trouvé dans la réponse Chronopost")
                     
                     if nlabel and id_article:
                         proforma_res = get_proforma(nlabel, id_article, HEADERS_6)
-                except Exception:
-                   pass
+                    else:
+                        logger.error(f"Impossible de lancer get_proforma: LT={nlabel}, ID={id_article}")
+                except Exception as parse_err:
+                   logger.error(f"Erreur lors du parsing des tags Proforma: {str(parse_err)}")
+                   logger.debug(f"Contenu brut pour investigation: {content[:1000]}")
 
             return {
                 "status": "success",

@@ -634,11 +634,11 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('success')) {
+                // Ancien flux via redirection - maintenu au cas où mais le nouveau privilégie le polling
                 const savedData = localStorage.getItem('chronoData');
                 if (savedData) {
                     const data = JSON.parse(savedData);
                     localStorage.removeItem('chronoData');
-
                     performGeneration(data);
                 }
             }
@@ -791,7 +791,6 @@
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
-
             if (!data.receiverLastname || !data.receiverFirstname || !data.receiverEmail || !data.receiverCountry) {
                 alert("Veuillez remplir les informations obligatoires du destinataire (Pays, Nom, Prénom, Email).");
                 return;
@@ -805,7 +804,6 @@
                 }
             }
             delete data.shippingDate_input;
-
 
             localStorage.setItem('chronoData', JSON.stringify(data));
 
@@ -839,7 +837,18 @@
 
                 const result = await res.json();
                 if (result.payment_url) {
-                    window.location.href = result.payment_url;
+                    // On ouvre le paiement dans un nouvel onglet
+                    window.open(result.payment_url, "_blank");
+
+                    if (statusDiv) {
+                        statusDiv.textContent = "Paiement en cours... Restez sur cette page, le téléchargement débutera automatiquement après validation.";
+                        statusDiv.style.color = "#007bff";
+                    }
+
+                    if (overlay) overlay.style.visibility = 'hidden';
+
+                    // Lancement du Polling
+                    pollPaymentStatus(result.checkout_ref, data);
                 } else {
                     throw new Error("Pas d'URL de paiement reçue");
                 }
@@ -850,7 +859,32 @@
                 }
                 const btn = document.getElementById('btn-validate');
                 if (btn) btn.disabled = false;
+                const overlay = document.getElementById('overlay');
+                if (overlay) overlay.style.visibility = 'hidden';
             }
+        }
+
+        function pollPaymentStatus(ref, data) {
+            const API_BASE_PAY = "https://generate-docs-production.up.railway.app";
+            const pollInterval = setInterval(async () => {
+                try {
+                    const statusRes = await fetch(`${API_BASE_PAY}/api/payment-status/${ref}`);
+                    const statusData = await statusRes.json();
+
+                    if (statusData.is_generated) {
+                        clearInterval(pollInterval);
+                        const statusDiv = document.getElementById('statusMessage');
+                        if (statusDiv) {
+                            statusDiv.textContent = "✅ Paiement validé ! Lancement de la génération...";
+                            statusDiv.style.color = "#28a745";
+                        }
+                        // Une fois payé, on lance la génération automatique
+                        performGeneration(data);
+                    }
+                } catch (pollErr) {
+                    console.error("Polling error:", pollErr);
+                }
+            }, 4000);
         }
 
         async function performGeneration(data) {
