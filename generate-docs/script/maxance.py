@@ -1,5 +1,6 @@
-from .preview_utils import save_pdf_as_jpg
+import fitz
 import os
+from .preview_utils import save_pdf_as_jpg
 import re
 import random
 import string

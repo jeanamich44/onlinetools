@@ -1,3 +1,5 @@
+import fitz
+import os
 from .preview_utils import save_pdf_as_jpg
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
