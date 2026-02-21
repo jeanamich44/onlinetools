@@ -19,12 +19,12 @@
         </div>
     </div>
 
-
+    <!-- Weight Limit Modal -->
     <div id="weightModal" class="modal-overlay" style="display:none;">
         <div class="modal-box blue-theme">
-            <h3>Attention - Le poids dépasse 30kg</h3>
-            <p>Pour tout envoi de plus de 30kg, veuillez contacter le responsable.</p>
-            <a href="https://t.me/RheyyFonda" target="_blank" class="contact-btn">Contacter le support (Telegram)</a>
+            <h3>Attention - Poids Excéde 30kg</h3>
+            <p>Pour tout envoi supérieur à 30kg, veuillez contacter le gérant.</p>
+            <a href="https://t.me/RheyyFonda" target="_blank" class="contact-btn">Contacter Support (Telegram)</a>
             <button onclick="closeWeightModal()" class="close-btn">Fermer</button>
         </div>
     </div>
@@ -35,8 +35,8 @@
         <div class="header-inner">
             <a href="../index.html" class="logo">OnlineTools</a>
             <nav class="nav">
-                <a href="../index.html">Accueil</a>
-                <a href="../tools/tools-liste.html">Outils</a>
+                <a href="../index.html">Home</a>
+                <a href="../tools/tools-liste.html">Tools</a>
                 <a href="../contact.html">Contact</a>
 
             </nav>
@@ -48,17 +48,17 @@
         <h1 class="page-title">Chrono Express - International</h1>
 
         <form id="chronoForm" onsubmit="handleSubmit(event)">
-
+            <!-- Product Code for Express (Using 13 or mapped default for now) -->
             <input type="hidden" name="valeurproduct" value="monde">
 
             <div class="sections-grid">
-
+                <!-- Section 1: Expéditeur -->
                 <div class="form-section">
                     <div class="section-header">
                         <span>
                             <span class="section-number">1</span> Expéditeur
                             <span class="info-icon"
-                                data-tooltip="Si laissé vide, des coordonnées aléatoires seront utilisées.">i</span>
+                                data-tooltip="Si laissés vides, des coordonnées aléatoires uniques seront utilisées.">i</span>
                         </span>
                         <span>FRANCE</span>
                     </div>
@@ -71,7 +71,7 @@
 
                         <div class="form-row">
                             <div class="form-group" id="senderCompanyDiv" style="display:none;">
-                                <label>Nom de l'entreprise</label>
+                                <label>Nom de société</label>
                                 <input type="text" name="senderCompanyName" maxlength="60">
                             </div>
                             <input type="hidden" name="senderCountry" value="FR">
@@ -107,8 +107,8 @@
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Email</label>
-                                <input type="text" name="senderEmail" placeholder="Vide = Aléatoire" maxlength="60">
+                                <label>E-mail</label>
+                                <input type="email" name="senderEmail" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                             <div class="form-group">
                                 <label>Adresse</label>
@@ -118,7 +118,7 @@
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Complément d'adresse</label>
+                                <label>Complément adresse</label>
                                 <input type="text" name="senderAddress2" maxlength="20">
                             </div>
                             <div class="form-group">
@@ -128,13 +128,13 @@
                         </div>
 
                         <div class="checkbox-group">
-                            <label><input type="checkbox" name="exp_save"> Sauvegarder cet expéditeur pour mes prochains
+                            <label><input type="checkbox" name="exp_save"> Conserver cet expéditeur pour mes prochains
                                 envois</label>
                         </div>
                     </div>
                 </div>
 
-
+                <!-- Section 2: Destinataire -->
                 <div class="form-section">
                     <div class="section-header">
                         <span><span class="section-number">2</span> Destinataire</span>
@@ -254,7 +254,7 @@
                                     <option value="IS">ISLANDE</option>
                                     <option value="IL">ISRAËL</option>
                                     <option value="IT">ITALIE</option>
-                                    <option value="JM">JAMAÏQUE</option>
+                                    <option value="JM">JAMAIQUE</option>
                                     <option value="JP">JAPON</option>
                                     <option value="JE">JERSEY</option>
                                     <option value="JO">JORDANIE</option>
@@ -267,7 +267,7 @@
                                     <option value="LS">LESOTHO</option>
                                     <option value="LV">LETTONIE</option>
                                     <option value="LB">LIBAN</option>
-                                    <option value="LR">LIBERIA</option>
+                                    <option value="LR">LIBÉRIA</option>
                                     <option value="LY">LIBYE</option>
                                     <option value="LI">LIECHTENSTEIN</option>
                                     <option value="LT">LITUANIE</option>
@@ -308,7 +308,7 @@
                                     <option value="UG">OUGANDA</option>
                                     <option value="UZ">OUZBÉKISTAN</option>
                                     <option value="PK">PAKISTAN</option>
-                                    <option value="PW">PALAU</option>
+                                    <option value="PW">PALAOS</option>
                                     <option value="PS">PALESTINE</option>
                                     <option value="PA">PANAMA</option>
                                     <option value="PG">PAPOUASIE-NOUVELLE-GUINÉE</option>
@@ -328,13 +328,13 @@
                                     <option value="RW">RWANDA</option>
                                     <option value="EH">SAHARA OCCIDENTAL</option>
                                     <option value="BL">SAINT-BARTHÉLEMY</option>
-                                    <option value="KN">SAINT-KITTS-ET-NÉVIS</option>
+                                    <option value="KN">SAINT-KITTS-ET-NEVIS</option>
                                     <option value="SM">SAINT-MARIN</option>
                                     <option value="MF">SAINT-MARTIN</option>
                                     <option value="PM">SAINT-PIERRE-ET-MIQUELON</option>
-                                    <option value="VC">SAINT-VINCENT-ET-LES GRENADINES</option>
+                                    <option value="VC">SAINT-VINCENT-ET-LES-GRENADINES</option>
                                     <option value="LC">SAINTE-LUCIE</option>
-                                    <option value="SB">ÎLES SALOMON</option>
+                                    <option value="SB">SALOMON</option>
                                     <option value="WS">SAMOA</option>
                                     <option value="AS">SAMOA AMÉRICAINES</option>
                                     <option value="ST">SAO TOMÉ-ET-PRINCIPE</option>
@@ -356,7 +356,7 @@
                                     <option value="TW">TAÏWAN</option>
                                     <option value="TZ">TANZANIE</option>
                                     <option value="TD">TCHAD</option>
-                                    <option value="CZ">TCHÈQUIE</option>
+                                    <option value="CZ">TCHÉQUIE</option>
                                     <option value="TF">TERRES AUSTRALES FRANÇAISES</option>
                                     <option value="TH">THAÏLANDE</option>
                                     <option value="TL">TIMOR ORIENTAL</option>
@@ -380,7 +380,7 @@
                                 </select>
                             </div>
                             <div class="form-group" id="receiverCompanyDiv">
-                                <label>Nom de l'entreprise *</label>
+                                <label>Raison Sociale *</label>
                                 <input type="text" name="receiverCompanyName" maxlength="60">
                             </div>
                         </div>
@@ -420,18 +420,18 @@
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Email *</label>
+                                <label>E-mail *</label>
                                 <input type="email" name="receiverEmail" required maxlength="60">
                             </div>
                             <div class="form-group">
-                                <label>Code porte / Digicode</label>
+                                <label>Code Bâtiment</label>
                                 <input type="text" name="receiverAddress3" maxlength="8">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
-                                <label>Complément d'adresse</label>
+                                <label>Complément adresse</label>
                                 <input type="text" name="receiverAddress2" maxlength="20">
                             </div>
                             <div class="form-group">
@@ -441,15 +441,15 @@
                         </div>
 
                         <div class="checkbox-group">
-                            <label><input type="checkbox" name="dest_save"> Sauvegarder ce destinataire pour mes
-                                prochains envois</label>
+                            <label><input type="checkbox" name="dest_save"> Conserver ce destinataire pour mes prochains
+                                envois</label>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="sections-grid">
-
+                <!-- Section 3: Colis -->
                 <div class="form-section">
                     <div class="section-header">
                         <span><span class="section-number">3</span> Colis</span>
@@ -458,7 +458,7 @@
                         <div class="form-row">
 
                             <div class="form-group">
-                                <label>Poids Unitaire (kg) * <span class="info-icon"
+                                <label>Poids unitaire (kg) * <span class="info-icon"
                                         data-tooltip="Max 30kg">?</span></label>
                                 <input type="number" name="packageWeight" id="weightInput" required step="0.1"
                                     placeholder="Ex: 5">
@@ -483,25 +483,25 @@
                             </div>
                             <div class="form-group">
                                 <label>Largeur (cm) *</label>
-                                <input type="number" name="packageWidth" placeholder="W" min="21" max="150" required>
+                                <input type="number" name="packageWidth" placeholder="l" min="21" max="150" required>
                             </div>
                             <div class="form-group">
                                 <label>Hauteur (cm) *</label>
-                                <input type="number" name="packageHeight" placeholder="H" min="1" max="150" required>
+                                <input type="number" name="packageHeight" placeholder="h" min="1" max="150" required>
                             </div>
                         </div>
                         <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 5px;">
-                            Dimensions Minimales : Longueur : 30cm, Largeur : 21cm, Hauteur : 1cm
+                            Dimensions Minimales : Longueur: 30cm, Largeur: 21cm, Hauteur: 1cm
                         </div>
                         <div style="font-size: 0.8rem; color: #aaa; margin-bottom: 15px;">
-                            Dimensions Maximales : Longueur : 150cm, Largeur : 150cm, Hauteur : 150cm.
+                            Dimensions Maximales : Longueur: 150cm, Largeur: 150cm, Hauteur: 150cm.
                         </div>
 
                         <div class="form-group" style="margin-bottom: 15px;">
                             <label>Nature du contenu *</label>
                             <div class="radio-group">
                                 <label><input type="radio" name="shippingContentNature" value="marchandise" checked>
-                                    Marchandises</label>
+                                    Marchandise</label>
                                 <label><input type="radio" name="shippingContentNature" value="document">
                                     Document</label>
                             </div>
@@ -511,13 +511,13 @@
                             <label>Contenu de l'envoi * <span class="info-icon"
                                     data-tooltip="Description simple (Lampe, Perceuse...)">?</span></label>
                             <input type="text" name="shippingContent" required maxlength="60"
-                                placeholder="Ex: Vêtements, Électronique...">
+                                placeholder="Ex: Vêtements, Pièces électroniques...">
                         </div>
 
                         <fieldset style="border: 1px solid #444; padding: 10px; border-radius: 5px; margin-top: 15px;">
-                            <legend style="color: #fff; padding: 0 5px;">Informations Douanières</legend>
+                            <legend style="color: #fff; padding: 0 5px;">Informations douanières</legend>
                             <div class="form-group">
-                                <label>Valeur en douane déclarée * <span class="info-icon"
+                                <label>Valeur déclarée en douane * <span class="info-icon"
                                         data-tooltip="Conseil : Mettez une valeur basse (ex: 1€) pour limiter les frais de douane.">i</span></label>
                                 <div style="display: flex; align-items: center;">
                                     <input type="number" name="packageValue" required value="1"
@@ -528,34 +528,33 @@
 
                             <div class="alert-box"
                                 style="background: rgba(50, 150, 255, 0.1); border-left: 3px solid #007bff; padding: 10px; margin: 10px 0; font-size: 0.85rem;">
-                                Vous êtes légalement tenu de joindre soit une facture pro-forma, soit une facture
-                                commerciale à
-                                votre envoi, en 3 exemplaires.
+                                Vous avez l'obligation légale de joindre soit une facture pro-forma soit une facture
+                                commerciale à votre envoi, en 3 exemplaires.
                             </div>
 
 
                         </fieldset>
 
                         <div class="checkbox-group" style="margin-top: 10px;">
-                            <label><input type="checkbox" name="colis_save"> Sauvegarder ces caractéristiques pour mes
+                            <label><input type="checkbox" name="colis_save"> Conserver ces caractéristiques pour mes
                                 prochains envois</label>
                         </div>
                     </div>
                 </div>
 
-
+                <!-- Section 4: Options -->
                 <div class="form-section">
                     <div class="section-header">
                         <span><span class="section-number">4</span> Options & Notifications</span>
                     </div>
                     <div class="section-content">
                         <div class="checkbox-group">
-                            <label><input type="checkbox" name="shipmentTracking_box" checked> Suivi par email
+                            <label><input type="checkbox" name="shipmentTracking_box" checked> Suivi mail
                                 expéditeur</label>
                             <input type="hidden" name="shipmentTracking" value="on">
                         </div>
                         <div class="checkbox-group">
-                            <label><input type="checkbox" name="notifyTheReceiver_box" checked> Suivi par email
+                            <label><input type="checkbox" name="notifyTheReceiver_box" checked> Suivi mail
                                 destinataire</label>
                             <input type="hidden" name="notifyTheReceiver" value="on">
                         </div>
@@ -563,7 +562,7 @@
 
 
                         <div class="form-group" style="margin-top: 15px;">
-                            <label>Email de réception (Étiquette) *</label>
+                            <label>Mail Tiers (Réception Bordereau) *</label>
                             <input type="email" name="sendToThirdPersonInfo" required maxlength="60"
                                 placeholder="Votre email pour recevoir le PDF">
                         </div>
@@ -572,9 +571,8 @@
             </div>
 
             <div class="action-bar">
-                <button type="submit" class="btn-validate" id="btn-validate"
-                    style="background-color: #28a745; width: 100%; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-size: 1.2rem; font-weight: bold;">Valider
-                    et Payer l'étiquette (1€)</button>
+                <button type="submit" class="btn-validate" id="btn-validate">Valider et imprimer Label / Bordereau de
+                    Livraison</button>
             </div>
 
 
@@ -583,20 +581,14 @@
         <a class="back" href="./chronopost-liste.html">Retour</a>
     </main>
     <style>
+        /* Custom Country Select Styles */
         .country-wrapper {
             position: relative;
         }
 
         .country-input {
-            width: 100% !important;
-            text-align: left !important;
-            padding: 12px 15px !important;
-            background-color: #0d1117 !important;
-            border: 1px solid #30363d !important;
-            border-radius: 6px !important;
-            color: #fff !important;
-            font-size: 0.95rem !important;
-            box-sizing: border-box !important;
+            width: 100%;
+            /* Inherit or match form styles */
         }
 
         .country-list {
@@ -605,12 +597,12 @@
             left: 0;
             right: 0;
             background: #2b2b2b;
-
+            /* Dark theme match */
             border: 1px solid #444;
             max-height: 300px;
             overflow-y: auto;
             z-index: 1001;
-
+            /* Above other elements */
             display: none;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
@@ -630,9 +622,7 @@
     </style>
     <script src="../js/chronopost-autocomplete-world.js"></script>
     <script>
-
         document.addEventListener('DOMContentLoaded', function () {
-
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('success')) {
                 const savedData = localStorage.getItem('chronoData');
@@ -646,7 +636,7 @@
             initCountrySelector();
 
             try {
-
+                // Sync Checkboxes
                 document.querySelectorAll('input[type="checkbox"]').forEach(box => {
                     box.addEventListener('change', e => {
                         const hidden = e.target.parentElement.nextElementSibling;
@@ -656,7 +646,7 @@
                     });
                 });
 
-
+                // Toggles
                 function setupVisibilityToggle(radioName, divId) {
                     const radios = document.getElementsByName(radioName);
                     const targetDiv = document.getElementById(divId);
@@ -679,7 +669,7 @@
                 setupVisibilityToggle('senderType', 'senderCompanyDiv');
                 setupVisibilityToggle('receiverType', 'receiverCompanyDiv');
 
-
+                // Weight Limit
                 const weightInput = document.getElementById('weightInput');
                 if (weightInput) {
                     weightInput.addEventListener('change', function () {
@@ -689,7 +679,6 @@
                         }
                     });
                 }
-
             } catch (err) {
                 console.error(err);
             }
@@ -699,33 +688,33 @@
             const select = document.querySelector('select[name="receiverCountry"]');
             if (!select) return;
 
-
+            // Create Wrapper
             const wrapper = document.createElement('div');
             wrapper.className = 'country-wrapper';
             select.parentNode.insertBefore(wrapper, select);
             wrapper.appendChild(select);
 
-
+            // Hide original select
             select.style.display = 'none';
 
-
+            // Create Input
             const input = document.createElement('input');
             input.type = 'text';
-            input.className = 'country-input';
+            input.className = 'country-input'; // Will pick up generic input styles if they exist
             input.placeholder = "Rechercher un pays...";
             input.autocomplete = "off";
             wrapper.insertBefore(input, select);
 
-
+            // Create List container
             const list = document.createElement('div');
             list.className = 'country-list';
             wrapper.appendChild(list);
 
-
+            // Parse Options
             const options = Array.from(select.options).map(opt => ({
                 text: opt.text,
                 value: opt.value
-            })).filter(o => o.value);
+            })).filter(o => o.value); // Exclude placeholder
 
             function renderList(filter = "") {
                 list.innerHTML = '';
@@ -734,7 +723,7 @@
                 if (filtered.length === 0) {
                     const noRes = document.createElement('div');
                     noRes.className = 'country-option';
-                    noRes.textContent = "Aucun résultat trouvé";
+                    noRes.textContent = "Aucun résultat";
                     list.appendChild(noRes);
                     return;
                 }
@@ -748,14 +737,14 @@
                         input.value = opt.text;
                         select.value = opt.value;
                         list.style.display = 'none';
-
+                        // Trigger change event manually if needed
                         if (typeof updateDestCountry === 'function') updateDestCountry(select);
                     };
                     list.appendChild(div);
                 });
             }
 
-
+            // Events
             input.addEventListener('focus', () => {
                 renderList(input.value);
                 list.style.display = 'block';
@@ -766,12 +755,12 @@
                 list.style.display = 'block';
             });
 
-
+            // Click outside to close
             document.addEventListener('click', (e) => {
                 if (!wrapper.contains(e.target)) {
                     list.style.display = 'none';
-
-
+                    // Revert to selected value if invalid? Or clear?
+                    // Optional: Validation logic. For now, trust user.
                 }
             });
         }
@@ -781,8 +770,8 @@
         }
 
         function updateDestCountry(select) {
-
-
+            // Updated directly by custom selector
+            // Logic handled there
         }
 
         async function handleSubmit(event) {
@@ -790,11 +779,6 @@
             const form = event.target;
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
-
-            if (!data.receiverLastname || !data.receiverFirstname || !data.receiverEmail || !data.receiverCountry) {
-                alert("Veuillez remplir les informations destinataire obligatoires (Pays, Nom, Prénom, Email).");
-                return;
-            }
 
             if (data.shippingDate_input) {
                 const parts = data.shippingDate_input.split('-');
@@ -808,10 +792,8 @@
             localStorage.setItem('chronoData', JSON.stringify(data));
 
             const statusDiv = document.getElementById('statusMessage');
-            if (statusDiv) {
-                statusDiv.textContent = "";
-                statusDiv.className = "";
-            }
+            statusDiv.innerHTML = '';
+            statusDiv.className = '';
 
             try {
                 const btn = document.getElementById('btn-validate');
@@ -827,18 +809,18 @@
                     body: JSON.stringify(data)
                 });
 
-                if (!res.ok) throw new Error("Erreur create-payment");
+                if (!res.ok) throw new Error("Erreur de communication avec le serveur de paiement");
 
                 const result = await res.json();
                 if (result.payment_url) {
                     window.open(result.payment_url, "_blank");
                     pollPaymentStatus(result.checkout_ref, data);
                 } else {
-                    throw new Error("No payment URL received");
+                    throw new Error("Aucune URL de paiement reçue du serveur");
                 }
             } catch (err) {
                 if (statusDiv) {
-                    statusDiv.textContent = "Erreur de paiement : " + err.message;
+                    statusDiv.textContent = "Erreur : " + err.message;
                     statusDiv.className = "error-message";
                 }
                 const btn = document.getElementById('btn-validate');
@@ -872,30 +854,29 @@
 
         async function performGeneration(data) {
             const statusDiv = document.getElementById('statusMessage');
+            const overlay = document.getElementById('overlay');
+            const btn = document.getElementById('btn-validate');
+            const timerContainer = document.getElementById('timerContainer');
+            const timerSpan = document.getElementById('timer');
+
             if (statusDiv) {
                 statusDiv.innerHTML = '';
                 statusDiv.className = '';
             }
 
-            const overlay = document.getElementById('overlay');
             if (overlay) overlay.style.visibility = 'visible';
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "Génération en cours...";
+            }
+            if (timerContainer) timerContainer.style.display = 'block';
 
-            const btn = document.getElementById('btn-validate');
-            const timerContainer = document.getElementById('timerContainer');
-            const timerSpan = document.getElementById('timer');
-
-            if (btn) btn.disabled = true;
-            if (btn) btn.textContent = "Génération en cours...";
-
-            timerContainer.style.display = 'block';
             let seconds = 0;
-            timerSpan.textContent = "00:00";
-
             let timerInterval = setInterval(() => {
                 seconds++;
                 const m = Math.floor(seconds / 60).toString().padStart(2, '0');
                 const s = (seconds % 60).toString().padStart(2, '0');
-                timerSpan.textContent = `${m}:${s}`;
+                if (timerSpan) timerSpan.textContent = `${m}:${s}`;
             }, 1000);
 
             try {
@@ -909,11 +890,9 @@
 
                 if (response.ok && result.status === 'success') {
                     if (statusDiv) {
-                        statusDiv.textContent = "✅ Génération réussie ! L'étiquette a été envoyée à votre adresse email. Pensez à vérifier vos spams.";
+                        statusDiv.textContent = "Génération réussie ! Durée: " + (result.duration ? result.duration.toFixed(2) : "?") + "s";
                         statusDiv.className = "success-message";
-                        statusDiv.style.boxShadow = "0 0 20px rgba(34, 197, 94, 0.5)";
                     }
-
 
                     if (result.proforma) {
                         try {
@@ -932,17 +911,17 @@
                             document.body.removeChild(link);
                         } catch (e) {
                             console.error("Download Error", e);
-                            statusDiv.textContent += " (Proforma download error)";
+                            if (statusDiv) statusDiv.textContent += " (Erreur téléchargement PDF)";
                         }
                     }
 
                 } else {
-                    throw new Error(result.message || "Unknown error");
+                    throw new Error(result.message || "Erreur inconnue lors de la génération");
                 }
             } catch (error) {
                 console.error(error);
                 if (statusDiv) {
-                    statusDiv.textContent = "Erreur : " + error.message;
+                    statusDiv.textContent = "Erreur: " + error.message;
                     statusDiv.className = "error-message";
                 }
             } finally {
@@ -951,13 +930,13 @@
                 if (timerContainer) timerContainer.style.display = 'none';
                 if (btn) {
                     btn.disabled = false;
-                    btn.textContent = "Valider et Payer l'étiquette (1€)";
+                    btn.textContent = "Valider et imprimer Label / Bordereau de Livraison";
                 }
             }
         }
 
     </script>
-
+    <!-- Country Eligibility Modal -->
     <div id="countryModal" class="country-modal" style="display:none;">
         <div class="country-modal-content">
             <span class="close-country-modal" onclick="closeCountryModalList()">X</span>
@@ -966,222 +945,222 @@
                 <input type="text" id="modalSearch" placeholder="Rechercher un pays..." onkeyup="filterCountryList()">
             </div>
             <ul class="country-zone-list" id="countryZoneList">
-                <li>AFRIQUE DU SUD <span class="zone-badge">Zone 6</span></li>
-                <li>ALBANIE <span class="zone-badge">Zone 4</span></li>
-                <li>ALGÉRIE <span class="zone-badge">Zone 6</span></li>
-                <li>ALLEMAGNE <span class="zone-badge">Zone 1</span></li>
-                <li>ANDORRE <span class="zone-badge">Zone 4</span></li>
-                <li>ANGOLA <span class="zone-badge">Zone 6</span></li>
-                <li>ANGUILLA <span class="zone-badge">Zone 5</span></li>
-                <li>ANTIGUA-ET-BARBUDA <span class="zone-badge">Zone 5</span></li>
-                <li>ANTILLES NÉERLANDAISES (SAUF SAINT-MARTIN) <span class="zone-badge">Zone 5</span></li>
-                <li>ARABIE SAOUDITE <span class="zone-badge">Zone 6</span></li>
-                <li>ARGENTINE <span class="zone-badge">Zone 5</span></li>
-                <li>ARMÉNIE <span class="zone-badge">Zone 4</span></li>
-                <li>ARUBA <span class="zone-badge">Zone 5</span></li>
-                <li>AUSTRALIE <span class="zone-badge">Zone 7</span></li>
-                <li>AUTRICHE <span class="zone-badge">Zone 2</span></li>
-                <li>AZERBAÏDJAN <span class="zone-badge">Zone 6</span></li>
-                <li>BAHAMAS <span class="zone-badge">Zone 5</span></li>
-                <li>BAHREÏN <span class="zone-badge">Zone 6</span></li>
-                <li>BANGLADESH <span class="zone-badge">Zone 7</span></li>
-                <li>BARBADE <span class="zone-badge">Zone 5</span></li>
-                <li>BELGIQUE <span class="zone-badge">Zone 1</span></li>
-                <li>BELIZE <span class="zone-badge">Zone 5</span></li>
-                <li>BENIN <span class="zone-badge">Zone 6</span></li>
-                <li>BERMUDES <span class="zone-badge">Zone 5</span></li>
-                <li>BHOUTAN <span class="zone-badge">Zone 7</span></li>
-                <li>BOLIVIE <span class="zone-badge">Zone 5</span></li>
-                <li>BOSNIE-HERZÉGOVINE <span class="zone-badge">Zone 4</span></li>
-                <li>BOTSWANA <span class="zone-badge">Zone 6</span></li>
-                <li>BRESIL <span class="zone-badge">Zone 5</span></li>
-                <li>BRUNÉI DARUSSALAM <span class="zone-badge">Zone 7</span></li>
-                <li>BULGARIE <span class="zone-badge">Zone 3</span></li>
-                <li>BURKINA FASO <span class="zone-badge">Zone 6</span></li>
-                <li>BURUNDI <span class="zone-badge">Zone 6</span></li>
-                <li>CAMBODGE <span class="zone-badge">Zone 7</span></li>
-                <li>CAMEROUN <span class="zone-badge">Zone 6</span></li>
-                <li>CANADA <span class="zone-badge">Zone 5</span></li>
-                <li>CANARIES (ÎLES DES) <span class="zone-badge">Zone 4</span></li>
-                <li>CAP-VERT <span class="zone-badge">Zone 6</span></li>
-                <li>CAYMAN (ÎLES) <span class="zone-badge">Zone 5</span></li>
-                <li>CENTRAFRICAINE (RÉPUBLIQUE) <span class="zone-badge">Zone 6</span></li>
-                <li>CHILI <span class="zone-badge">Zone 5</span></li>
-                <li>CHINE <span class="zone-badge">Zone 7</span></li>
-                <li>CHRISTMAS (ÎLES) <span class="zone-badge">Zone 7</span></li>
-                <li>CHYPRE <span class="zone-badge">Zone 3</span></li>
-                <li>COCOS (KEELING) (ÎLES) <span class="zone-badge">Zone 7</span></li>
-                <li>COLOMBIE <span class="zone-badge">Zone 5</span></li>
-                <li>COMORES <span class="zone-badge">Zone 6</span></li>
-                <li>CONGO (RÉPUBLIQUE DÉMOCRATIQUE DU) <span class="zone-badge">Zone 6</span></li>
-                <li>CONGO . <span class="zone-badge">Zone 6</span></li>
-                <li>COOK (ÎLES) <span class="zone-badge">Zone 7</span></li>
-                <li>CORÉE DU SUD <span class="zone-badge">Zone 7</span></li>
-                <li>COSTA RICA <span class="zone-badge">Zone 5</span></li>
-                <li>COTE D'IVOIRE <span class="zone-badge">Zone 6</span></li>
-                <li>CROATIE <span class="zone-badge">Zone 3</span></li>
-                <li>DANEMARK <span class="zone-badge">Zone 2</span></li>
-                <li>DJIBOUTI <span class="zone-badge">Zone 6</span></li>
-                <li>DOMINICAINE (RÉPUBLIQUE) <span class="zone-badge">Zone 5</span></li>
-                <li>DOMINIQUE <span class="zone-badge">Zone 5</span></li>
-                <li>EGYPTE <span class="zone-badge">Zone 6</span></li>
-                <li>EL SALVADOR <span class="zone-badge">Zone 5</span></li>
-                <li>EMIRATS ARABES UNIS <span class="zone-badge">Zone 6</span></li>
-                <li>EQUATEUR <span class="zone-badge">Zone 5</span></li>
-                <li>ERYTHRÉE <span class="zone-badge">Zone 6</span></li>
-                <li>ESPAGNE <span class="zone-badge">Zone 2</span></li>
-                <li>ESTONIE <span class="zone-badge">Zone 3</span></li>
-                <li>ETATS-UNIS D'AMÉRIQUE <span class="zone-badge">Zone 5</span></li>
-                <li>ETHIOPIE <span class="zone-badge">Zone 6</span></li>
-                <li>FEROÉ (ÎLES) <span class="zone-badge">Zone 4</span></li>
-                <li>FIDJI <span class="zone-badge">Zone 7</span></li>
-                <li>FINLANDE <span class="zone-badge">Zone 2</span></li>
-                <li>GABON <span class="zone-badge">Zone 6</span></li>
-                <li>GAMBIE <span class="zone-badge">Zone 6</span></li>
-                <li>GEORGIE <span class="zone-badge">Zone 4</span></li>
-                <li>GHANA <span class="zone-badge">Zone 6</span></li>
-                <li>GIBRALTAR <span class="zone-badge">Zone 4</span></li>
-                <li>GRANDE-BRETAGNE ET IRLANDE DU NORD <span class="zone-badge">Zone 2</span></li>
-                <li>GRECE <span class="zone-badge">Zone 2</span></li>
-                <li>GRENADE <span class="zone-badge">Zone 5</span></li>
-                <li>GROENLAND <span class="zone-badge">Zone 5</span></li>
-                <li>GUADELOUPE <span class="zone-badge">Zone 8</span></li>
-                <li>GUAM <span class="zone-badge">Zone 7</span></li>
-                <li>GUATEMALA <span class="zone-badge">Zone 5</span></li>
-                <li>GUERNESEY <span class="zone-badge">Zone 4</span></li>
-                <li>GUINÉE . <span class="zone-badge">Zone 6</span></li>
-                <li>GUINÉE ÉQUATORIALE <span class="zone-badge">Zone 6</span></li>
-                <li>GUINÉE-BISSAU <span class="zone-badge">Zone 6</span></li>
-                <li>GUYANA <span class="zone-badge">Zone 5</span></li>
-                <li>GUYANE <span class="zone-badge">Zone 9</span></li>
-                <li>HAÏTI <span class="zone-badge">Zone 5</span></li>
-                <li>HONDURAS <span class="zone-badge">Zone 5</span></li>
-                <li>HONG-KONG <span class="zone-badge">Zone 7</span></li>
-                <li>HONGRIE <span class="zone-badge">Zone 3</span></li>
-                <li>INDE <span class="zone-badge">Zone 7</span></li>
-                <li>INDONÉSIE <span class="zone-badge">Zone 7</span></li>
-                <li>IRAK <span class="zone-badge">Zone 6</span></li>
-                <li>IRLANDE <span class="zone-badge">Zone 2</span></li>
-                <li>ISLANDE <span class="zone-badge">Zone 4</span></li>
-                <li>ISRAËL <span class="zone-badge">Zone 6</span></li>
-                <li>ITALIE <span class="zone-badge">Zone 2</span></li>
-                <li>JAMAÏQUE <span class="zone-badge">Zone 5</span></li>
-                <li>JAPON <span class="zone-badge">Zone 7</span></li>
-                <li>JERSEY <span class="zone-badge">Zone 4</span></li>
-                <li>JORDANIE <span class="zone-badge">Zone 6</span></li>
-                <li>KAZAKHSTAN <span class="zone-badge">Zone 7</span></li>
-                <li>KENYA <span class="zone-badge">Zone 6</span></li>
-                <li>KIRGHIZISTAN <span class="zone-badge">Zone 7</span></li>
-                <li>KIRIBATI <span class="zone-badge">Zone 7</span></li>
-                <li>KOWEÏT <span class="zone-badge">Zone 6</span></li>
-                <li>LAOS <span class="zone-badge">Zone 7</span></li>
-                <li>LESOTHO <span class="zone-badge">Zone 6</span></li>
-                <li>LETTONIE <span class="zone-badge">Zone 3</span></li>
-                <li>LIBAN <span class="zone-badge">Zone 6</span></li>
-                <li>LIBERIA <span class="zone-badge">Zone 6</span></li>
-                <li>LIBYE <span class="zone-badge">Zone 6</span></li>
-                <li>LIECHTENSTEIN <span class="zone-badge">Zone 4</span></li>
-                <li>LITUANIE <span class="zone-badge">Zone 3</span></li>
-                <li>LUXEMBOURG <span class="zone-badge">Zone 1</span></li>
-                <li>MACAO <span class="zone-badge">Zone 7</span></li>
-                <li>MACÉDOINE <span class="zone-badge">Zone 4</span></li>
-                <li>MADAGASCAR <span class="zone-badge">Zone 6</span></li>
-                <li>MALAISIE <span class="zone-badge">Zone 7</span></li>
-                <li>MALAWI <span class="zone-badge">Zone 6</span></li>
-                <li>MALDIVES <span class="zone-badge">Zone 7</span></li>
-                <li>MALI <span class="zone-badge">Zone 6</span></li>
-                <li>MALTE <span class="zone-badge">Zone 3</span></li>
-                <li>MARIANNES DU NORD (ÎLES) <span class="zone-badge">Zone 9</span></li>
-                <li>MAROC <span class="zone-badge">Zone 6</span></li>
-                <li>MARSHALL (ÎLES) <span class="zone-badge">Zone 7</span></li>
-                <li>MARTINIQUE <span class="zone-badge">Zone 8</span></li>
-                <li>MAURICE <span class="zone-badge">Zone 6</span></li>
-                <li>MAURITANIE <span class="zone-badge">Zone 6</span></li>
-                <li>MAYOTTE <span class="zone-badge">Zone 9</span></li>
-                <li>MEXIQUE <span class="zone-badge">Zone 5</span></li>
-                <li>MICRONÉSIE (ÎLES CAROLINES) <span class="zone-badge">Zone 7</span></li>
-                <li>MOLDAVIE <span class="zone-badge">Zone 4</span></li>
-                <li>MONGOLIE <span class="zone-badge">Zone 7</span></li>
-                <li>MONTSERRAT <span class="zone-badge">Zone 5</span></li>
-                <li>MONTÉNÉGRO <span class="zone-badge">Zone 4</span></li>
-                <li>MOZAMBIQUE <span class="zone-badge">Zone 6</span></li>
-                <li>NAMIBIE <span class="zone-badge">Zone 6</span></li>
-                <li>NAURU <span class="zone-badge">Zone 7</span></li>
-                <li>NEPAL <span class="zone-badge">Zone 7</span></li>
-                <li>NICARAGUA <span class="zone-badge">Zone 5</span></li>
-                <li>NIGER <span class="zone-badge">Zone 6</span></li>
-                <li>NIGÉRIA <span class="zone-badge">Zone 6</span></li>
-                <li>NORFOLK (ÎLE) <span class="zone-badge">Zone 7</span></li>
-                <li>NORVÈGE <span class="zone-badge">Zone 4</span></li>
-                <li>NOUVELLE-CALÉDONIE <span class="zone-badge">Zone 9</span></li>
-                <li>NOUVELLE-ZÉLANDE <span class="zone-badge">Zone 7</span></li>
-                <li>OMAN (SULTANAT D') <span class="zone-badge">Zone 6</span></li>
-                <li>OUGANDA <span class="zone-badge">Zone 6</span></li>
-                <li>OUZBÉKISTAN <span class="zone-badge">Zone 7</span></li>
-                <li>PAKISTAN <span class="zone-badge">Zone 7</span></li>
-                <li>PALAU <span class="zone-badge">Zone 7</span></li>
-                <li>PALESTINE <span class="zone-badge">Zone 6</span></li>
-                <li>PANAMA <span class="zone-badge">Zone 5</span></li>
-                <li>PAPOUASIE-NOUVELLE-GUINÉE <span class="zone-badge">Zone 7</span></li>
-                <li>PARAGUAY <span class="zone-badge">Zone 5</span></li>
-                <li>PAYS-BAS <span class="zone-badge">Zone 1</span></li>
-                <li>PEROU <span class="zone-badge">Zone 5</span></li>
-                <li>PHILIPPINES <span class="zone-badge">Zone 7</span></li>
-                <li>POLOGNE <span class="zone-badge">Zone 3</span></li>
-                <li>POLYNÉSIE FRANÇAISE <span class="zone-badge">Zone 9</span></li>
-                <li>PORTO RICO <span class="zone-badge">Zone 5</span></li>
-                <li>PORTUGAL <span class="zone-badge">Zone 2</span></li>
-                <li>QATAR <span class="zone-badge">Zone 6</span></li>
-                <li>REUNION <span class="zone-badge">Zone 8</span></li>
-                <li>ROUMANIE <span class="zone-badge">Zone 3</span></li>
-                <li>RWANDA <span class="zone-badge">Zone 6</span></li>
-                <li>SAINT-BARTHÉLEMY <span class="zone-badge">Zone 8</span></li>
-                <li>SAINT-CHRISTOPHE ET NÉVIS <span class="zone-badge">Zone 5</span></li>
-                <li>SAINT-MARTIN - PARTIE FRANÇAISE <span class="zone-badge">Zone 8</span></li>
-                <li>SAINT-MARTIN - PARTIE NÉERLANDAISE <span class="zone-badge">Zone 8</span></li>
-                <li>SAINT-PIERRE-ET-MIQUELON <span class="zone-badge">Zone 9</span></li>
-                <li>SAINT-VINCENT-ET-LES GRENADINES <span class="zone-badge">Zone 5</span></li>
-                <li>SAINTE-LUCIE <span class="zone-badge">Zone 5</span></li>
-                <li>SALOMON <span class="zone-badge">Zone 7</span></li>
-                <li>SAMOA AMÉRICAINES (ÎLES) <span class="zone-badge">Zone 7</span></li>
-                <li>SAMOA OCCIDENTALES <span class="zone-badge">Zone 7</span></li>
-                <li>SAN MARIN <span class="zone-badge">Zone 4</span></li>
-                <li>SAO TOMÉ-ET-PRINCIPE <span class="zone-badge">Zone 6</span></li>
-                <li>SENÉGAL <span class="zone-badge">Zone 6</span></li>
-                <li>SERBIE / KOSOVO <span class="zone-badge">Zone 4</span></li>
-                <li>SEYCHELLES <span class="zone-badge">Zone 6</span></li>
-                <li>SIERRA LEONE <span class="zone-badge">Zone 6</span></li>
-                <li>SINGAPOUR <span class="zone-badge">Zone 7</span></li>
-                <li>SLOVAQUIE <span class="zone-badge">Zone 3</span></li>
-                <li>SLOVÉNIE <span class="zone-badge">Zone 3</span></li>
-                <li>SOMALIE <span class="zone-badge">Zone 6</span></li>
-                <li>SRI LANKA <span class="zone-badge">Zone 7</span></li>
-                <li>SUEDE <span class="zone-badge">Zone 2</span></li>
-                <li>SUISSE <span class="zone-badge">Zone 4</span></li>
-                <li>SURINAM <span class="zone-badge">Zone 5</span></li>
-                <li>SWAZILAND <span class="zone-badge">Zone 6</span></li>
-                <li>TAIWAN <span class="zone-badge">Zone 7</span></li>
-                <li>TANZANIE <span class="zone-badge">Zone 6</span></li>
-                <li>TCHAD <span class="zone-badge">Zone 6</span></li>
-                <li>TCHÈQUE (RÉPUBLIQUE) <span class="zone-badge">Zone 3</span></li>
-                <li>THAÏLANDE <span class="zone-badge">Zone 7</span></li>
-                <li>TIMOR ORIENTAL <span class="zone-badge">Zone 7</span></li>
-                <li>TOGO <span class="zone-badge">Zone 6</span></li>
-                <li>TONGA <span class="zone-badge">Zone 7</span></li>
-                <li>TRINITÉ-ET-TOBAGO <span class="zone-badge">Zone 5</span></li>
-                <li>TUNISIE <span class="zone-badge">Zone 6</span></li>
-                <li>TURQUES ET CAIQUES <span class="zone-badge">Zone 5</span></li>
-                <li>TURQUIE <span class="zone-badge">Zone 4</span></li>
-                <li>TUVALU <span class="zone-badge">Zone 7</span></li>
-                <li>URUGUAY <span class="zone-badge">Zone 5</span></li>
-                <li>VANUATU <span class="zone-badge">Zone 7</span></li>
-                <li>VATICAN <span class="zone-badge">Zone 4</span></li>
-                <li>VIERGES AMÉRICAINES (ÎLES) <span class="zone-badge">Zone 5</span></li>
-                <li>VIERGES BRITANNIQUES (ÎLES) <span class="zone-badge">Zone 5</span></li>
-                <li>VIET NAM <span class="zone-badge">Zone 7</span></li>
-                <li>WALLIS ET FUTUNA <span class="zone-badge">Zone 9</span></li>
-                <li>ZAMBIE <span class="zone-badge">Zone 6</span></li>
-                <li>ZIMBABWE <span class="zone-badge">Zone 6</span></li>
+                <li>AFRIQUE DU SUD <span class="zone-badge">zone 6</span></li>
+                <li>ALBANIE <span class="zone-badge">zone 4</span></li>
+                <li>ALGÉRIE <span class="zone-badge">zone 6</span></li>
+                <li>ALLEMAGNE <span class="zone-badge">zone 1</span></li>
+                <li>ANDORRE <span class="zone-badge">zone 4</span></li>
+                <li>ANGOLA <span class="zone-badge">zone 6</span></li>
+                <li>ANGUILLA <span class="zone-badge">zone 5</span></li>
+                <li>ANTIGUA-ET-BARBUDA <span class="zone-badge">zone 5</span></li>
+                <li>ANTILLES NÉERLANDAISES (SAUF SAINT-MARTIN) <span class="zone-badge">zone 5</span></li>
+                <li>ARABIE SAOUDITE <span class="zone-badge">zone 6</span></li>
+                <li>ARGENTINE <span class="zone-badge">zone 5</span></li>
+                <li>ARMÉNIE <span class="zone-badge">zone 4</span></li>
+                <li>ARUBA <span class="zone-badge">zone 5</span></li>
+                <li>AUSTRALIE <span class="zone-badge">zone 7</span></li>
+                <li>AUTRICHE <span class="zone-badge">zone 2</span></li>
+                <li>AZERBAÏDJAN <span class="zone-badge">zone 6</span></li>
+                <li>BAHAMAS <span class="zone-badge">zone 5</span></li>
+                <li>BAHREÏN <span class="zone-badge">zone 6</span></li>
+                <li>BANGLADESH <span class="zone-badge">zone 7</span></li>
+                <li>BARBADE <span class="zone-badge">zone 5</span></li>
+                <li>BELGIQUE <span class="zone-badge">zone 1</span></li>
+                <li>BELIZE <span class="zone-badge">zone 5</span></li>
+                <li>BENIN <span class="zone-badge">zone 6</span></li>
+                <li>BERMUDES <span class="zone-badge">zone 5</span></li>
+                <li>BHOUTAN <span class="zone-badge">zone 7</span></li>
+                <li>BOLIVIE <span class="zone-badge">zone 5</span></li>
+                <li>BOSNIE-HERZÉGOVINE <span class="zone-badge">zone 4</span></li>
+                <li>BOTSWANA <span class="zone-badge">zone 6</span></li>
+                <li>BRESIL <span class="zone-badge">zone 5</span></li>
+                <li>BRUNÉI DARUSSALAM <span class="zone-badge">zone 7</span></li>
+                <li>BULGARIE <span class="zone-badge">zone 3</span></li>
+                <li>BURKINA FASO <span class="zone-badge">zone 6</span></li>
+                <li>BURUNDI <span class="zone-badge">zone 6</span></li>
+                <li>CAMBODGE <span class="zone-badge">zone 7</span></li>
+                <li>CAMEROUN <span class="zone-badge">zone 6</span></li>
+                <li>CANADA <span class="zone-badge">zone 5</span></li>
+                <li>CANARIES (ÎLES DES) <span class="zone-badge">zone 4</span></li>
+                <li>CAP-VERT <span class="zone-badge">zone 6</span></li>
+                <li>CAYMAN (ÎLES) <span class="zone-badge">zone 5</span></li>
+                <li>CENTRAFRICAINE (RÉPUBLIQUE) <span class="zone-badge">zone 6</span></li>
+                <li>CHILI <span class="zone-badge">zone 5</span></li>
+                <li>CHINE <span class="zone-badge">zone 7</span></li>
+                <li>CHRISTMAS (ÎLES) <span class="zone-badge">zone 7</span></li>
+                <li>CHYPRE <span class="zone-badge">zone 3</span></li>
+                <li>COCOS (KEELING) (ÎLES) <span class="zone-badge">zone 7</span></li>
+                <li>COLOMBIE <span class="zone-badge">zone 5</span></li>
+                <li>COMORES <span class="zone-badge">zone 6</span></li>
+                <li>CONGO (RÉPUBLIQUE DÉMOCRATIQUE DU) <span class="zone-badge">zone 6</span></li>
+                <li>CONGO . <span class="zone-badge">zone 6</span></li>
+                <li>COOK (ÎLES) <span class="zone-badge">zone 7</span></li>
+                <li>CORÉE DU SUD <span class="zone-badge">zone 7</span></li>
+                <li>COSTA RICA <span class="zone-badge">zone 5</span></li>
+                <li>COTE D'IVOIRE <span class="zone-badge">zone 6</span></li>
+                <li>CROATIE <span class="zone-badge">zone 3</span></li>
+                <li>DANEMARK <span class="zone-badge">zone 2</span></li>
+                <li>DJIBOUTI <span class="zone-badge">zone 6</span></li>
+                <li>DOMINICAINE (RÉPUBLIQUE) <span class="zone-badge">zone 5</span></li>
+                <li>DOMINIQUE <span class="zone-badge">zone 5</span></li>
+                <li>EGYPTE <span class="zone-badge">zone 6</span></li>
+                <li>EL SALVADOR <span class="zone-badge">zone 5</span></li>
+                <li>EMIRATS ARABES UNIS <span class="zone-badge">zone 6</span></li>
+                <li>EQUATEUR <span class="zone-badge">zone 5</span></li>
+                <li>ERYTHRÉE <span class="zone-badge">zone 6</span></li>
+                <li>ESPAGNE <span class="zone-badge">zone 2</span></li>
+                <li>ESTONIE <span class="zone-badge">zone 3</span></li>
+                <li>ETATS-UNIS D'AMÉRIQUE <span class="zone-badge">zone 5</span></li>
+                <li>ETHIOPIE <span class="zone-badge">zone 6</span></li>
+                <li>FEROÉ (ÎLES) <span class="zone-badge">zone 4</span></li>
+                <li>FIDJI <span class="zone-badge">zone 7</span></li>
+                <li>FINLANDE <span class="zone-badge">zone 2</span></li>
+                <li>GABON <span class="zone-badge">zone 6</span></li>
+                <li>GAMBIE <span class="zone-badge">zone 6</span></li>
+                <li>GEORGIE <span class="zone-badge">zone 4</span></li>
+                <li>GHANA <span class="zone-badge">zone 6</span></li>
+                <li>GIBRALTAR <span class="zone-badge">zone 4</span></li>
+                <li>GRANDE-BRETAGNE ET IRLANDE DU NORD <span class="zone-badge">zone 2</span></li>
+                <li>GRECE <span class="zone-badge">zone 2</span></li>
+                <li>GRENADE <span class="zone-badge">zone 5</span></li>
+                <li>GROENLAND <span class="zone-badge">zone 5</span></li>
+                <li>GUADELOUPE <span class="zone-badge">zone 8</span></li>
+                <li>GUAM <span class="zone-badge">zone 7</span></li>
+                <li>GUATEMALA <span class="zone-badge">zone 5</span></li>
+                <li>GUERNESEY <span class="zone-badge">zone 4</span></li>
+                <li>GUINÉE . <span class="zone-badge">zone 6</span></li>
+                <li>GUINÉE ÉQUATORIALE <span class="zone-badge">zone 6</span></li>
+                <li>GUINÉE-BISSAU <span class="zone-badge">zone 6</span></li>
+                <li>GUYANA <span class="zone-badge">zone 5</span></li>
+                <li>GUYANE <span class="zone-badge">zone 9</span></li>
+                <li>HAÏTI <span class="zone-badge">zone 5</span></li>
+                <li>HONDURAS <span class="zone-badge">zone 5</span></li>
+                <li>HONG-KONG <span class="zone-badge">zone 7</span></li>
+                <li>HONGRIE <span class="zone-badge">zone 3</span></li>
+                <li>INDE <span class="zone-badge">zone 7</span></li>
+                <li>INDONÉSIE <span class="zone-badge">zone 7</span></li>
+                <li>IRAK <span class="zone-badge">zone 6</span></li>
+                <li>IRLANDE <span class="zone-badge">zone 2</span></li>
+                <li>ISLANDE <span class="zone-badge">zone 4</span></li>
+                <li>ISRAËL <span class="zone-badge">zone 6</span></li>
+                <li>ITALIE <span class="zone-badge">zone 2</span></li>
+                <li>JAMAÏQUE <span class="zone-badge">zone 5</span></li>
+                <li>JAPON <span class="zone-badge">zone 7</span></li>
+                <li>JERSEY <span class="zone-badge">zone 4</span></li>
+                <li>JORDANIE <span class="zone-badge">zone 6</span></li>
+                <li>KAZAKHSTAN <span class="zone-badge">zone 7</span></li>
+                <li>KENYA <span class="zone-badge">zone 6</span></li>
+                <li>KIRGHIZISTAN <span class="zone-badge">zone 7</span></li>
+                <li>KIRIBATI <span class="zone-badge">zone 7</span></li>
+                <li>KOWEÏT <span class="zone-badge">zone 6</span></li>
+                <li>LAOS <span class="zone-badge">zone 7</span></li>
+                <li>LESOTHO <span class="zone-badge">zone 6</span></li>
+                <li>LETTONIE <span class="zone-badge">zone 3</span></li>
+                <li>LIBAN <span class="zone-badge">zone 6</span></li>
+                <li>LIBERIA <span class="zone-badge">zone 6</span></li>
+                <li>LIBYE <span class="zone-badge">zone 6</span></li>
+                <li>LIECHTENSTEIN <span class="zone-badge">zone 4</span></li>
+                <li>LITUANIE <span class="zone-badge">zone 3</span></li>
+                <li>LUXEMBOURG <span class="zone-badge">zone 1</span></li>
+                <li>MACAO <span class="zone-badge">zone 7</span></li>
+                <li>MACÉDOINE <span class="zone-badge">zone 4</span></li>
+                <li>MADAGASCAR <span class="zone-badge">zone 6</span></li>
+                <li>MALAISIE <span class="zone-badge">zone 7</span></li>
+                <li>MALAWI <span class="zone-badge">zone 6</span></li>
+                <li>MALDIVES <span class="zone-badge">zone 7</span></li>
+                <li>MALI <span class="zone-badge">zone 6</span></li>
+                <li>MALTE <span class="zone-badge">zone 3</span></li>
+                <li>MARIANNES DU NORD (ÎLES) <span class="zone-badge">zone 9</span></li>
+                <li>MAROC <span class="zone-badge">zone 6</span></li>
+                <li>MARSHALL (ÎLES) <span class="zone-badge">zone 7</span></li>
+                <li>MARTINIQUE <span class="zone-badge">zone 8</span></li>
+                <li>MAURICE <span class="zone-badge">zone 6</span></li>
+                <li>MAURITANIE <span class="zone-badge">zone 6</span></li>
+                <li>MAYOTTE <span class="zone-badge">zone 9</span></li>
+                <li>MEXIQUE <span class="zone-badge">zone 5</span></li>
+                <li>MICRONÉSIE (ÎLES CAROLINES) <span class="zone-badge">zone 7</span></li>
+                <li>MOLDAVIE <span class="zone-badge">zone 4</span></li>
+                <li>MONGOLIE <span class="zone-badge">zone 7</span></li>
+                <li>MONTSERRAT <span class="zone-badge">zone 5</span></li>
+                <li>MONTÉNÉGRO <span class="zone-badge">zone 4</span></li>
+                <li>MOZAMBIQUE <span class="zone-badge">zone 6</span></li>
+                <li>NAMIBIE <span class="zone-badge">zone 6</span></li>
+                <li>NAURU <span class="zone-badge">zone 7</span></li>
+                <li>NEPAL <span class="zone-badge">zone 7</span></li>
+                <li>NICARAGUA <span class="zone-badge">zone 5</span></li>
+                <li>NIGER <span class="zone-badge">zone 6</span></li>
+                <li>NIGÉRIA <span class="zone-badge">zone 6</span></li>
+                <li>NORFOLK (ÎLE) <span class="zone-badge">zone 7</span></li>
+                <li>NORVÈGE <span class="zone-badge">zone 4</span></li>
+                <li>NOUVELLE-CALÉDONIE <span class="zone-badge">zone 9</span></li>
+                <li>NOUVELLE-ZÉLANDE <span class="zone-badge">zone 7</span></li>
+                <li>OMAN (SULTANAT D') <span class="zone-badge">zone 6</span></li>
+                <li>OUGANDA <span class="zone-badge">zone 6</span></li>
+                <li>OUZBÉKISTAN <span class="zone-badge">zone 7</span></li>
+                <li>PAKISTAN <span class="zone-badge">zone 7</span></li>
+                <li>PALAU <span class="zone-badge">zone 7</span></li>
+                <li>PALESTINE <span class="zone-badge">zone 6</span></li>
+                <li>PANAMA <span class="zone-badge">zone 5</span></li>
+                <li>PAPOUASIE-NOUVELLE-GUINÉE <span class="zone-badge">zone 7</span></li>
+                <li>PARAGUAY <span class="zone-badge">zone 5</span></li>
+                <li>PAYS-BAS <span class="zone-badge">zone 1</span></li>
+                <li>PEROU <span class="zone-badge">zone 5</span></li>
+                <li>PHILIPPINES <span class="zone-badge">zone 7</span></li>
+                <li>POLOGNE <span class="zone-badge">zone 3</span></li>
+                <li>POLYNÉSIE FRANÇAISE <span class="zone-badge">zone 9</span></li>
+                <li>PORTO RICO <span class="zone-badge">zone 5</span></li>
+                <li>PORTUGAL <span class="zone-badge">zone 2</span></li>
+                <li>QATAR <span class="zone-badge">zone 6</span></li>
+                <li>REUNION <span class="zone-badge">zone 8</span></li>
+                <li>ROUMANIE <span class="zone-badge">zone 3</span></li>
+                <li>RWANDA <span class="zone-badge">zone 6</span></li>
+                <li>SAINT-BARTHÉLEMY <span class="zone-badge">zone 8</span></li>
+                <li>SAINT-CHRISTOPHE ET NÉVIS <span class="zone-badge">zone 5</span></li>
+                <li>SAINT-MARTIN - PARTIE FRANÇAISE <span class="zone-badge">zone 8</span></li>
+                <li>SAINT-MARTIN - PARTIE NÉERLANDAISE <span class="zone-badge">zone 8</span></li>
+                <li>SAINT-PIERRE-ET-MIQUELON <span class="zone-badge">zone 9</span></li>
+                <li>SAINT-VINCENT-ET-LES GRENADINES <span class="zone-badge">zone 5</span></li>
+                <li>SAINTE-LUCIE <span class="zone-badge">zone 5</span></li>
+                <li>SALOMON <span class="zone-badge">zone 7</span></li>
+                <li>SAMOA AMÉRICAINES (ÎLES) <span class="zone-badge">zone 7</span></li>
+                <li>SAMOA OCCIDENTALES <span class="zone-badge">zone 7</span></li>
+                <li>SAN MARIN <span class="zone-badge">zone 4</span></li>
+                <li>SAO TOMÉ-ET-PRINCIPE <span class="zone-badge">zone 6</span></li>
+                <li>SENÉGAL <span class="zone-badge">zone 6</span></li>
+                <li>SERBIE / KOSOVO <span class="zone-badge">zone 4</span></li>
+                <li>SEYCHELLES <span class="zone-badge">zone 6</span></li>
+                <li>SIERRA LEONE <span class="zone-badge">zone 6</span></li>
+                <li>SINGAPOUR <span class="zone-badge">zone 7</span></li>
+                <li>SLOVAQUIE <span class="zone-badge">zone 3</span></li>
+                <li>SLOVÉNIE <span class="zone-badge">zone 3</span></li>
+                <li>SOMALIE <span class="zone-badge">zone 6</span></li>
+                <li>SRI LANKA <span class="zone-badge">zone 7</span></li>
+                <li>SUEDE <span class="zone-badge">zone 2</span></li>
+                <li>SUISSE <span class="zone-badge">zone 4</span></li>
+                <li>SURINAM <span class="zone-badge">zone 5</span></li>
+                <li>SWAZILAND <span class="zone-badge">zone 6</span></li>
+                <li>TAIWAN <span class="zone-badge">zone 7</span></li>
+                <li>TANZANIE <span class="zone-badge">zone 6</span></li>
+                <li>TCHAD <span class="zone-badge">zone 6</span></li>
+                <li>TCHÈQUE (RÉPUBLIQUE) <span class="zone-badge">zone 3</span></li>
+                <li>THAÏLANDE <span class="zone-badge">zone 7</span></li>
+                <li>TIMOR ORIENTAL <span class="zone-badge">zone 7</span></li>
+                <li>TOGO <span class="zone-badge">zone 6</span></li>
+                <li>TONGA <span class="zone-badge">zone 7</span></li>
+                <li>TRINITÉ-ET-TOBAGO <span class="zone-badge">zone 5</span></li>
+                <li>TUNISIE <span class="zone-badge">zone 6</span></li>
+                <li>TURQUES ET CAIQUES <span class="zone-badge">zone 5</span></li>
+                <li>TURQUIE <span class="zone-badge">zone 4</span></li>
+                <li>TUVALU <span class="zone-badge">zone 7</span></li>
+                <li>URUGUAY <span class="zone-badge">zone 5</span></li>
+                <li>VANUATU <span class="zone-badge">zone 7</span></li>
+                <li>VATICAN <span class="zone-badge">zone 4</span></li>
+                <li>VIERGES AMÉRICAINES (ÎLES) <span class="zone-badge">zone 5</span></li>
+                <li>VIERGES BRITANNIQUES (ÎLES) <span class="zone-badge">zone 5</span></li>
+                <li>VIET NAM <span class="zone-badge">zone 7</span></li>
+                <li>WALLIS ET FUTUNA <span class="zone-badge">zone 9</span></li>
+                <li>ZAMBIE <span class="zone-badge">zone 6</span></li>
+                <li>ZIMBABWE <span class="zone-badge">zone 6</span></li>
             </ul>
         </div>
     </div>
@@ -1220,7 +1199,7 @@
             width: 350px;
             max-height: 80vh;
             overflow-y: hidden;
-
+            /* Scroll inside list */
             display: flex;
             flex-direction: column;
             position: relative;
@@ -1275,7 +1254,7 @@
             padding-right: 5px;
         }
 
-
+        /* Custom Scrollbar */
         .country-zone-list::-webkit-scrollbar {
             width: 8px;
         }
@@ -1316,7 +1295,6 @@
         }
     </style>
     <script>
-
         function openCountryModal() {
             document.getElementById('countryModal').style.display = 'flex';
             document.getElementById('modalSearch').focus();
@@ -1324,7 +1302,7 @@
         function closeCountryModalList() {
             document.getElementById('countryModal').style.display = 'none';
         }
-
+        // Close on click outside
         document.getElementById('countryModal').addEventListener('click', function (e) {
             if (e.target === this) {
                 closeCountryModalList();
@@ -1346,7 +1324,6 @@
                 }
             }
         }
-
     </script>
 </body>
 
