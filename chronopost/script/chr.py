@@ -9,9 +9,10 @@ import logging
 
 TIMEOUT = 60
 
-def retry_get(url, headers):
+def retry_get(url, headers, session=None):
+    client = session if session else cffi_requests
     for attempt in range(2):
-        r = cffi_requests.get(
+        r = client.get(
             url,
             headers=headers,
             impersonate="chrome120",
@@ -21,9 +22,10 @@ def retry_get(url, headers):
             return r
     return r
 
-def retry_post(url, headers, data):
+def retry_post(url, headers, data, session=None):
+    client = session if session else cffi_requests
     for attempt in range(2):
-        r = cffi_requests.post(
+        r = client.post(
             url,
             headers=headers,
             data=data,
@@ -37,25 +39,21 @@ def retry_post(url, headers, data):
 def run_chronopost(payload_data=None):
     logger = logging.getLogger(__name__)
     start_time = time.time()
+    session = cffi_requests.Session(impersonate="chrome120")
     
-    logger.info(f"--- NOUVEAU RUN CHRONOPOST ---")
-    logger.info(f"Data reçue: {json.dumps(payload_data) if payload_data else 'None'}")
+    logger.info("--- NOUVEAU RUN CHRONOPOST ---")
 
     try:
         valeur_product = payload_data.get("valeurproduct")
         destination_country = payload_data.get("destinationCountry")
-        logger.info(f"Produit: {valeur_product}, Pays: {destination_country}")
-
+        
         if valeur_product == "monde":
             payload_str = build_payload_monde(data=payload_data)
         elif valeur_product == "relais" and destination_country:
-             # Chrono Relais Europe
              payload_str = build_payload_relais_europe(data=payload_data)
         else:
-            # Chrono 10, 13, Relais (France standard)
             payload_str = build_payload_fr(data=payload_data)
 
-        # Init debug vars
         r1 = r2 = r3 = req4_response = final_response = None
 
         # ===================== REQUETE 1 =====================
@@ -63,21 +61,18 @@ def run_chronopost(payload_data=None):
             "https://www.chronopost.fr/moncompte/"
             "displayCustomerArea.do?iv4Context=d8731416d5d60aac657dd0120cc49f59&lang=fr_FR"
         )
-        r1 = retry_get(URL_1, HEADERS_1)
+        r1 = retry_get(URL_1, HEADERS_1, session=session)
 
-        # ===================== REQUETE 2 =====================
         URL_2 = "https://www.chronopost.fr/expedier/accueilShipping.do?reinit=true&lang=fr_FR"
         HEADERS_2["Referer"] = URL_1
-        r2 = retry_get(URL_2, HEADERS_2)
+        r2 = retry_get(URL_2, HEADERS_2, session=session)
 
         token = 1768746808705
 
-        # ===================== REQUETE 3 =====================
         if token:
             URL_3 = f"https://www.chronopost.fr/expeditionAvanceeSec/accueilShipping.do?_={token}&lang=fr_FR"
-            r3 = retry_get(URL_3, HEADERS_4)
+            r3 = retry_get(URL_3, HEADERS_4, session=session)
 
-        # ===================== REQUETE 4 (CRITIQUE) =====================
         if token:
             URL_4 = "https://www.chronopost.fr/expeditionAvanceeSec/jsonGeoRouting"
             HEADERS_6 = HEADERS_4.copy()
@@ -85,13 +80,13 @@ def run_chronopost(payload_data=None):
             req4_response = retry_post(
                 URL_4,
                 HEADERS_6,
-                payload_str
+                payload_str,
+                session=session
             )
 
-        # ===================== REQUETE 5 =====================
         if token:
             URL_5 = "https://www.chronopost.fr/expeditionAvanceeSec/shippingZPL"
-            final_response = retry_post(URL_5, HEADERS_6, payload_str)
+            final_response = retry_post(URL_5, HEADERS_6, payload_str, session=session)
 
         duration = time.time() - start_time
 
@@ -112,25 +107,12 @@ def run_chronopost(payload_data=None):
                 try:
                     nlabel = None
                     id_article = None
-                    if "jobName>" in content:
-                        nlabel = content.split("jobName>")[1].split("<")[0]
-                        logger.info(f"LT trouvé: {nlabel}")
-                    else:
-                        logger.warning("Tag <jobName> non trouvé dans la réponse Chronopost")
-                        
-                    if "idArticle>" in content:
-                        id_article = content.split("idArticle>")[1].split("<")[0]
-                        logger.info(f"ID Article trouvé: {id_article}")
-                    else:
-                        logger.warning("Tag <idArticle> non trouvé dans la réponse Chronopost")
-                    
                     if nlabel and id_article:
-                        proforma_res = get_proforma(nlabel, id_article, HEADERS_6)
+                        proforma_res = get_proforma(nlabel, id_article, HEADERS_6, session=session)
                     else:
-                        logger.error(f"Impossible de lancer get_proforma: LT={nlabel}, ID={id_article}")
+                        logger.error(f"Echec extraction Proforma: LT={nlabel}, ID={id_article}.")
                 except Exception as parse_err:
-                   logger.error(f"Erreur lors du parsing des tags Proforma: {str(parse_err)}")
-                   logger.debug(f"Contenu brut pour investigation: {content[:1000]}")
+                   logger.error(f"Exception parsing Proforma: {str(parse_err)}")
 
             return {
                 "status": "success",
@@ -145,23 +127,23 @@ def run_chronopost(payload_data=None):
         logging.getLogger(__name__).error(f"Erreur Chronopost: {str(e)}")
         return {"status": "error", "message": "error"}
 
-def get_proforma(nlabel, id_article, headers):
+def get_proforma(nlabel, id_article, headers, session=None):
     """
-    Récupère la facture Proforma.
+    Récupère la facture Proforma via la session active.
     """
     logger = logging.getLogger(__name__)
     url = "https://www.chronopost.fr/expeditionAvanceeSec/getProforma"
     data = f"proFormaLtNumber={nlabel}&proFormaIdArticle={id_article}"
     
-    # Headers specific for this request based on user images
     req_headers = headers.copy()
     req_headers["Content-Type"] = "application/x-www-form-urlencoded"
     req_headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
     
-    logger.info(f"DEBUG PROFORMA: Tentative de récupération pour LT={nlabel}, ID={id_article}")
+    logger.info(f"DEBUG PROFORMA: Tentative avec LT={nlabel}")
     
     try:
-        r = cffi_requests.post(
+        client = session if session else cffi_requests
+        r = client.post(
             url,
             headers=req_headers,
             data=data,
@@ -171,20 +153,15 @@ def get_proforma(nlabel, id_article, headers):
         logger.info(f"DEBUG PROFORMA: Status Code = {r.status_code}")
         
         if r.status_code == 200:
-            content_len = len(r.content)
-            is_pdf = r.content.startswith(b"%PDF")
-            logger.info(f"DEBUG PROFORMA: Taille reçue = {content_len} octets, Est un PDF = {is_pdf}")
-            
-            if is_pdf:
-                # Return base64 encoded PDF
+            if r.content.startswith(b"%PDF"):
                 return base64.b64encode(r.content).decode('utf-8')
             else:
-                logger.warning(f"DEBUG PROFORMA: Le contenu reçu n'est pas un PDF (commence par: {r.content[:20]})")
+                logger.warning(f"Contenu non-PDF reçu: {r.content[:50]}")
         else:
-            logger.error(f"DEBUG PROFORMA: Erreur lors de la requête (Body: {r.text[:500]})")
+            logger.error(f"Echec Proforma (Code {r.status_code})")
             
     except Exception as e:
-        logger.error(f"DEBUG PROFORMA: Exception = {str(e)}")
+        logger.error(f"Exception Proforma: {str(e)}")
     
     return None
 
