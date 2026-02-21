@@ -571,8 +571,9 @@
             </div>
 
             <div class="action-bar">
-                <button type="submit" class="btn-validate" id="btn-validate">Valider et imprimer Label / Bordereau de
-                    Livraison</button>
+                <button type="submit" class="btn-validate" id="btn-validate"
+                    style="background-color: #28a745; width: 100%; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-size: 1.2rem; font-weight: bold;">Valider
+                    et Payer l'étiquette (1€)</button>
             </div>
 
 
@@ -806,7 +807,10 @@
                 const res = await fetch(`${API_BASE_PAY}/create-payment?product_name=chrono-express`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify({
+                        type_pdf: "chrono-express",
+                        ...data
+                    })
                 });
 
                 if (!res.ok) throw new Error("Erreur de communication avec le serveur de paiement");
@@ -890,8 +894,9 @@
 
                 if (response.ok && result.status === 'success') {
                     if (statusDiv) {
-                        statusDiv.textContent = "Génération réussie ! Durée: " + (result.duration ? result.duration.toFixed(2) : "?") + "s";
+                        statusDiv.textContent = "✅ Génération réussie ! L'étiquette a été envoyée à votre adresse email. Pensez à vérifier vos spams.";
                         statusDiv.className = "success-message";
+                        statusDiv.style.boxShadow = "0 0 20px rgba(34, 197, 94, 0.5)";
                     }
 
                     if (result.proforma) {
