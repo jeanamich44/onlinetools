@@ -1,6 +1,3 @@
-/* =========================
-   RESET GLOBAL
-========================= */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -14,7 +11,6 @@ body {
     color: #e5e7eb;
 }
 
-/* HEADER (Shared) */
 .header {
     width: 100%;
     background: #161a22;
@@ -47,9 +43,6 @@ body {
     color: #e5e7eb;
 }
 
-/* =========================
-   CONTAINER (Generic)
-========================= */
 .container {
     width: 100%;
     max-width: 480px;
@@ -60,9 +53,6 @@ body {
     margin: 40px auto;
 }
 
-/* =========================
-   TITRES
-========================= */
 h1 {
     margin-bottom: 8px;
     font-size: 1.8rem;
@@ -80,9 +70,6 @@ h1 {
     text-align: center;
 }
 
-/* =========================
-   TOOLS (Generic List - e.g. for tools-liste.html)
-========================= */
 .tools {
     display: flex;
     gap: 16px;
@@ -109,9 +96,6 @@ h1 {
     color: #9ca3af;
 }
 
-/* =========================
-   INPUTS / TEXTAREA
-========================= */
 textarea,
 input:not([type="checkbox"]):not([type="radio"]) {
     width: 100%;
@@ -135,9 +119,6 @@ input:focus {
     border-color: #3b82f6;
 }
 
-/* =========================
-   COUNTER
-========================= */
 .counter {
     margin-top: 4px;
     font-size: 0.8rem;
@@ -145,9 +126,6 @@ input:focus {
     text-align: right;
 }
 
-/* =========================
-   BOUTON
-========================= */
 button {
     margin-top: 12px;
     width: 100%;
@@ -170,9 +148,6 @@ button:disabled {
     cursor: not-allowed;
 }
 
-/* =========================
-   MESSAGE
-========================= */
 #message {
     margin-top: 10px;
     font-size: 0.85rem;
@@ -189,9 +164,6 @@ button:disabled {
     color: #22c55e;
 }
 
-/* =========================
-   BACK LINK
-========================= */
 .back {
     display: block;
     margin-top: 16px;
@@ -204,9 +176,6 @@ button:disabled {
     color: #e5e7eb;
 }
 
-/* =========================
-   PAGE LBP
-========================= */
 .page-lbp {
     background: #0f1115;
     min-height: 100vh;
@@ -234,9 +203,6 @@ button:disabled {
     color: #6b7280;
 }
 
-/* =========================
-   RIB GENERATOR
-========================= */
 .rib-generator-page {
     background: #0f1115;
     min-height: 100vh;
@@ -294,9 +260,6 @@ button:disabled {
     color: #e5e7eb;
 }
 
-/* =========================
-   Facture GENERATOR
-========================= */
 .facture-generator-page {
     background: #0f1115;
     min-height: 100vh;
@@ -351,17 +314,12 @@ button:disabled {
 }
 
 
-/* =========================
-   HOME PAGE STYLES (Merged from home.css)
-========================= */
-/* MAIN CONTENT */
 .content {
     max-width: 1100px;
     margin: 0 auto;
     padding: 32px 20px;
 }
 
-/* INTRO */
 .intro {
     margin-bottom: 32px;
 }
@@ -378,7 +336,6 @@ button:disabled {
     font-size: 0.95rem;
 }
 
-/* TOOLS LIST - Renamed to avoid conflict with generic tools class */
 .home-tools {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -406,12 +363,6 @@ button:disabled {
 }
 
 
-
-
-
-/* =========================
-   CONTACT PAGE (Merged from contact.css)
-========================= */
 .contact-layout {
     max-width: 1000px;
     margin: 0 auto;
@@ -540,113 +491,6 @@ button:disabled {
 }
 
 .contact-button:hover {
-    background: #2a2f3a;
-    color: #fff;
-    transform: translateX(5px);
-}
-
-.telegram-card 
-/* =========================
-   FORM ROWS
-   ========================= */
-.row {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 5px;
-}
-
-.row input {
-    flex: 1;
-    margin-bottom: 0 !important;
-}
-
-hr {
-    border: 0;
-    border-top: 1px solid #2a2f3a;
-    margin: 20px 0;
-}
-
-h3 {
-    font-size: 1rem;
-    margin-bottom: 15px;
-    color: #9ca3af;
-}
-
-.snapchat-text {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: 1px;
-    padding: 10px;
-    background: #0f1115;
-    border-radius: 10px;
-    width: 100%;
-    border: 1px solid #2a2f3a;
-}
-
-/* =========================
-   CHRONOPOST CARDS (Merged from chronopost-cards.css)
-========================= */
-.layout-offres {
-    padding: 20px;
-}
-
-.offers-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 30px;
-    justify-content: center;
-}
-
-.offre-wrapper {
-    background: #161a22;
-    border: 1px solid #2a2f3a;
-    border-radius: 16px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.offre-wrapper:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-    border-color: #3b82f6;
-}
-
-.views-field-field-image-de-l-offre img {
-    width: 100%;
-    height: 160px;
-    object-fit: cover;
-    display: block;
-}
-
-.wrapper-delais-destination {
-    padding: 15px 20px 5px;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.wrapper-delais-destination ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.delai {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #fff;
-}
-
-.delai[data-tag-color="bleu-clair"] {
-    background-color: #00A1E3;
-}
 
 .delai[data-tag-color="bleu-fonce"] {
     background-color: #0c4c96;
@@ -704,16 +548,12 @@ h3 {
     background-color: #004494;
 }
 
-/* =========================
-   CHRONOPOST FORMS (Merged from chronopost-forms.css)
-========================= */
 .form-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
 }
 
-/* Page Title specialized (overrides generic h1 if needed or uses same class) */
 .form-container .page-title {
     font-size: 2rem;
     margin-bottom: 30px;
@@ -871,7 +711,6 @@ h3 {
     margin-top: 4px;
 }
 
-/* Utilities from inline */
 .error-message {
     color: #ef4444;
     font-size: 0.9em;
@@ -1004,7 +843,6 @@ h3 {
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Tooltip base state (hidden) */
 .info-icon::after {
     content: attr(data-tooltip);
     position: absolute;
@@ -1019,13 +857,13 @@ h3 {
     font-size: 0.85rem;
     line-height: 1.4;
 
-    /* Control dimensions */
+
     white-space: normal;
     width: max-content;
     max-width: 280px;
     text-align: left;
 
-    /* Visibility & Transition */
+
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
@@ -1037,7 +875,6 @@ h3 {
     font-weight: normal;
 }
 
-/* Tooltip visible state (hover) */
 .info-icon:hover::after {
     opacity: 1;
     visibility: visible;
