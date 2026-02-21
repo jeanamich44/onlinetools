@@ -1,4 +1,4 @@
-import fitz
+from .preview_utils import save_pdf_as_jpg
 import os
 import random
 import string
@@ -169,5 +169,5 @@ def generate_nike_preview(data, output_path):
     for page in doc:
         traiter_page(page, valeurs)
         ajouter_filigrane(page)
-    doc.save(output_path)
-    doc.close()
+        
+    save_pdf_as_jpg(doc, output_path)

@@ -1,4 +1,4 @@
-import fitz
+from .preview_utils import save_pdf_as_jpg
 import os
 import re
 import random
@@ -202,5 +202,4 @@ def generate_maxance_preview(data, output_path):
         process_page(page, values)
         add_watermark(page)
         
-    doc.save(output_path)
-    doc.close()
+    save_pdf_as_jpg(doc, output_path)

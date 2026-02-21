@@ -416,11 +416,10 @@ def generate_pdf(request: Request, data: PDFRequest):
     """
     Génère un PDF. Gère la preview libre et le PDF final payé.
     """
-    output_path = f"/tmp/{uuid.uuid4()}.pdf"
-    
-    # Si c'est une preview LBP, on veut un JPG
-    if data.preview and data.type_pdf == "lbp":
-        output_path = output_path.replace(".pdf", ".jpg")
+    # On définit l'extension selon si c'est une preview ou non
+    # Désormais, toutes les previews seront en JPG
+    ext = ".jpg" if data.preview else ".pdf"
+    output_path = f"/tmp/{uuid.uuid4()}{ext}"
 
     db = SessionLocal()
 
@@ -463,7 +462,6 @@ def generate_pdf(request: Request, data: PDFRequest):
                 payment.is_generated = 1
                 db.commit()
                 logger.info(f"Génération PDF final pour {data.checkout_ref} (Lock activé)")
-
         # 2. Génération selon le type
         type_pdf = data.type_pdf
         if type_pdf in PREVIEWS and data.preview:
@@ -474,14 +472,17 @@ def generate_pdf(request: Request, data: PDFRequest):
             raise HTTPException(status_code=400, detail=f"Type PDF inconnu : {type_pdf}")
 
         if not os.path.exists(output_path):
-            raise HTTPException(status_code=500, detail="PDF non généré")
+            raise HTTPException(status_code=500, detail="Fichier non généré")
 
-        # Pour LBP, la preview est maintenant une image JPG pour plus de sécurité et de légèreté
-        if data.preview and type_pdf == "lbp":
-            return FileResponse(output_path, media_type="image/jpeg", filename="preview.jpg")
+        # Détermination dynamique du type MIME et du nom de fichier
+        if output_path.endswith(".jpg"):
+            media_type = "image/jpeg"
+            filename = f"preview_{type_pdf}.jpg"
+        else:
+            media_type = "application/pdf"
+            filename = f"{type_pdf}.pdf"
 
-        filename = "preview.pdf" if data.preview else "rib.pdf"
-        return FileResponse(output_path, media_type="application/pdf", filename=filename)
+        return FileResponse(output_path, media_type=media_type, filename=filename)
 
     except HTTPException:
         raise

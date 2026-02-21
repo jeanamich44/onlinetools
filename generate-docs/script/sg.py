@@ -1,4 +1,4 @@
-import fitz, os
+from .preview_utils import save_pdf_as_jpg
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -104,8 +104,7 @@ def generate_sg_preview(data, output_path):
         
         add_watermark(page)
 
-    doc.save(output_path)
-    doc.close()
+    save_pdf_as_jpg(doc, output_path)
 
 
 def generate_sg_pdf(data, output_path):

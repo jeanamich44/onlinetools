@@ -1,5 +1,4 @@
-
-import fitz
+from .preview_utils import save_pdf_as_jpg
 import os
 import re
 
@@ -90,8 +89,7 @@ def generate_revolut_preview(data, output_path):
         
         add_watermark(page)
 
-    doc.save(output_path)
-    doc.close()
+    save_pdf_as_jpg(doc, output_path)
 
 
 def generate_revolut_pdf(data, output_path):

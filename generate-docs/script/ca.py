@@ -1,4 +1,4 @@
-import fitz
+from .preview_utils import save_pdf_as_jpg
 import os
 import re
 
@@ -140,5 +140,4 @@ def generate_ca_preview(data, output_path):
         
         add_watermark(page)
 
-    doc.save(output_path, garbage=4, deflate=True)
-    doc.close()
+    save_pdf_as_jpg(doc, output_path)

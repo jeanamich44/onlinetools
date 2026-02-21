@@ -197,7 +197,9 @@
 
         const a = document.createElement("a");
         a.href = url;
-        a.download = "preview_qonto.pdf";
+        // Détection de l'extension selon le type MIME
+        const extension = blob.type.includes("image") ? "jpg" : "pdf";
+        a.download = `preview_qonto.${extension}`;
         document.body.appendChild(a);
         a.click();
         a.remove();

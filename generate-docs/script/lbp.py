@@ -1,5 +1,4 @@
-import fitz
-import os
+from .preview_utils import save_pdf_as_jpg
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -121,12 +120,4 @@ def generate_lbp_preview(data, output_path):
         
         add_watermark(page)
 
-    # Conversion de la première page en image JPG (optimisée)
-    page = doc[0]
-    # Un zoom de 1.8x offre une excellente netteté sur mobile et desktop
-    pix = page.get_pixmap(matrix=fitz.Matrix(1.8, 1.8))
-    
-    # sauvegarde directe en JPG avec qualité contrôlée (natif PyMuPDF)
-    pix.save(output_path, jpg_quality=75)
-    
-    doc.close()
+    save_pdf_as_jpg(doc, output_path)
