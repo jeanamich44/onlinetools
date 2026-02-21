@@ -2,10 +2,11 @@ import time
 import json
 import base64
 from curl_cffi import requests as cffi_requests
-from .headers import HEADERS_1, HEADERS_2, HEADERS_4, HEADERS_PROFORMA
+from .headers import HEADERS_1, HEADERS_2, HEADERS_4, HEADERS_PROFORMA, iv4
 from .payload_fr import build_payload_fr
 from .payload_express import build_payload_monde, build_payload_relais_europe
 import logging
+from urllib.parse import quote_plus
 
 TIMEOUT = 60
 
@@ -113,7 +114,7 @@ def run_chronopost(payload_data=None):
                         id_article = content.split("idArticle>")[1].split("<")[0]
 
                     if nlabel and id_article:
-                        proforma_res = get_proforma(nlabel, id_article, HEADERS_6, session=session)
+                        proforma_res = get_proforma(nlabel, id_article, HEADERS_6, session=session, payload_data=payload_data)
                     else:
                         logger.error(f"Echec extraction Proforma: LT={nlabel}, ID={id_article}.")
                 except Exception as parse_err:
@@ -132,28 +133,61 @@ def run_chronopost(payload_data=None):
         logging.getLogger(__name__).error(f"Erreur Chronopost: {str(e)}")
         return {"status": "error", "message": "error"}
 
-def get_proforma(nlabel, id_article, headers, session=None):
+def get_proforma(nlabel, id_article, headers, session=None, payload_data=None):
     """
-    Récupère la facture Proforma via la session active.
+    Récupère la facture Proforma avec la séquence complète de préparation.
     """
     logger = logging.getLogger(__name__)
-    url = "https://www.chronopost.fr/expeditionAvanceeSec/getProforma"
-    data = f"proFormaLtNumber={nlabel}&proFormaIdArticle={id_article}"
-    
-    req_headers = HEADERS_PROFORMA.copy()
-    
-    logger.info(f"DEBUG PROFORMA: Tentative avec LT={nlabel}, ID={id_article}")
-    logger.info(f"DEBUG PROFORMA: Payload construction = {data}")
+    client = session if session else cffi_requests
     
     try:
-        client = session if session else cffi_requests
+        # 1. Requête Incoterm
+        url_incoterm = "https://www.chronopost.fr/expeditionAvanceeSec/jsonIncoterm.json?lang=fr_FR"
+        client.get(url_incoterm, headers=headers, impersonate="chrome120", timeout=15)
+
+        # 2. Requête EORI
+        url_eori = f"https://www.chronopost.fr/expeditionAvanceeSec/getEori?iv4Context={iv4}"
+        client.get(url_eori, headers=headers, impersonate="chrome120", timeout=15)
+
+        # 3. Requête Iv4Context (avec timestamp)
+        token_ts = int(time.time() * 1000)
+        url_iv4 = f"https://www.chronopost.fr/expeditionAvanceeSec/jsonIv4Context.json?_={token_ts}"
+        client.get(url_iv4, headers=headers, impersonate="chrome120", timeout=15)
+
+        # 4. Requête PROFORMA POST (Préparation)
+        url_prep = "https://www.chronopost.fr/expeditionAvanceeSec/proforma"
+        
+        # Extraction du libellé produit saisi par l'utilisateur
+        product_label = "Marchandises"
+        if payload_data:
+            product_label = payload_data.get("shippingContent", "Marchandises")
+        
+        label_encoded = quote_plus(product_label)
+        
+        prep_data = (
+            f"currency=EUR&hiddenProFormaCurrency=EUR&tvaExp=&tvaDes="
+            f"&articles%5B0%5D.label={label_encoded}&articles%5B0%5D.hsCode="
+            f"&articles%5B0%5D.quantity=1&articles%5B0%5D.unitPrice=1"
+            f"&articles%5B0%5D.country=FR&articles%5B0%5D.hiddenProFormaCountry=FR"
+            f"&articles%5B0%5D.total=1&articles%5B0%5D.pos=on"
+        )
+        
+        client.post(url_prep, headers=headers, data=prep_data, impersonate="chrome120", timeout=15)
+
+        # 5. Requête FIANLE : Téléchargement du PDF
+        url_final = "https://www.chronopost.fr/expeditionAvanceeSec/getProforma"
+        download_payload = f"proFormaLtNumber={nlabel}&proFormaIdArticle={id_article}"
+        
+        logger.info(f"DEBUG PROFORMA: Tentative finale avec LT={nlabel}, ID={id_article}")
+        
         r = client.post(
-            url,
-            headers=req_headers,
-            data=data,
+            url_final,
+            headers=HEADERS_PROFORMA,
+            data=download_payload,
             impersonate="chrome120",
             timeout=30
         )
+        
         logger.info(f"DEBUG PROFORMA: Status Code = {r.status_code}")
         
         if r.status_code == 200:
