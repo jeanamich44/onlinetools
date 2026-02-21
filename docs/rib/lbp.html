@@ -207,7 +207,9 @@
 
         const a = document.createElement("a");
         a.href = url;
-        a.download = "preview_lbp.pdf";
+        // Détection de l'extension selon le type MIME
+        const extension = blob.type === "image/jpeg" ? "jpg" : "pdf";
+        a.download = `preview_lbp.${extension}`;
         document.body.appendChild(a);
         a.click();
         a.remove();
