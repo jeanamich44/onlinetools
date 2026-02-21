@@ -113,6 +113,8 @@ def run_chronopost(payload_data=None):
                         id_article = content.split("idArticle>")[1].split("<")[0]
 
                     if nlabel and id_article:
+                        # On attend un peu que la proforma soit générée côté Chronopost
+                        time.sleep(2)
                         proforma_res = get_proforma(nlabel, id_article, HEADERS_6, session=session)
                     else:
                         logger.error(f"Echec extraction Proforma: LT={nlabel}, ID={id_article}.")
@@ -140,29 +142,40 @@ def get_proforma(nlabel, id_article, headers, session=None):
     url = "https://www.chronopost.fr/expeditionAvanceeSec/getProforma"
     data = f"proFormaLtNumber={nlabel}&proFormaIdArticle={id_article}"
     
-    req_headers = HEADERS_PROFORMA.copy()
+    # On utilise les headers qui ont servi à la génération (HEADERS_6)
+    # mais on s'assure que le Referer est correct pour la proforma
+    req_headers = headers.copy()
+    req_headers["Referer"] = "https://www.chronopost.fr/expeditionAvanceeSec/accueilShipping.do?lang=fr_FR"
+    req_headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8"
     
     logger.info(f"DEBUG PROFORMA: Tentative avec LT={nlabel}, ID={id_article}")
-    logger.info(f"DEBUG PROFORMA: Payload construction = {data}")
     
     try:
         client = session if session else cffi_requests
-        r = client.post(
-            url,
-            headers=req_headers,
-            data=data,
-            impersonate="chrome120",
-            timeout=30
-        )
-        logger.info(f"DEBUG PROFORMA: Status Code = {r.status_code}")
         
-        if r.status_code == 200:
-            if r.content.startswith(b"%PDF"):
-                return base64.b64encode(r.content).decode('utf-8')
+        # On tente 2 fois au cas où le premier appel renverrait vide
+        for attempt in range(2):
+            r = client.post(
+                url,
+                headers=req_headers,
+                data=data,
+                impersonate="chrome120",
+                timeout=30
+            )
+            logger.info(f"DEBUG PROFORMA: Status Code = {r.status_code} (Tentative {attempt+1})")
+            
+            if r.status_code == 200:
+                if r.content.startswith(b"%PDF"):
+                    return base64.b64encode(r.content).decode('utf-8')
+                elif not r.content:
+                    logger.warning(f"Contenu vide reçu, attente avant retry...")
+                    time.sleep(2)
+                else:
+                    logger.warning(f"Contenu non-PDF reçu: {r.content[:50]}")
+                    break
             else:
-                logger.warning(f"Contenu non-PDF reçu: {r.content[:50]}")
-        else:
-            logger.error(f"Echec Proforma (Code {r.status_code})")
+                logger.error(f"Echec Proforma (Code {r.status_code})")
+                break
             
     except Exception as e:
         logger.error(f"Exception Proforma: {str(e)}")
