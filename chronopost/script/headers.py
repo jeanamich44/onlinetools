@@ -1,4 +1,11 @@
+import datetime
+
 iv4 = "d8731416d5d60aac657dd0120cc49f59"
+
+def get_current_cart_date():
+    """Retourne la date actuelle au format DD/MM/YYYY/HH:MM"""
+    now = datetime.datetime.now()
+    return now.strftime("%d/%m/%Y/%H:%M")
 
 HEADERS_1 = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0",
@@ -80,7 +87,27 @@ HEADERS_4 = {
         "JSESSIONID_WSSHIPPING=63B95F899A0A8B4C71646B8AAE1243A5.tc-wsshipping-NODE14; "
         "cookie_idCart=294580485; "
         "cf_clearance=S5tM260WCJR9K9lsxtrxnF2HtLOZDBK6t5_aZt1JyXY-1769546260-1.2.1.1-3Pw6hQ_9LnPIo_Tk_va7YeLWYTK7lawH0iaGd0Gq9EKkvLPogQbJCXEvR83_GZCa0Er6EPdihlBkd9oBxDC5JS1auE4hEj.l7kB1lIe8JW0AG5Z8DpvZD18WIb.rBJBN13VAExmWKjT2JvDCOCDbEUlctf9aL2J6vVWGoxIMKptJSwQHIn_HTtFgxPx9UT3d4iE24LPJx22Lu9TbBng5Sf_9ZgkGUc30VIHtcspuYnU; "
-        "cookie_lastCartUpdate=27/01/2026/21:38; "
+        f"cookie_lastCartUpdate={get_current_cart_date()}; "
         "__cf_bm=gKxC3aVI3mMDix7nM9iX9xEGKVt6YCL8JAfG2mENHAM-1769546325.996029-1.0.1.1-mDiCJv7V9wIAaD.lPGK7HQNgyLxwnodWn2GNksXQJc04lxX9XmD7V6HQyYcWANKUum5b2ticThPvGH34VmoIlrSx3b0ZdFN9NRzPfHEw7Ew.rpDYT2tRhwq7jF5ekkY5"
     ),
+}
+
+HEADERS_PROFORMA = {
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
+    "cache-control": "max-age=0",
+    "content-type": "application/x-www-form-urlencoded",
+    "origin": "https://www.chronopost.fr",
+    "priority": "u=0, i",
+    "referer": "https://www.chronopost.fr/expeditionAvanceeSec/accueilShipping.do?_=1771682072599&lang=fr_FR",
+    "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "document",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-user": "?1",
+    "upgrade-insecure-requests": "1",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
 }

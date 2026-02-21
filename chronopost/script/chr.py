@@ -2,7 +2,7 @@ import time
 import json
 import base64
 from curl_cffi import requests as cffi_requests
-from .headers import HEADERS_1, HEADERS_2, HEADERS_4
+from .headers import HEADERS_1, HEADERS_2, HEADERS_4, HEADERS_PROFORMA
 from .payload_fr import build_payload_fr
 from .payload_express import build_payload_monde, build_payload_relais_europe
 import logging
@@ -140,11 +140,10 @@ def get_proforma(nlabel, id_article, headers, session=None):
     url = "https://www.chronopost.fr/expeditionAvanceeSec/getProforma"
     data = f"proFormaLtNumber={nlabel}&proFormaIdArticle={id_article}"
     
-    req_headers = headers.copy()
-    req_headers["Content-Type"] = "application/x-www-form-urlencoded"
-    req_headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+    req_headers = HEADERS_PROFORMA.copy()
     
-    logger.info(f"DEBUG PROFORMA: Tentative avec LT={nlabel}")
+    logger.info(f"DEBUG PROFORMA: Tentative avec LT={nlabel}, ID={id_article}")
+    logger.info(f"DEBUG PROFORMA: Payload construction = {data}")
     
     try:
         client = session if session else cffi_requests

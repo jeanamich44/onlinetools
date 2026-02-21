@@ -260,7 +260,7 @@
                                     <div class="country-search-wrapper" style="position: relative;">
                                         <input type="text" id="countrySearchInput" placeholder="Rechercher un pays..."
                                             value=""
-                                            style="width: 100% !important; padding: 12px 15px !important; background-color: #0d1117 !important; border: 1px solid #30363d !important; border-radius: 6px !important; color: #fff !important; text-align: left !important; font-size: 1rem !important; transition: border-color 0.2s; direction: ltr !important;">
+                                            style="width: 100% !important; padding: 12px 15px !important; background-color: #0d1117 !important; border: 1px solid #30363d !important; border-radius: 6px !important; color: #fff !important; text-align: center !important; font-size: 1rem !important; transition: border-color 0.2s; direction: ltr !important;">
                                         <input type="hidden" name="destinationCountry" id="destinationCountry" value=""
                                             required>
                                         <ul id="countrySuggestions"
@@ -641,7 +641,7 @@
                 li.addEventListener('mouseenter', () => li.style.backgroundColor = '#2d333b');
                 li.addEventListener('mouseleave', () => li.style.backgroundColor = 'transparent');
                 li.addEventListener('click', () => {
-                    countryInput.value = li.textContent;
+                    countryInput.value = li.textContent.trim();
                     countryHidden.value = li.getAttribute('data-code');
                     countrySuggestions.style.display = 'none';
                 });

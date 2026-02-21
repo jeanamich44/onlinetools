@@ -491,6 +491,9 @@ button:disabled {
 }
 
 .contact-button:hover {
+    background: #1d2129;
+    border-color: #3b4252;
+}
 
 .delai[data-tag-color="bleu-fonce"] {
     background-color: #0c4c96;
