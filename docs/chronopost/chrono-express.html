@@ -29,7 +29,7 @@
         </div>
     </div>
 
-    <div id="statusMessage" style="position:fixed; top:80px; width:100%; text-align:center; z-index:900;"></div>
+    <div id="message" style="position:fixed; top:80px; width:100%; text-align:center; z-index:900;"></div>
 
     <header class="header">
         <div class="header-inner">
@@ -510,7 +510,7 @@
                         <div class="form-group">
                             <label>Contenu de l'envoi * <span class="info-icon"
                                     data-tooltip="Description simple (Lampe, Perceuse...)">?</span></label>
-                            <input type="text" name="shippingContent" required maxlength="60"
+                            <input type="text" name="message" required maxlength="60"
                                 placeholder="Ex: Vêtements, Électronique...">
                         </div>
 
@@ -807,7 +807,7 @@
 
             localStorage.setItem('chronoData', JSON.stringify(data));
 
-            const statusDiv = document.getElementById('statusMessage');
+            const statusDiv = document.getElementById('message');
             if (statusDiv) {
                 statusDiv.textContent = "";
                 statusDiv.className = "";
@@ -857,7 +857,7 @@
 
                     if (statusData.is_generated) {
                         clearInterval(pollInterval);
-                        const statusDiv = document.getElementById('statusMessage');
+                        const statusDiv = document.getElementById('message');
                         if (statusDiv) {
                             statusDiv.textContent = "✅ Paiement validé ! Lancement de la génération...";
                             statusDiv.style.color = "#28a745";
@@ -871,7 +871,7 @@
         }
 
         async function performGeneration(data) {
-            const statusDiv = document.getElementById('statusMessage');
+            const statusDiv = document.getElementById('message');
             if (statusDiv) {
                 statusDiv.innerHTML = '';
                 statusDiv.className = '';
