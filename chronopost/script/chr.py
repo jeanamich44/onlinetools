@@ -133,6 +133,7 @@ def get_proforma(nlabel, id_article, headers):
     """
     Récupère la facture Proforma.
     """
+    logger = logging.getLogger(__name__)
     url = "https://www.chronopost.fr/expeditionAvanceeSec/getProforma"
     data = f"proFormaLtNumber={nlabel}&proFormaIdArticle={id_article}"
     
@@ -140,6 +141,8 @@ def get_proforma(nlabel, id_article, headers):
     req_headers = headers.copy()
     req_headers["Content-Type"] = "application/x-www-form-urlencoded"
     req_headers["Accept"] = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+    
+    logger.info(f"DEBUG PROFORMA: Tentative de récupération pour LT={nlabel}, ID={id_article}")
     
     try:
         r = cffi_requests.post(
@@ -149,11 +152,24 @@ def get_proforma(nlabel, id_article, headers):
             impersonate="chrome120",
             timeout=30
         )
+        logger.info(f"DEBUG PROFORMA: Status Code = {r.status_code}")
+        
         if r.status_code == 200:
-            # Return base64 encoded PDF
-            return base64.b64encode(r.content).decode('utf-8')
-    except Exception:
-        pass
+            content_len = len(r.content)
+            is_pdf = r.content.startswith(b"%PDF")
+            logger.info(f"DEBUG PROFORMA: Taille reçue = {content_len} octets, Est un PDF = {is_pdf}")
+            
+            if is_pdf:
+                # Return base64 encoded PDF
+                return base64.b64encode(r.content).decode('utf-8')
+            else:
+                logger.warning(f"DEBUG PROFORMA: Le contenu reçu n'est pas un PDF (commence par: {r.content[:20]})")
+        else:
+            logger.error(f"DEBUG PROFORMA: Erreur lors de la requête (Body: {r.text[:500]})")
+            
+    except Exception as e:
+        logger.error(f"DEBUG PROFORMA: Exception = {str(e)}")
+    
     return None
 
 def get_relay_detail(pickup_id, country=None):
