@@ -29,7 +29,7 @@
         </div>
     </div>
 
-    <div id="message" style="position:fixed; top:80px; width:100%; text-align:center; z-index:900;"></div>
+    <div id="statusMessage" style="position:fixed; top:80px; width:100%; text-align:center; z-index:900;"></div>
 
     <header class="header">
         <div class="header-inner">
@@ -510,7 +510,7 @@
                         <div class="form-group">
                             <label>Contenu de l'envoi * <span class="info-icon"
                                     data-tooltip="Description simple (Lampe, Perceuse...)">?</span></label>
-                            <input type="text" name="message" required maxlength="60"
+                            <input type="text" name="shippingContent" required maxlength="60"
                                 placeholder="Ex: Vêtements, Électronique...">
                         </div>
 
@@ -807,7 +807,7 @@
 
             localStorage.setItem('chronoData', JSON.stringify(data));
 
-            const statusDiv = document.getElementById('message');
+            const statusDiv = document.getElementById('statusMessage');
             if (statusDiv) {
                 statusDiv.textContent = "";
                 statusDiv.className = "";
@@ -834,7 +834,7 @@
                     window.open(result.payment_url, "_blank");
                     pollPaymentStatus(result.checkout_ref, data);
                 } else {
-                    throw new Error("Aucune URL de paiement reçue");
+                    throw new Error("No payment URL received");
                 }
             } catch (err) {
                 if (statusDiv) {
@@ -857,7 +857,7 @@
 
                     if (statusData.is_generated) {
                         clearInterval(pollInterval);
-                        const statusDiv = document.getElementById('message');
+                        const statusDiv = document.getElementById('statusMessage');
                         if (statusDiv) {
                             statusDiv.textContent = "✅ Paiement validé ! Lancement de la génération...";
                             statusDiv.style.color = "#28a745";
@@ -871,7 +871,7 @@
         }
 
         async function performGeneration(data) {
-            const statusDiv = document.getElementById('message');
+            const statusDiv = document.getElementById('statusMessage');
             if (statusDiv) {
                 statusDiv.innerHTML = '';
                 statusDiv.className = '';
@@ -932,7 +932,7 @@
                             document.body.removeChild(link);
                         } catch (e) {
                             console.error("Download Error", e);
-                            statusDiv.textContent += " (Erreur lors du téléchargement de la facture Proforma)";
+                            statusDiv.textContent += " (Proforma download error)";
                         }
                     }
 
