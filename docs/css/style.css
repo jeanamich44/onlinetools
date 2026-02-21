@@ -11,6 +11,7 @@ body {
     color: #e5e7eb;
 }
 
+
 .header {
     width: 100%;
     background: #161a22;
@@ -43,6 +44,7 @@ body {
     color: #e5e7eb;
 }
 
+
 .container {
     width: 100%;
     max-width: 480px;
@@ -52,6 +54,7 @@ body {
     padding: 24px;
     margin: 40px auto;
 }
+
 
 h1 {
     margin-bottom: 8px;
@@ -69,6 +72,7 @@ h1 {
 .container .subtitle {
     text-align: center;
 }
+
 
 .tools {
     display: flex;
@@ -96,6 +100,7 @@ h1 {
     color: #9ca3af;
 }
 
+
 textarea,
 input:not([type="checkbox"]):not([type="radio"]) {
     width: 100%;
@@ -119,12 +124,14 @@ input:focus {
     border-color: #3b82f6;
 }
 
+
 .counter {
     margin-top: 4px;
     font-size: 0.8rem;
     color: #9ca3af;
     text-align: right;
 }
+
 
 button {
     margin-top: 12px;
@@ -148,6 +155,7 @@ button:disabled {
     cursor: not-allowed;
 }
 
+
 #message {
     margin-top: 10px;
     font-size: 0.85rem;
@@ -164,6 +172,7 @@ button:disabled {
     color: #22c55e;
 }
 
+
 .back {
     display: block;
     margin-top: 16px;
@@ -175,6 +184,7 @@ button:disabled {
 .back:hover {
     color: #e5e7eb;
 }
+
 
 .page-lbp {
     background: #0f1115;
@@ -202,6 +212,7 @@ button:disabled {
 .page-lbp input::placeholder {
     color: #6b7280;
 }
+
 
 .rib-generator-page {
     background: #0f1115;
@@ -260,6 +271,7 @@ button:disabled {
     color: #e5e7eb;
 }
 
+
 .facture-generator-page {
     background: #0f1115;
     min-height: 100vh;
@@ -314,11 +326,13 @@ button:disabled {
 }
 
 
+
 .content {
     max-width: 1100px;
     margin: 0 auto;
     padding: 32px 20px;
 }
+
 
 .intro {
     margin-bottom: 32px;
@@ -335,6 +349,7 @@ button:disabled {
     color: #9ca3af;
     font-size: 0.95rem;
 }
+
 
 .home-tools {
     display: grid;
@@ -361,6 +376,10 @@ button:disabled {
     font-size: 0.9rem;
     color: #9ca3af;
 }
+
+
+
+
 
 
 .contact-layout {
@@ -491,8 +510,106 @@ button:disabled {
 }
 
 .contact-button:hover {
-    background: #1d2129;
-    border-color: #3b4252;
+    background: #2a2f3a;
+    color: #fff;
+    transform: translateX(5px);
+}
+
+.telegram-card .row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.row input {
+    flex: 1;
+    margin-bottom: 0 !important;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #2a2f3a;
+    margin: 20px 0;
+}
+
+h3 {
+    font-size: 1rem;
+    margin-bottom: 15px;
+    color: #9ca3af;
+}
+
+.snapchat-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+    padding: 10px;
+    background: #0f1115;
+    border-radius: 10px;
+    width: 100%;
+    border: 1px solid #2a2f3a;
+}
+
+
+.layout-offres {
+    padding: 20px;
+}
+
+.offers-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    justify-content: center;
+}
+
+.offre-wrapper {
+    background: #161a22;
+    border: 1px solid #2a2f3a;
+    border-radius: 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.offre-wrapper:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    border-color: #3b82f6;
+}
+
+.views-field-field-image-de-l-offre img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+}
+
+.wrapper-delais-destination {
+    padding: 15px 20px 5px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.wrapper-delais-destination ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.delai {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+.delai[data-tag-color="bleu-clair"] {
+    background-color: #00A1E3;
 }
 
 .delai[data-tag-color="bleu-fonce"] {
@@ -551,11 +668,13 @@ button:disabled {
     background-color: #004494;
 }
 
+
 .form-container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
 }
+
 
 .form-container .page-title {
     font-size: 2rem;
@@ -714,6 +833,7 @@ button:disabled {
     margin-top: 4px;
 }
 
+
 .error-message {
     color: #ef4444;
     font-size: 0.9em;
@@ -846,6 +966,7 @@ button:disabled {
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+
 .info-icon::after {
     content: attr(data-tooltip);
     position: absolute;
@@ -877,6 +998,7 @@ button:disabled {
     font-family: system-ui, -apple-system, sans-serif;
     font-weight: normal;
 }
+
 
 .info-icon:hover::after {
     opacity: 1;

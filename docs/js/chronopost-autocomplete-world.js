@@ -1,39 +1,25 @@
-/**
- * Autocomplétion Adresse Chronopost - Version Monde
- * France : geo.api.gouv.fr (Supporte recherche partielle/exacte)
- * International : api.zippopotam.us (Requiert Code Postal Exact/Valide pour répondre)
- */
-
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Helper: Determine min length for zip trigger based on country
     function getMinZipLength(country) {
         switch (country) {
-            case 'US': return 5; // US Zips are 5 digits
+            case 'US': return 5;
             case 'DE': return 5;
             case 'FR': return 5;
             case 'ES': return 5;
             case 'IT': return 5;
-            case 'CA': return 3; // Forward Sortation Area (A1A)
-            case 'GB': return 2; // SW...
+            case 'CA': return 3;
+            case 'GB': return 2;
             default: return 2;
         }
     }
 
-    // Helper: Normalize Zip for API
     function normalizeZip(zip, country) {
         let z = zip.trim();
         if (country === 'CA') {
             return z.substring(0, 3);
         }
         if (country === 'GB') {
-            // Zippopotam handles standard UKzips. 
-            // Often best to keep spaces? format: AA9A 9AA
-            // But api can take first part.
-            // Let's pass as is or trimmed.
-            return z.split(' ')[0]; // Try matching Outward Code? Zippopotam GB is tricky. 
-            // Actually Zippopotam GB supports full zip "SW1A 2AA".
-            // If user types partial "SW1A", it *might* work?
+            return z.split(' ')[0];
         }
         return z;
     }
@@ -68,17 +54,13 @@ document.addEventListener('DOMContentLoaded', () => {
         cpInput.addEventListener('input', async function () {
             const zip = this.value.trim();
 
-            // Resolve Country
-            let countryCode = 'FR'; // Default
+            let countryCode = 'FR';
             if (countryInput) {
-                // Should work even if select is hidden
                 countryCode = countryInput.value ? countryInput.value.toUpperCase() : 'FR';
             }
 
-            // check Trigger
             if (zip.length < getMinZipLength(countryCode)) return;
 
-            // FRANCE LOGIC
             if (countryCode === 'FR') {
                 if (!/^\d+$/.test(zip)) return;
                 try {
@@ -99,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error("FR Geo Error", e);
                 }
             }
-            // INTERNATIONAL LOGIC
             else {
                 const queryZip = normalizeZip(zip, countryCode);
                 const apiUrl = `https://api.zippopotam.us/${countryCode.toLowerCase()}/${queryZip}`;
@@ -107,14 +88,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const response = await fetch(apiUrl);
                     if (!response.ok) {
-                        // 404 etc.
                         return;
                     }
                     const data = await response.json();
 
                     citiesList.innerHTML = '';
                     if (data.places && data.places.length > 0) {
-                        // Auto-select first if only one?
                         if (data.places.length === 1) {
                             cityInput.value = data.places[0]["place name"];
                         }
@@ -198,7 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Init
     const allCPs = [
         ...document.querySelectorAll('input[name$="_cp"]'),
         ...document.querySelectorAll('input[name$="CP"]')
@@ -211,7 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
     allAddrs.forEach(setupAddressAutocomplete);
 
-    // --- Dynamic Validation Logic (Copied for consistency) ---
     function setupDynamicValidation() {
         if (!document.getElementById('dynamic-validation-style')) {
             const style = document.createElement('style');
