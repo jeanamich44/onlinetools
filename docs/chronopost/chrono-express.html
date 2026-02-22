@@ -834,14 +834,28 @@
                                     statusDiv.textContent = "✅ Generation Successful! The label has been sent to your email.";
                                     statusDiv.className = "success-message";
                                 }
+
+                                const overlay = document.getElementById('overlay');
+                                const btn = document.getElementById('btn-validate');
+                                if (overlay) overlay.style.visibility = 'hidden';
+                                if (btn) {
+                                    btn.disabled = false;
+                                    btn.textContent = "Valider et imprimer Label / Bordereau de Livraison";
+                                }
+
                                 window.location.href = `${API_BASE_PAY}/api/download-pdf/${result.checkout_ref}`;
                                 break;
                             } else if (waitData.status === "TIMEOUT") {
                                 continue;
+                            } else if (waitData.status === "FAILED") {
+                                throw new Error("Payment Failed");
                             } else {
-                                throw new Error("Payment Failed or Error");
+                                throw new Error("Error");
                             }
                         } catch (e) {
+                            if (e.message === "Payment Failed" || e.message === "Error") {
+                                throw e;
+                            }
                             await new Promise(r => setTimeout(r, 2000));
                             continue;
                         }
