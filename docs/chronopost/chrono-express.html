@@ -823,19 +823,28 @@
                 if (result.payment_url) {
                     window.open(result.payment_url, "_blank");
 
-                    const waitRes = await fetch(`${API_BASE_PAY}/api/wait-for-success/${result.checkout_ref}`);
-                    const waitData = await waitRes.json();
+                    while (true) {
+                        try {
+                            const waitRes = await fetch(`${API_BASE_PAY}/api/wait-for-success/${result.checkout_ref}`);
+                            const waitData = await waitRes.json();
 
-                    if (waitData.status === "SUCCESS") {
-                        stopGlobalTimer();
-                        if (statusDiv) {
-                            statusDiv.textContent = "✅ Generation Successful! The label has been sent to your email.";
-                            statusDiv.className = "success-message";
+                            if (waitData.status === "SUCCESS") {
+                                stopGlobalTimer();
+                                if (statusDiv) {
+                                    statusDiv.textContent = "✅ Generation Successful! The label has been sent to your email.";
+                                    statusDiv.className = "success-message";
+                                }
+                                window.location.href = `${API_BASE_PAY}/api/download-pdf/${result.checkout_ref}`;
+                                break;
+                            } else if (waitData.status === "TIMEOUT") {
+                                continue;
+                            } else {
+                                throw new Error("Payment Failed or Error");
+                            }
+                        } catch (e) {
+                            await new Promise(r => setTimeout(r, 2000));
+                            continue;
                         }
-
-                        window.location.href = `${API_BASE_PAY}/api/download-pdf/${result.checkout_ref}`;
-                    } else {
-                        throw new Error("Timeout");
                     }
                 }
             } catch (err) {

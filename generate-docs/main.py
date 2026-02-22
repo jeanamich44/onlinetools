@@ -285,11 +285,15 @@ async def get_payment_status(checkout_reference: str, db: Session = Depends(get_
 @app.get("/api/wait-for-success/{checkout_reference}")
 async def wait_for_success(checkout_reference: str, db: Session = Depends(get_db)):
     import asyncio
-    for _ in range(45):
+    for _ in range(30):
+        db.expire_all()
         payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
-        if payment and payment.is_generated:
-            return {"status": "SUCCESS"}
-        await asyncio.sleep(2)
+        if payment:
+            if payment.is_generated == 1:
+                return {"status": "SUCCESS"}
+            if payment.status == "FAILED":
+                return {"status": "FAILED"}
+        await asyncio.sleep(1.5)
     return {"status": "TIMEOUT"}
 
 @app.get("/api/download-pdf/{checkout_reference}")
