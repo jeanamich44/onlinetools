@@ -2,7 +2,7 @@ import time
 import json
 import base64
 from curl_cffi import requests as cffi_requests
-from .headers import HEADERS_1, HEADERS_2, HEADERS_4, HEADERS_PROFORMA, iv4
+from .headers import HEADERS_1, HEADERS_2, HEADERS_4, iv4
 from .payload_fr import build_payload_fr
 from .payload_express import build_payload_monde, build_payload_relais_europe
 import logging
@@ -74,6 +74,24 @@ def run_chronopost(payload_data=None):
             URL_3 = f"https://www.chronopost.fr/expeditionAvanceeSec/accueilShipping.do?_={token}&lang=fr_FR"
             r3 = retry_get(URL_3, HEADERS_4, session=session)
 
+            # --- PHASE PRÉPARATION PROFORMA (MONDE) ---
+            if valeur_product == "monde":
+                logger.info("Envoi des données Proforma avant GeoRouting")
+                url_prep = "https://www.chronopost.fr/expeditionAvanceeSec/proforma"
+                product_label = payload_data.get("shippingContent", "Marchandises")
+                label_encoded = quote_plus(product_label)
+                
+                prep_data = (
+                    f"currency=EUR&hiddenProFormaCurrency=EUR&tvaExp=&tvaDes="
+                    f"&articles%5B0%5D.label={label_encoded}&articles%5B0%5D.hsCode="
+                    f"&articles%5B0%5D.quantity=1&articles%5B0%5D.unitPrice=1"
+                    f"&articles%5B0%5D.country=FR&articles%5B0%5D.hiddenProFormaCountry=FR"
+                    f"&articles%5B0%5D.total=1&articles%5B0%5D.pos=on"
+                )
+                h_prep = HEADERS_4.copy()
+                h_prep["Content-Type"] = "application/x-www-form-urlencoded"
+                retry_post(url_prep, h_prep, prep_data, session=session)
+
         if token:
             URL_4 = "https://www.chronopost.fr/expeditionAvanceeSec/jsonGeoRouting"
             HEADERS_6 = HEADERS_4.copy()
@@ -91,20 +109,14 @@ def run_chronopost(payload_data=None):
 
         duration = time.time() - start_time
 
-        is_monde = payload_data and payload_data.get("valeurproduct") == "monde"
-        check_routing = False
         if req4_response and "true" in req4_response.text.lower():
-            check_routing = True
-
-
+            pass
 
         if final_response and final_response.status_code == 200:
             content = final_response.text
-            proforma_res = None
-            
-            # Logic "monde" -> parse jobName/idArticle -> get_proforma
-            if is_monde:
-                logger.info("Produit Monde détecté, tentative d'extraction LT et ID Article pour Proforma")
+            proforma_b64 = None
+
+            if valeur_product == "monde":
                 try:
                     nlabel = None
                     id_article = None
@@ -114,16 +126,27 @@ def run_chronopost(payload_data=None):
                         id_article = content.split("idArticle>")[1].split("<")[0]
 
                     if nlabel and id_article:
-                        proforma_res = get_proforma(nlabel, id_article, HEADERS_6, session=session, payload_data=payload_data)
-                    else:
-                        logger.error(f"Echec extraction Proforma: LT={nlabel}, ID={id_article}.")
-                except Exception as parse_err:
-                   logger.error(f"Exception parsing Proforma: {str(parse_err)}")
+                        logger.info(f"Récupération de la Proforma pour LT: {nlabel}")
+                        url_get_proforma = "https://www.chronopost.fr/expeditionAvanceeSec/getProforma"
+                        # Configuration des headers pour le téléchargement
+                        h_dl = HEADERS_4.copy()
+                        h_dl["Content-Type"] = "application/x-www-form-urlencoded"
+                        h_dl["Referer"] = "https://www.chronopost.fr/expeditionAvanceeSec/accueilShipping.do?lang=fr_FR"
+                        
+                        dl_data = f"proFormaLtNumber={nlabel}&proFormaIdArticle={id_article}"
+                        r_pdf = retry_post(url_get_proforma, h_dl, dl_data, session=session)
+                        
+                        if r_pdf.status_code == 200 and r_pdf.content.startswith(b"%PDF"):
+                            proforma_b64 = base64.b64encode(r_pdf.content).decode('utf-8')
+                        else:
+                            logger.error("Défaut de récupération du PDF Proforma")
+                except Exception as e:
+                    logger.error(f"Erreur lors de la récupération Proforma: {str(e)}")
 
             return {
                 "status": "success",
                 "duration": duration,
-                "proforma": proforma_res
+                "proforma": proforma_b64
             }
 
         return {"status": "error", "message": "Final request failed"}
@@ -132,76 +155,6 @@ def run_chronopost(payload_data=None):
         # Log détaillé côté serveur
         logging.getLogger(__name__).error(f"Erreur Chronopost: {str(e)}")
         return {"status": "error", "message": "error"}
-
-def get_proforma(nlabel, id_article, headers, session=None, payload_data=None):
-    """
-    Récupère la facture Proforma avec la séquence complète de préparation.
-    """
-    logger = logging.getLogger(__name__)
-    client = session if session else cffi_requests
-    
-    try:
-        # 1. Requête Incoterm
-        url_incoterm = "https://www.chronopost.fr/expeditionAvanceeSec/jsonIncoterm.json?lang=fr_FR"
-        client.get(url_incoterm, headers=headers, impersonate="chrome120", timeout=15)
-
-        # 2. Requête EORI
-        url_eori = f"https://www.chronopost.fr/expeditionAvanceeSec/getEori?iv4Context={iv4}"
-        client.get(url_eori, headers=headers, impersonate="chrome120", timeout=15)
-
-        # 3. Requête Iv4Context (avec timestamp)
-        token_ts = int(time.time() * 1000)
-        url_iv4 = f"https://www.chronopost.fr/expeditionAvanceeSec/jsonIv4Context.json?_={token_ts}"
-        client.get(url_iv4, headers=headers, impersonate="chrome120", timeout=15)
-
-        # 4. Requête PROFORMA POST (Préparation)
-        url_prep = "https://www.chronopost.fr/expeditionAvanceeSec/proforma"
-        
-        # Extraction du libellé produit saisi par l'utilisateur
-        product_label = "Marchandises"
-        if payload_data:
-            product_label = payload_data.get("shippingContent", "Marchandises")
-        
-        label_encoded = quote_plus(product_label)
-        
-        prep_data = (
-            f"currency=EUR&hiddenProFormaCurrency=EUR&tvaExp=&tvaDes="
-            f"&articles%5B0%5D.label={label_encoded}&articles%5B0%5D.hsCode="
-            f"&articles%5B0%5D.quantity=1&articles%5B0%5D.unitPrice=1"
-            f"&articles%5B0%5D.country=FR&articles%5B0%5D.hiddenProFormaCountry=FR"
-            f"&articles%5B0%5D.total=1&articles%5B0%5D.pos=on"
-        )
-        
-        client.post(url_prep, headers=headers, data=prep_data, impersonate="chrome120", timeout=15)
-
-        # 5. Requête FIANLE : Téléchargement du PDF
-        url_final = "https://www.chronopost.fr/expeditionAvanceeSec/getProforma"
-        download_payload = f"proFormaLtNumber={nlabel}&proFormaIdArticle={id_article}"
-        
-        logger.info(f"DEBUG PROFORMA: Tentative finale avec LT={nlabel}, ID={id_article}")
-        
-        r = client.post(
-            url_final,
-            headers=HEADERS_PROFORMA,
-            data=download_payload,
-            impersonate="chrome120",
-            timeout=30
-        )
-        
-        logger.info(f"DEBUG PROFORMA: Status Code = {r.status_code}")
-        
-        if r.status_code == 200:
-            if r.content.startswith(b"%PDF"):
-                return base64.b64encode(r.content).decode('utf-8')
-            else:
-                logger.warning(f"Contenu non-PDF reçu: {r.content[:50]}")
-        else:
-            logger.error(f"Echec Proforma (Code {r.status_code})")
-            
-    except Exception as e:
-        logger.error(f"Exception Proforma: {str(e)}")
-    
-    return None
 
 def get_relay_detail(pickup_id, country=None):
     """
