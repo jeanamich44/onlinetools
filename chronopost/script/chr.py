@@ -125,25 +125,25 @@ def run_chronopost(payload_data=None):
                     if "idArticle>" in content:
                         id_article = content.split("idArticle>")[1].split("<")[0]
 
-                if nlabel and id_article:
-                    logger.info(f"DEBUG PROFORMA - LT: {nlabel}, ID_ARTICLE: {id_article}")
-                    logger.info(f"Récupération de la Proforma pour LT: {nlabel}")
-                    url_get_proforma = "https://www.chronopost.fr/expeditionAvanceeSec/getProforma"
-                    # Configuration des headers pour le téléchargement
-                    h_dl = HEADERS_4.copy()
-                    h_dl["Content-Type"] = "application/x-www-form-urlencoded"
-                    h_dl["Referer"] = "https://www.chronopost.fr/expeditionAvanceeSec/accueilShipping.do?lang=fr_FR"
-                    
-                    dl_data = f"proFormaLtNumber={nlabel}&proFormaIdArticle={id_article}"
-                    r_pdf = retry_post(url_get_proforma, h_dl, dl_data, session=session)
-                    
-                    logger.info(f"DEBUG GET_PROFORMA - STATUS: {r_pdf.status_code} - CONTENT_TYPE: {r_pdf.headers.get('Content-Type')} - SIZE: {len(r_pdf.content)}")
+                    if nlabel and id_article:
+                        logger.info(f"DEBUG PROFORMA - LT: {nlabel}, ID_ARTICLE: {id_article}")
+                        logger.info(f"Récupération de la Proforma pour LT: {nlabel}")
+                        url_get_proforma = "https://www.chronopost.fr/expeditionAvanceeSec/getProforma"
+                        # Configuration des headers pour le téléchargement
+                        h_dl = HEADERS_4.copy()
+                        h_dl["Content-Type"] = "application/x-www-form-urlencoded"
+                        h_dl["Referer"] = "https://www.chronopost.fr/expeditionAvanceeSec/accueilShipping.do?lang=fr_FR"
+                        
+                        dl_data = f"proFormaLtNumber={nlabel}&proFormaIdArticle={id_article}"
+                        r_pdf = retry_post(url_get_proforma, h_dl, dl_data, session=session)
+                        
+                        logger.info(f"DEBUG GET_PROFORMA - STATUS: {r_pdf.status_code} - CONTENT_TYPE: {r_pdf.headers.get('Content-Type')} - SIZE: {len(r_pdf.content)}")
 
-                    if r_pdf.status_code == 200 and r_pdf.content.startswith(b"%PDF"):
-                        proforma_b64 = base64.b64encode(r_pdf.content).decode('utf-8')
-                        logger.info("DEBUG PROFORMA - PDF encodé avec succès")
-                    else:
-                        logger.error(f"Défaut de récupération du PDF Proforma - Contenu: {r_pdf.text[:200]}")
+                        if r_pdf.status_code == 200 and r_pdf.content.startswith(b"%PDF"):
+                            proforma_b64 = base64.b64encode(r_pdf.content).decode('utf-8')
+                            logger.info("DEBUG PROFORMA - PDF encodé avec succès")
+                        else:
+                            logger.error(f"Défaut de récupération du PDF Proforma - Contenu: {r_pdf.text[:200]}")
                 except Exception as e:
                     logger.error(f"Erreur lors de la récupération Proforma: {str(e)}")
 
