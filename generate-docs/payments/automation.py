@@ -29,6 +29,15 @@ async def trigger_automatic_generation(payment, db=None):
                         res_json = await response.json()
                         if res_json.get("status") == "success":
                             logger.info(f"Génération automatique réussie pour {payment.checkout_ref}")
+                            
+                            # On injecte le proforma dans user_data pour retour client (évite migration DB)
+                            try:
+                                current_data = json.loads(payment.user_data)
+                                current_data["proforma_b64"] = res_json.get("proforma")
+                                payment.user_data = json.dumps(current_data)
+                            except:
+                                pass
+
                             payment.is_generated = 1
                             if db: db.commit()
                             return True

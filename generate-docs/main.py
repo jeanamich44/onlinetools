@@ -14,7 +14,7 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Request, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response, StreamingResponse
 from pydantic import BaseModel, parse_obj_as
 from sqlalchemy.orm import Session
 
@@ -277,33 +277,43 @@ async def create_payment_endpoint(request: Request, data: PDFRequest, background
 
 @app.get("/api/payment-status/{checkout_reference}")
 async def get_payment_status(checkout_reference: str, db: Session = Depends(get_db)):
-    """Retourne le statut du paiement et si le PDF est prêt."""
     payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
     if not payment:
-        raise HTTPException(status_code=404, detail="Paiement non trouvé")
-    
-    return {
-        "status": payment.status,
-        "is_generated": payment.is_generated == 1
-    }
+        raise HTTPException(status_code=404, detail="Error")
+    return {"status": payment.status}
+
+@app.get("/api/wait-for-success/{checkout_reference}")
+async def wait_for_success(checkout_reference: str, db: Session = Depends(get_db)):
+    import asyncio
+    for _ in range(45):
+        payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
+        if payment and payment.is_generated:
+            return {"status": "SUCCESS"}
+        await asyncio.sleep(2)
+    return {"status": "TIMEOUT"}
 
 @app.get("/api/download-pdf/{checkout_reference}")
 async def download_paid_pdf(checkout_reference: str, db: Session = Depends(get_db)):
-    """Permet de télécharger le PDF généré en arrière-plan."""
     payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
     if not payment or payment.status != "PAID":
-        raise HTTPException(status_code=402, detail="Paiement non confirmé ou non trouvé")
+        raise HTTPException(status_code=402, detail="Error")
     
+    import json
+    try:
+        data = json.loads(payment.user_data)
+        if "proforma_b64" in data:
+            import base64
+            from io import BytesIO
+            pdf_bytes = base64.b64decode(data["proforma_b64"])
+            return StreamingResponse(BytesIO(pdf_bytes), media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=proforma_{checkout_reference}.pdf"})
+    except:
+        pass
+
     file_path = os.path.join("paid_pdfs", f"{checkout_reference}.pdf")
-    if not os.path.exists(file_path):
-        # Si le fichier n'existe pas encore (génération en cours), on tente de le générer en direct
-        from payments.automation import trigger_automatic_generation
-        await trigger_automatic_generation(payment, db)
-        
     if os.path.exists(file_path):
         return FileResponse(file_path, filename=f"document_{checkout_reference}.pdf", media_type="application/pdf")
     
-    raise HTTPException(status_code=404, detail="Le fichier n'a pas pu être généré. Contactez le support.")
+    raise HTTPException(status_code=404, detail="Error")
 
 @app.get("/payment-success")
 @app.get("/payment-success/")

@@ -772,23 +772,18 @@
 
         function updateDestCountry(select) {
             // Updated directly by custom selector
-            // Logic handled there
         }
 
         async function handleSubmit(event) {
             event.preventDefault();
-            const form = event.target;
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
-
-            if (data.shippingDate_input) {
-                const parts = data.shippingDate_input.split('-');
-                if (parts.length === 3) {
-                    const [y, m, d] = parts;
-                    data.shippingDate = `${d}/${m}/${y}`;
-                }
+            const statusDiv = document.getElementById('statusMessage');
+            if (statusDiv) {
+                statusDiv.innerHTML = '';
+                statusDiv.className = '';
             }
-            delete data.shippingDate_input;
+
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
 
             try {
                 const btn = document.getElementById('btn-validate');
@@ -804,7 +799,6 @@
                 if (overlay) overlay.style.visibility = 'visible';
                 if (timerContainer) timerContainer.style.display = 'block';
 
-                // Timer Global
                 let seconds = 0;
                 window.globalTimerInterval = setInterval(() => {
                     seconds++;
@@ -823,19 +817,31 @@
                     })
                 });
 
-                if (!res.ok) throw new Error("Erreur de communication avec le serveur de paiement");
+                if (!res.ok) throw new Error("Error");
 
                 const result = await res.json();
                 if (result.payment_url) {
                     window.open(result.payment_url, "_blank");
-                    pollPaymentStatus(result.checkout_ref);
-                } else {
-                    throw new Error("Aucune URL de paiement reçue du serveur");
+
+                    const waitRes = await fetch(`${API_BASE_PAY}/api/wait-for-success/${result.checkout_ref}`);
+                    const waitData = await waitRes.json();
+
+                    if (waitData.status === "SUCCESS") {
+                        stopGlobalTimer();
+                        if (statusDiv) {
+                            statusDiv.textContent = "✅ Generation Successful! The label has been sent to your email.";
+                            statusDiv.className = "success-message";
+                        }
+
+                        window.location.href = `${API_BASE_PAY}/api/download-pdf/${result.checkout_ref}`;
+                    } else {
+                        throw new Error("Timeout");
+                    }
                 }
             } catch (err) {
                 stopGlobalTimer();
                 if (statusDiv) {
-                    statusDiv.textContent = "Erreur : " + err.message;
+                    statusDiv.textContent = "Error";
                     statusDiv.className = "error-message";
                 }
                 const btn = document.getElementById('btn-validate');
@@ -855,39 +861,6 @@
             }
             const timerContainer = document.getElementById('timerContainer');
             if (timerContainer) timerContainer.style.display = 'none';
-        }
-
-        function pollPaymentStatus(ref) {
-            const API_BASE_PAY = "https://generate-docs-production.up.railway.app";
-            const pollInterval = setInterval(async () => {
-                try {
-                    const statusRes = await fetch(`${API_BASE_PAY}/api/payment-status/${ref}`);
-                    const statusData = await statusRes.json();
-
-                    if (statusData.is_generated) {
-                        clearInterval(pollInterval);
-                        stopGlobalTimer();
-
-                        const statusDiv = document.getElementById('statusMessage');
-                        const overlay = document.getElementById('overlay');
-                        const btn = document.getElementById('btn-validate');
-
-                        if (statusDiv) {
-                            statusDiv.textContent = "✅ Génération réussie ! L'étiquette a été envoyée à votre adresse email. Pensez à vérifier vos spams.";
-                            statusDiv.className = "success-message";
-                            statusDiv.style.boxShadow = "0 0 20px rgba(34, 197, 94, 0.5)";
-                        }
-
-                        if (overlay) overlay.style.visibility = 'hidden';
-                        if (btn) {
-                            btn.disabled = false;
-                            btn.textContent = "Valider et imprimer Label / Bordereau de Livraison";
-                        }
-                    }
-                } catch (pollErr) {
-                    console.error("Polling error:", pollErr);
-                }
-            }, 4000);
         }
 
     </script>
