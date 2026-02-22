@@ -1,11 +1,4 @@
-import datetime
-
-iv4 = "d8731416d5d60aac657dd0120cc49f59"
-
-def get_current_cart_date():
-    """Retourne la date actuelle au format DD/MM/YYYY/HH:MM"""
-    now = datetime.datetime.now()
-    return now.strftime("%d/%m/%Y/%H:%M")
+from .p_utils import get_current_cart_date, iv4
 
 HEADERS_1 = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0",

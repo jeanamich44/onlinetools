@@ -3,6 +3,11 @@ from urllib.parse import quote_plus
 
 iv4 = "d8731416d5d60aac657dd0120cc49f59"
 
+def get_current_cart_date():
+    """Retourne la date actuelle au format DD/MM/YYYY/HH:MM"""
+    now = datetime.now()
+    return now.strftime("%d/%m/%Y/%H:%M")
+
 # Mapping Pays Nom -> ISO
 COUNTRY_MAP = {
     "AFGHANISTAN": "AF", "AFRIQUE DU SUD": "ZA", "ALBANIE": "AL", "ALGÉRIE": "DZ", "ALLEMAGNE": "DE",
