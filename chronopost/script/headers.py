@@ -1,42 +1,30 @@
-from .p_utils import get_current_cart_date, iv4
+from .p_utils import get_current_cart_date, iv4, USER_AGENT
 
 HEADERS_1 = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:146.0) Gecko/20100101 Firefox/146.0",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3",
-    "Accept-Encoding": "gzip, deflate, br, zstd",
-    "Referer": "https://www.chronopost.fr/fr",
-    "Connection": "keep-alive",
-    "Upgrade-Insecure-Requests": "1",
-    "Sec-Fetch-Dest": "document",
-    "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "same-origin",
-    "Sec-Fetch-User": "?1",
-    "Priority": "u=0, i",
-    "TE": "trailers",
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
     "cookie": (
-        "JSESSIONID_TEMCHRONOWEB=E4309B40987CA52F8FD21082823DE7DD.te-mchronowebi2-NODE7; "
+        "JSESSIONID_TEMCHRONOWEB=3FFFEC047A8A73030E0955A3983A7C7D.te-mchronowebi2-NODE7; "
         "lang=fr_FR; "
         "parcours=Professionnel; "
         "parcoursId=4; "
-        f"iv4={iv4}; "
-        "pa_privacy=%22exempt%22"
-        ),
-}
-
-HEADERS_2 = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-    "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Accept-Encoding": "gzip, deflate, br, zstd",
-    "Upgrade-Insecure-Requests": "1",
-    "Priority": "u=0, i",
-    "cookie": (
-        "JSESSIONID_TEMCHRONOWEB=21BB3B71BB4E7510C60EF65F7A1C7F93.te-mchronowebi2-NODE10; "
-        "lang=fr_FR; "
         f"iv4={iv4}"
-        ),
-}
+    ),
+    "priority": "u=0, i",
+    "referer": "https://www.chronopost.fr/fr",
+    "sec-ch-ua": '"Not:A-Brand";v="99", "Google Chrome";v="145", "Chromium";v="145"',
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": '"Windows"',
+    "sec-fetch-dest": "document",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-site": "same-origin",
+    "sec-fetch-user": "?1",
+    "upgrade-insecure-requests": "1",
+    "user-agent": USER_AGENT,
+} # 15 valeurs payload
+
+
 
 HEADERS_4 = {
     "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -52,7 +40,7 @@ HEADERS_4 = {
     "sec-fetch-site": "same-origin",
     "sec-fetch-user": "?1",
     "upgrade-insecure-requests": "1",
-    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+    "user-agent": USER_AGENT,
     "cookie": (
         "W0827094_40859_87668902=17; "
         "W1410789_3100_25322901=17; "
@@ -83,4 +71,4 @@ HEADERS_4 = {
         f"cookie_lastCartUpdate={get_current_cart_date()}; "
         "__cf_bm=gKxC3aVI3mMDix7nM9iX9xEGKVt6YCL8JAfG2mENHAM-1769546325.996029-1.0.1.1-mDiCJv7V9wIAaD.lPGK7HQNgyLxwnodWn2GNksXQJc04lxX9XmD7V6HQyYcWANKUum5b2ticThPvGH34VmoIlrSx3b0ZdFN9NRzPfHEw7Ew.rpDYT2tRhwq7jF5ekkY5"
     ),
-}
+} # 15 valeurs payload

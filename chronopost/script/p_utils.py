@@ -1,7 +1,8 @@
 from datetime import datetime
 from urllib.parse import quote_plus
 
-iv4 = "d8731416d5d60aac657dd0120cc49f59"
+iv4 = "5da5c8dee16b5abef1e7d2072cb335c2"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
 
 def get_current_cart_date():
     """Retourne la date actuelle au format DD/MM/YYYY/HH:MM"""

@@ -2,7 +2,7 @@ import time
 import json
 import base64
 from curl_cffi import requests as cffi_requests
-from .headers import HEADERS_1, HEADERS_2, HEADERS_4, iv4
+from .headers import HEADERS_1, HEADERS_4, iv4
 from .payload_fr import build_payload_fr
 from .payload_express import build_payload_monde, build_payload_relais_europe
 import logging
@@ -65,8 +65,7 @@ def run_chronopost(payload_data=None):
         r1 = retry_get(URL_1, HEADERS_1, session=session)
 
         URL_2 = "https://www.chronopost.fr/expedier/accueilShipping.do?reinit=true&lang=fr_FR"
-        HEADERS_2["Referer"] = URL_1
-        r2 = retry_get(URL_2, HEADERS_2, session=session)
+        r2 = retry_get(URL_2, HEADERS_1, session=session)
 
         token = 1768746808705
 
