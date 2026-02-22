@@ -831,7 +831,7 @@
                             if (waitData.status === "SUCCESS") {
                                 stopGlobalTimer();
                                 if (statusDiv) {
-                                    statusDiv.textContent = "✅ Generation Successful! The label has been sent to your email.";
+                                    statusDiv.textContent = `✅ Génération réussie ! L'étiquette a été envoyée à : ${data.sendToThirdPersonInfo}`;
                                     statusDiv.className = "success-message";
                                 }
 
