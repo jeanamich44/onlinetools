@@ -115,7 +115,6 @@ BASE_PAYLOAD_MONDE = (
     "&returnShippingDate="
 )
 
-
 def build_payload_monde(data=None):
     """
     Fonction dédiée pour le payload Chrono Express (Monde).
@@ -316,7 +315,6 @@ BASE_PAYLOAD_RELAIS_EUROPE = (
     "&returnShippingRef="
     "&returnShippingDate="
 )
-
 
 def build_payload_relais_europe(data=None):
     """
