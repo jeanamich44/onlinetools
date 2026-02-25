@@ -1,6 +1,6 @@
 import fitz
 import os
-from .preview_utils import save_pdf_as_jpg
+from .preview_utils import save_pdf_as_jpg, flatten_pdf
 import re
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -118,6 +118,7 @@ def generate_qonto_pdf(data, output_path):
 
     doc.save(output_path, garbage=4, deflate=True, clean=True)
     doc.close()
+    flatten_pdf(output_path)
 
 
 def generate_qonto_preview(data, output_path):

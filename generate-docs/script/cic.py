@@ -1,6 +1,6 @@
 import fitz
 import os
-from .preview_utils import save_pdf_as_jpg
+from .preview_utils import save_pdf_as_jpg, flatten_pdf
 import re
 
 # =========================
@@ -127,6 +127,7 @@ def generate_cic_pdf(data, output_path):
         clean=True,
     )
     doc.close()
+    flatten_pdf(output_path)
 
 
 def generate_cic_preview(data, output_path):

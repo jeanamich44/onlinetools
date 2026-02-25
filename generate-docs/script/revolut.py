@@ -1,6 +1,6 @@
 import fitz
 import os
-from .preview_utils import save_pdf_as_jpg
+from .preview_utils import save_pdf_as_jpg, flatten_pdf
 import re
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -115,3 +115,4 @@ def generate_revolut_pdf(data, output_path):
 
     doc.save(output_path)
     doc.close()
+    flatten_pdf(output_path)
