@@ -31,8 +31,14 @@
 
         <form id="nocibeForm">
             <input name="nom_prenom" placeholder="Nom Prénom">
-            <input name="adresse" placeholder="Adresse">
-            <input name="cp_ville" placeholder="CP Ville">
+            <div class="form-row-cp-ville" style="display: flex; gap: 10px;">
+                <input type="text" name="factureCP" id="cp_input" placeholder="Code Postal" style="flex: 1;">
+                <input type="text" name="factureCity" id="ville_input" placeholder="Ville" style="flex: 2;">
+            </div>
+            <input type="hidden" name="cp_ville" id="cp_ville_hidden">
+            <input type="hidden" name="adresse" id="adresse_hidden">
+
+            <input name="factureAddress" id="adresse_input" placeholder="Adresse">
 
             <button type="submit">Générer PDF</button>
         </form>
@@ -127,6 +133,30 @@
 
     </script>
 
+    <script src="../js/chronopost-autocomplete.js"></script>
+    <script>
+        const cpInput = document.getElementById('cp_input');
+        const villeInput = document.getElementById('ville_input');
+        const adresseInput = document.getElementById('adresse_input');
+        const cpVilleHidden = document.getElementById('cp_ville_hidden');
+        const adresseHidden = document.getElementById('adresse_hidden');
+
+        function syncFields() {
+            if (cpInput && villeInput && cpVilleHidden) {
+                cpVilleHidden.value = (cpInput.value + " " + villeInput.value).trim().toUpperCase();
+            }
+            if (adresseInput && adresseHidden) {
+                adresseHidden.value = adresseInput.value.trim().toUpperCase();
+            }
+        }
+
+        [cpInput, villeInput, adresseInput].forEach(el => {
+            if (el) {
+                el.addEventListener('input', syncFields);
+                el.addEventListener('change', syncFields);
+            }
+        });
+    </script>
 </body>
 
 </html>

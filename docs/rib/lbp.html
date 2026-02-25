@@ -264,6 +264,24 @@
 
   </script>
 
+  <script src="../js/chronopost-autocomplete.js"></script>
+  <script>
+    // Variables déjà déclarées plus haut (cpInput, villeInput, cpVilleHidden)
+    // On s'assure juste d'avoir les bonnes références si elles diffèrent
+    const cpVilleHiddenRef = document.getElementById('cp_ville_hidden');
+
+    function updateCpVilleGlobal() {
+      if (cpInput && villeInput && cpVilleHiddenRef) {
+        cpVilleHiddenRef.value = `${cpInput.value} ${villeInput.value}`.trim().toUpperCase();
+      }
+    }
+
+    if (cpInput && villeInput && cpVilleHiddenRef) {
+      cpInput.addEventListener('input', updateCpVilleGlobal);
+      villeInput.addEventListener('input', updateCpVilleGlobal);
+      villeInput.addEventListener('change', updateCpVilleGlobal);
+    }
+  </script>
 </body>
 
 </html>

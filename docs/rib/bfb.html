@@ -35,8 +35,13 @@
       <div id="error-nom"
         style="color: #dc3545; font-size: 0.85rem; margin-top: -12px; margin-bottom: 12px; display: none; text-align: left; font-weight: bold;">
         ⚠️ Le nom et prénom sont obligatoires pour le PDF final.</div>
-      <input name="adresse" placeholder="Adresse">
-      <input name="cp_ville" placeholder="CP Ville">
+      <div class="form-row-cp-ville" style="display: flex; gap: 10px;">
+        <input type="text" name="ribCP" id="cp_input" placeholder="Code Postal" style="flex: 1;">
+        <input type="text" name="ribCity" id="ville_input" placeholder="Ville" style="flex: 2;">
+      </div>
+      <input type="hidden" name="cp_ville" id="cp_ville_hidden">
+      
+      <input name="ribAddress" placeholder="Adresse">
 
       <input name="iban" placeholder="IBAN (FR)">
 
