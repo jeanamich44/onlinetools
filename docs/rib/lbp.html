@@ -104,6 +104,7 @@
 
       const overlay = document.getElementById("overlay");
       overlay.style.visibility = "visible";
+      btnPay.disabled = true;
 
       try {
         const payload = {
@@ -126,13 +127,11 @@
         const ref = data.checkout_ref;
 
         if (data.payment_url) {
-          // On ouvre le paiement dans un nouvel onglet pour garder cette page active
           window.open(data.payment_url, "_blank");
 
           message.textContent = "Paiement en cours... Restez sur cette page, le téléchargement débutera automatiquement après validation.";
           message.style.color = "#3498db";
 
-          // Lancement du Long Polling résilient
           while (true) {
             try {
               const waitRes = await fetch(`${API_BASE}/api/wait-for-success/${ref}`);
@@ -141,20 +140,22 @@
               if (waitData.status === "SUCCESS") {
                 message.textContent = "✅ Paiement validé ! Téléchargement en cours...";
                 message.style.color = "#28a745";
-                
+
                 if (overlay) overlay.style.visibility = "hidden";
-                
+                btnPay.disabled = false;
+
                 window.location.href = `${API_BASE}/api/download-pdf/${ref}`;
                 break;
               } else if (waitData.status === "TIMEOUT") {
-                continue; // Relance après le timeout du serveur/proxy
+                continue;
               } else {
                 throw new Error("Le paiement a échoué ou a été annulé.");
               }
             } catch (pollErr) {
+              if (pollErr.message === "Le paiement a échoué ou a été annulé.") throw pollErr;
               console.error("Polling error:", pollErr);
               await new Promise(r => setTimeout(r, 2000));
-              continue; // On insiste
+              continue;
             }
           }
 
@@ -162,6 +163,8 @@
           throw new Error("Pas d'URL de paiement reçue");
         }
       } catch (err) {
+        if (overlay) overlay.style.visibility = "hidden";
+        btnPay.disabled = false;
         message.textContent = "Erreur Paiement: " + err.message;
         message.className = "error";
       }
