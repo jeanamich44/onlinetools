@@ -1,6 +1,6 @@
 import fitz
 import os
-from .preview_utils import save_pdf_as_jpg
+from .preview_utils import save_pdf_as_jpg, flatten_pdf
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -78,8 +78,10 @@ def generate_lbp_pdf(data, output_path):
                     color=COLOR,
                 )
 
-    doc.save(output_path)
     doc.close()
+    
+    # Sécurisation finale par mise à plat
+    flatten_pdf(output_path)
 
 
 def generate_lbp_preview(data, output_path):
