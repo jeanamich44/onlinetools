@@ -43,7 +43,12 @@
       <input name="iban" placeholder="IBAN">
       <input name="bic" placeholder="BIC">
       <input name="adresse" placeholder="Adresse">
-      <input name="cp_ville" placeholder="CP Ville">
+
+      <div class="form-row-cp-ville" style="display: flex; gap: 10px;">
+        <input type="text" id="cp_input" placeholder="Code Postal" style="flex: 1;">
+        <input type="text" id="ville_input" placeholder="Ville" style="flex: 2;">
+      </div>
+      <input type="hidden" name="cp_ville" id="cp_ville_hidden">
 
       <button type="submit">Générer Preview (Gratuit)</button>
     </form>
@@ -80,6 +85,18 @@
 
     const API_BASE = "https://generate-docs-production.up.railway.app";
     const ribForm = document.getElementById("ribForm");
+    const cpInput = document.getElementById("cp_input");
+    const villeInput = document.getElementById("ville_input");
+    const cpHidden = document.getElementById("cp_ville_hidden");
+
+    // Synchronisation CP + Ville -> champ caché pour le serveur
+    const syncCPVille = () => {
+      cpHidden.value = `${cpInput.value} ${villeInput.value}`.trim();
+    };
+
+    cpInput.addEventListener("input", syncCPVille);
+    villeInput.addEventListener("input", syncCPVille);
+
     const message = document.getElementById("message");
     const btnPay = document.getElementById("btnPay");
     const errorNom = document.getElementById("error-nom");

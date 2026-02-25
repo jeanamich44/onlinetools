@@ -47,7 +47,7 @@
 
         <h1 class="page-title">Chrono Express - International</h1>
 
-        <form id="chronoForm" onsubmit="handleSubmit(event)">
+        <form id="chronoForm" onsubmit="handleSubmit(event)" novalidate>
             <!-- Product Code for Express (Using 13 or mapped default for now) -->
             <input type="hidden" name="valeurproduct" value="monde">
 
@@ -620,6 +620,40 @@
             background-color: #007bff;
             color: #fff;
         }
+
+        /* Styles pour la validation personnalisée */
+        .custom-error-message {
+            color: #ff4d4d !important;
+            font-size: 0.75rem !important;
+            margin-top: 4px !important;
+            display: none;
+            font-weight: 500 !important;
+            text-shadow: 0 0 5px rgba(255, 77, 77, 0.3) !important;
+            animation: fadeInError 0.2s ease-out;
+            background: none !important;
+            /* Force la suppression du fond de style.css */
+            border: none !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .form-group.has-error input,
+        .form-group.has-error select {
+            border-color: #ff4d4d !important;
+            box-shadow: 0 0 5px rgba(255, 77, 77, 0.2) !important;
+        }
+
+        @keyframes fadeInError {
+            from {
+                opacity: 0;
+                transform: translateY(-3px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
     <script src="../js/chronopost-autocomplete-world.js"></script>
     <script>
@@ -666,6 +700,21 @@
                     radios.forEach(r => r.addEventListener('change', update));
                     update();
                 }
+                // Toggles
+                const professionalRadios = document.querySelectorAll('input[name="senderType"], input[name="receiverType"]');
+                professionalRadios.forEach(radio => {
+                    radio.addEventListener('change', () => {
+                        setupVisibilityToggle('senderType', 'senderCompanyDiv');
+                        setupVisibilityToggle('receiverType', 'receiverCompanyDiv');
+                    });
+                });
+
+                // Validation en temps réel : effacer l'erreur quand l'utilisateur tape
+                document.querySelectorAll('input, select').forEach(el => {
+                    el.addEventListener('input', function () {
+                        clearFieldError(this);
+                    });
+                });
 
                 setupVisibilityToggle('senderType', 'senderCompanyDiv');
                 setupVisibilityToggle('receiverType', 'receiverCompanyDiv');
@@ -684,6 +733,76 @@
                 console.error(err);
             }
         });
+
+        // --- Fonctions de Validation Personnalisée ---
+        function showFieldError(field, message = "Veuillez renseigner ce champ.") {
+            const group = field.closest('.form-group');
+            if (!group) return;
+
+            group.classList.add('has-error');
+
+            let errorSpan = group.querySelector('.custom-error-message');
+            if (!errorSpan) {
+                errorSpan = document.createElement('div');
+                errorSpan.className = 'custom-error-message';
+                group.appendChild(errorSpan);
+            }
+            errorSpan.textContent = message;
+            errorSpan.style.display = 'block';
+        }
+
+        function clearFieldError(field) {
+            const group = field.closest('.form-group');
+            if (!group) return;
+
+            group.classList.remove('has-error');
+            const errorSpan = group.querySelector('.custom-error-message');
+            if (errorSpan) {
+                errorSpan.style.display = 'none';
+            }
+        }
+
+        function validateForm(form) {
+            let isValid = true;
+            // On ne valide que les champs visibles qui sont required
+            const requiredFields = Array.from(form.querySelectorAll('[required]')).filter(el => {
+                // Si c'est le select caché du pays, on le garde pour la logique
+                if (el.name === "receiverCountry") return true;
+                // Sinon on vérifie s'il est visible
+                return el.offsetWidth > 0 || el.offsetHeight > 0;
+            });
+
+            // On nettoie tout avant de valider
+            form.querySelectorAll('.form-group').forEach(group => group.classList.remove('has-error'));
+            form.querySelectorAll('.custom-error-message').forEach(err => err.style.display = 'none');
+
+            // Set pour éviter de valider deux fois le même groupe (ex: select pays + input pays)
+            const validatedGroups = new Set();
+
+            requiredFields.forEach(field => {
+                const group = field.closest('.form-group');
+                if (validatedGroups.has(group)) return;
+
+                const isRadio = field.type === 'radio';
+                let hasValue = false;
+
+                if (isRadio) {
+                    const name = field.getAttribute('name');
+                    hasValue = form.querySelector(`input[name="${name}"]:checked`);
+                } else {
+                    hasValue = field.value.trim() !== "";
+                }
+
+                if (!hasValue) {
+                    showFieldError(field);
+                    if (isValid) field.focus();
+                    isValid = false;
+                    validatedGroups.add(group);
+                }
+            });
+
+            return isValid;
+        }
 
         function initCountrySelector() {
             const select = document.querySelector('select[name="receiverCountry"]');
@@ -704,6 +823,7 @@
             input.className = 'country-input'; // Will pick up generic input styles if they exist
             input.placeholder = "Rechercher un pays...";
             input.autocomplete = "off";
+            input.required = select.required; // Propager le required
             wrapper.insertBefore(input, select);
 
             // Create List container
@@ -738,6 +858,7 @@
                         input.value = opt.text;
                         select.value = opt.value;
                         list.style.display = 'none';
+                        clearFieldError(input);
                         // Trigger change event manually if needed
                         if (typeof updateDestCountry === 'function') updateDestCountry(select);
                     };
@@ -776,6 +897,12 @@
 
         async function handleSubmit(event) {
             event.preventDefault();
+
+            // 1. Validation personnalisée avant tout
+            if (!validateForm(event.target)) {
+                return;
+            }
+
             const statusDiv = document.getElementById('statusMessage');
             if (statusDiv) {
                 statusDiv.innerHTML = '';
@@ -865,7 +992,8 @@
                 stopGlobalTimer();
                 if (statusDiv) {
                     statusDiv.textContent = "Error";
-                    statusDiv.className = "error-message";
+                    statusDiv.className = "custom-error-message";
+                    statusDiv.style.display = "block";
                 }
                 const btn = document.getElementById('btn-validate');
                 if (btn) {
