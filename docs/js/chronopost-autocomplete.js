@@ -1,11 +1,31 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    // --- Cache global pour les appels API ---
+    const apiCache = {
+        cities: {},
+        addresses: {}
+    };
+
+    // --- Utilitaires ---
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
     function setupCityAutocomplete(cpInput) {
         if (!cpInput) return;
 
         let prefix = "";
         let cityInput = null;
         let countryInput = null;
+        let abortController = null;
 
         if (cpInput.name.endsWith('_cp')) {
             prefix = cpInput.name.split('_')[0];
@@ -27,27 +47,52 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(citiesList);
         cityInput.setAttribute('list', citiesListId);
 
-        cpInput.addEventListener('input', async function () {
-            const zip = this.value;
+        const fetchCities = async (zip) => {
             if (zip.length !== 5 || !/^\d+$/.test(zip)) return;
             if (countryInput && countryInput.value && countryInput.value.toUpperCase() !== 'FR') return;
 
+            // Vérifier le cache
+            if (apiCache.cities[zip]) {
+                updateCityList(apiCache.cities[zip]);
+                return;
+            }
+
+            // Annuler la requête précédente si elle existe
+            if (abortController) abortController.abort();
+            abortController = new AbortController();
+
             try {
-                const response = await fetch(`https://geo.api.gouv.fr/communes?codePostal=${zip}&fields=nom&format=json&geometry=centre`);
+                const response = await fetch(`https://geo.api.gouv.fr/communes?codePostal=${zip}&fields=nom&format=json&geometry=centre`, {
+                    signal: abortController.signal
+                });
                 const data = await response.json();
 
-                citiesList.innerHTML = '';
-                if (data.length === 1) {
-                    cityInput.value = data[0].nom;
-                } else {
-                    data.forEach(city => {
-                        const option = document.createElement('option');
-                        option.value = city.nom;
-                        citiesList.appendChild(option);
-                    });
-                }
-            } catch (e) { console.error(e); }
-        });
+                apiCache.cities[zip] = data; // Stocker en cache
+                updateCityList(data);
+            } catch (e) {
+                if (e.name !== 'AbortError') console.error(e);
+            }
+        };
+
+        const updateCityList = (data) => {
+            citiesList.innerHTML = '';
+            if (data.length === 1) {
+                cityInput.value = data[0].nom;
+                // Déclencher un événement change pour les scripts qui écoutent (comme la syncho CP Ville LBP)
+                cityInput.dispatchEvent(new Event('input', { bubbles: true }));
+                cityInput.dispatchEvent(new Event('change', { bubbles: true }));
+            } else {
+                data.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.nom;
+                    citiesList.appendChild(option);
+                });
+            }
+        };
+
+        cpInput.addEventListener('input', debounce(function () {
+            fetchCities(this.value);
+        }, 300));
     }
 
     function setupAddressAutocomplete(addrInput) {
@@ -56,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let prefix = "";
         let zipInput = null;
         let countryInput = null;
+        let abortController = null;
 
         if (addrInput.name.endsWith('_adresse')) {
             prefix = addrInput.name.split('_')[0];
@@ -76,35 +122,50 @@ document.addEventListener('DOMContentLoaded', () => {
         addrInput.setAttribute('list', streetListId);
         addrInput.setAttribute('autocomplete', 'off');
 
-        addrInput.addEventListener('input', async function () {
-            const query = this.value;
+        const fetchAddresses = async (query) => {
             if (query.length < 4) return;
             if (countryInput && countryInput.value && countryInput.value.toUpperCase() !== 'FR') return;
 
-            let apiUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`;
+            const zip = zipInput ? zipInput.value : "";
+            const cacheKey = `${query}|${zip}`;
 
-            if (zipInput && zipInput.value.length === 5) {
-                apiUrl += `&postcode=${zipInput.value}`;
+            if (apiCache.addresses[cacheKey]) {
+                updateAddressList(apiCache.addresses[cacheKey]);
+                return;
             }
 
+            if (abortController) abortController.abort();
+            abortController = new AbortController();
+
+            let apiUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`;
+            if (zip.length === 5) apiUrl += `&postcode=${zip}`;
+
             try {
-                const response = await fetch(apiUrl);
+                const response = await fetch(apiUrl, { signal: abortController.signal });
                 const data = await response.json();
 
-                streetList.innerHTML = '';
+                apiCache.addresses[cacheKey] = data;
+                updateAddressList(data);
+            } catch (e) {
+                if (e.name !== 'AbortError') console.error("Address API Error", e);
+            }
+        };
 
-                if (data.features && data.features.length > 0) {
-                    data.features.forEach(feature => {
-                        const validAddress = feature.properties.name;
-                        const contextMap = feature.properties;
-                        const option = document.createElement('option');
-                        option.value = validAddress;
-                        option.label = `${contextMap.postcode} ${contextMap.city}`;
-                        streetList.appendChild(option);
-                    });
-                }
-            } catch (e) { console.error("Address API Error", e); }
-        });
+        const updateAddressList = (data) => {
+            streetList.innerHTML = '';
+            if (data.features && data.features.length > 0) {
+                data.features.forEach(feature => {
+                    const option = document.createElement('option');
+                    option.value = feature.properties.name;
+                    option.label = `${feature.properties.postcode} ${feature.properties.city}`;
+                    streetList.appendChild(option);
+                });
+            }
+        };
+
+        addrInput.addEventListener('input', debounce(function () {
+            fetchAddresses(this.value);
+        }, 300));
     }
 
     const allCPs = [
@@ -142,7 +203,6 @@ document.addEventListener('DOMContentLoaded', () => {
         inputs.forEach(input => {
             function validateField() {
                 const isValid = input.checkValidity();
-
                 let errorSpan = input.parentNode.querySelector('.validation-error-msg');
 
                 if (!isValid) {
@@ -155,20 +215,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     errorSpan.textContent = input.validationMessage;
                 } else {
                     input.classList.remove('input-invalid');
-                    if (errorSpan) {
-                        errorSpan.remove();
-                    }
+                    if (errorSpan) errorSpan.remove();
                 }
             }
 
             input.addEventListener('input', () => {
-                if (input.classList.contains('input-invalid')) {
-                    validateField();
-                }
+                if (input.classList.contains('input-invalid')) validateField();
             });
 
             input.addEventListener('blur', validateField);
-
             input.addEventListener('change', validateField);
         });
     }
