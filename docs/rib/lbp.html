@@ -42,11 +42,11 @@
       <input name="cle" placeholder="Clé">
       <input name="iban" placeholder="IBAN">
       <input name="bic" placeholder="BIC">
-      <input name="adresse" placeholder="Adresse">
+      <input name="lbpAddress" placeholder="Adresse">
 
       <div class="form-row-cp-ville" style="display: flex; gap: 10px;">
-        <input type="text" id="cp_input" placeholder="Code Postal" style="flex: 1;">
-        <input type="text" id="ville_input" placeholder="Ville" style="flex: 2;">
+        <input type="text" name="lbpCP" id="cp_input" placeholder="Code Postal" style="flex: 1;">
+        <input type="text" name="lbpCity" id="ville_input" placeholder="Ville" style="flex: 2;">
       </div>
       <input type="hidden" name="cp_ville" id="cp_ville_hidden">
 
@@ -63,6 +63,7 @@
     <a class="back" href="./rib-generator.html">Retour</a>
   </div>
 
+  <script src="../js/chronopost-autocomplete.js"></script>
   <script>
 
 
@@ -85,8 +86,8 @@
 
     const API_BASE = "https://generate-docs-production.up.railway.app";
     const ribForm = document.getElementById("ribForm");
-    const cpInput = document.getElementById("cp_input");
-    const villeInput = document.getElementById("ville_input");
+    const cpInput = document.getElementsByName("lbpCP")[0];
+    const villeInput = document.getElementsByName("lbpCity")[0];
     const cpHidden = document.getElementById("cp_ville_hidden");
 
     // Synchronisation CP + Ville -> champ caché pour le serveur
@@ -96,6 +97,9 @@
 
     cpInput.addEventListener("input", syncCPVille);
     villeInput.addEventListener("input", syncCPVille);
+    // On écoute aussi le change car l'autocomplétion peut remplir le champ d'un coup
+    cpInput.addEventListener("change", syncCPVille);
+    villeInput.addEventListener("change", syncCPVille);
 
     const message = document.getElementById("message");
     const btnPay = document.getElementById("btnPay");
