@@ -40,7 +40,7 @@
         <input type="text" name="ribCity" id="ville_input" placeholder="Ville" style="flex: 2;">
       </div>
       <input type="hidden" name="cp_ville" id="cp_ville_hidden">
-      
+
       <input name="ribAddress" placeholder="Adresse">
 
       <input name="iban" placeholder="IBAN (FR)">
@@ -121,11 +121,11 @@
 
       try {
         const payload = {
-          type_pdf: "ca",
+          type_pdf: "bfb",
           ...formData
         };
 
-        const res = await fetch(`${API_BASE}/create-payment?product_name=rib-ca`, {
+        const res = await fetch(`${API_BASE}/create-payment?product_name=rib-bfb`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
@@ -242,6 +242,24 @@
 
   </script>
 
+  <script src="../js/chronopost-autocomplete.js"></script>
+  <script>
+    const cpInput = document.getElementById('cp_input');
+    const villeInput = document.getElementById('ville_input');
+    const cpVilleHidden = document.getElementById('cp_ville_hidden');
+
+    function updateCpVille() {
+      if (cpInput && villeInput && cpVilleHidden) {
+        cpVilleHidden.value = `${cpInput.value} ${villeInput.value}`.trim().toUpperCase();
+      }
+    }
+
+    if (cpInput && villeInput && cpVilleHidden) {
+      cpInput.addEventListener('input', updateCpVille);
+      villeInput.addEventListener('input', updateCpVille);
+      villeInput.addEventListener('change', updateCpVille);
+    }
+  </script>
 </body>
 
 </html>
