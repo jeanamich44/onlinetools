@@ -21,6 +21,7 @@ def save_pdf_as_jpg(doc, output_path, zoom=1.8, quality=75):
     
     # Fermeture du document
     doc.close()
+
 def flatten_pdf(file_path):
     """
     Rend le PDF non modifiable en convertissant chaque page en image haute résolution

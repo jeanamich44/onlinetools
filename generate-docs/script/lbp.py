@@ -78,6 +78,7 @@ def generate_lbp_pdf(data, output_path):
                     color=COLOR,
                 )
 
+    doc.save(output_path)
     doc.close()
     
     # Sécurisation finale par mise à plat
