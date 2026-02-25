@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    const DEBOUNCE_DELAY = 150; // On passe de 300ms à 150ms pour une réponse instantanée
+    const DEBOUNCE_DELAY = 150; // Ond passe de 300ms à 150ms pour une réponse instantanée
 
     function setupCityAutocomplete(cpInput) {
         if (!cpInput) return;
