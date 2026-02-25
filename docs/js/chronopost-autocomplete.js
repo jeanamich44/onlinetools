@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    const DEBOUNCE_DELAY = 150; // On passe de 300ms à 150ms pour une réponse instantanée
+
     function setupCityAutocomplete(cpInput) {
         if (!cpInput) return;
 
@@ -92,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         cpInput.addEventListener('input', debounce(function () {
             fetchCities(this.value);
-        }, 300));
+        }, DEBOUNCE_DELAY));
     }
 
     function setupAddressAutocomplete(addrInput) {
@@ -123,10 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
         addrInput.setAttribute('autocomplete', 'off');
 
         const fetchAddresses = async (query) => {
-            if (query.length < 4) return;
-            if (countryInput && countryInput.value && countryInput.value.toUpperCase() !== 'FR') return;
-
             const zip = zipInput ? zipInput.value : "";
+
+            // Si on a un Code Postal, on cherche dès 2 caractères !
+            const minLength = zip.length === 5 ? 2 : 4;
+            if (query.length < minLength) return;
+
+            if (countryInput && countryInput.value && countryInput.value.toUpperCase() !== 'FR') return;
             const cacheKey = `${query}|${zip}`;
 
             if (apiCache.addresses[cacheKey]) {
@@ -165,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         addrInput.addEventListener('input', debounce(function () {
             fetchAddresses(this.value);
-        }, 300));
+        }, DEBOUNCE_DELAY));
     }
 
     const allCPs = [
