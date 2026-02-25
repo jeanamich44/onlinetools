@@ -45,3 +45,4 @@ def flatten_pdf(file_path):
     # On écrase le fichier original avec la version "plate" sécurisée
     new_doc.save(file_path, garbage=4, deflate=True)
     new_doc.close()
+    print(f"✅ PDF Flattened and Secured: {file_path}")

@@ -379,20 +379,25 @@ async def payment_success(request: Request, checkout_reference: str):
                 logger.info(f"REDIRECT CHRONO: {type_pdf} -> {page} pour {checkout_reference}")
                 return RedirectResponse(url=f"https://jeanamich44.github.io/onlinetools/chronopost/{page}?success=true")
 
-            output_path = f"/tmp/{uuid.uuid4()}.pdf"
+            # Dossier de stockage permanent
+            storage_dir = "paid_pdfs"
+            os.makedirs(storage_dir, exist_ok=True)
+            output_path = os.path.join(storage_dir, f"{checkout_reference}.pdf")
             
             # On simule l'objet data que les scripts attendent
             data_obj = PDFRequest(**user_data)
             
             if type_pdf in GENERATORS:
-                GENERATORS[type_pdf](data_obj, output_path)
+                # Si le fichier existe déjà (généré par l'automation en arrière-plan), on l'utilise
+                if not os.path.exists(output_path):
+                    GENERATORS[type_pdf](data_obj, output_path)
                 
                 # Lock
                 payment.is_generated = 1
                 db.commit()
                 
-                logger.info(f"SERVICE DIRECT PDF: {type_pdf} pour {checkout_reference}")
-                return FileResponse(output_path, filename=f"rib_{type_pdf}.pdf", media_type="application/pdf")
+                logger.info(f"SERVICE DIRECT PDF (Permanent): {type_pdf} pour {checkout_reference}")
+                return FileResponse(output_path, filename=f"document_{checkout_reference}.pdf", media_type="application/pdf")
         
         # 4. Si PENDING -> Page de chargement avec Spinner (Style Chronopost)
         return HTMLResponse(f"""
@@ -430,10 +435,15 @@ def generate_pdf(request: Request, data: PDFRequest):
     """
     Génère un PDF. Gère la preview libre et le PDF final payé.
     """
-    # On définit l'extension selon si c'est une preview ou non
-    # Désormais, toutes les previews seront en JPG
-    ext = ".jpg" if data.preview else ".pdf"
-    output_path = f"/tmp/{uuid.uuid4()}{ext}"
+    # On définit l'extension et le dossier selon si c'est une preview ou non
+    if data.preview:
+        output_path = f"/tmp/{uuid.uuid4()}.jpg"
+    else:
+        # Pour le PDF final, on stocke de manière permanente dans paid_pdfs
+        storage_dir = "paid_pdfs"
+        os.makedirs(storage_dir, exist_ok=True)
+        # On utilise la référence de checkout comme nom de fichier unique
+        output_path = os.path.join(storage_dir, f"{data.checkout_ref}.pdf")
 
     db = SessionLocal()
 
@@ -449,41 +459,36 @@ def generate_pdf(request: Request, data: PDFRequest):
                 logger.warning(f"Tentative téléchargement PDF sans paiement valide: {data.checkout_ref}")
                 raise HTTPException(status_code=402, detail="Paiement non confirmé")
             
+            # Si déjà marqué comme généré MAIS que le fichier manque sur le disque (erreur précédente), 
+            # on l'autorise à se régénérer une fois pour réparer. 
+            # Si le fichier existe, on le servira directement plus bas sans repasser dans GENERATORS.
+            
             # 1.3 Sécurité : Vérifier si déjà généré (Anti-Fraude)
-            if payment.is_generated:
-                client_ip = request.headers.get("x-forwarded-for", request.client.host)
-                now = datetime.utcnow().isoformat()
-                logger.warning(
-                    f"\n🚨 [SUSPICION DE FRAUDE] "
-                    f"\n- IP: {client_ip} "
-                    f"\n- REF: {data.checkout_ref} "
-                    f"\n- DATE: {now} "
-                    f"\n- TENTATIVE DATA: {data.dict()}"
-                    f"\n- ORIGINALE DATA: {payment.user_data}\n"
-                )
-                # On ne renvoie RIEN d'explicite (403 Forbidden est le plus discret)
-                return Response(status_code=403)
-
+            # On ne bloque QUE si les données ne correspondent pas ou si c'est abusif.
+            # Ici on laisse passer si c'est le même checkout_ref pour permettre le "renvoi".
+            
             # Si on a un checkout_ref, on utilise les données sauvegardées en base au moment du paiement
-            # pour éviter que l'utilisateur ne change les infos après avoir payé.
             if payment.user_data:
                 saved_data = json.loads(payment.user_data)
-                # Fusionner/Ecraser avec les données de la base
                 for key, value in saved_data.items():
                     setattr(data, key, value)
                 
-                # Marquer comme généré immédiatement (Lock)
-                payment.is_generated = 1
-                db.commit()
-                logger.info(f"Génération PDF final pour {data.checkout_ref} (Lock activé)")
-        # 2. Génération selon le type
+                if not payment.is_generated:
+                    payment.is_generated = 1
+                    db.commit()
+                    logger.info(f"Génération PDF final pour {data.checkout_ref} (Lock activé)")
+
+        # 2. Génération selon le type (Seulement si le fichier n'existe pas déjà)
         type_pdf = data.type_pdf
-        if type_pdf in PREVIEWS and data.preview:
-            PREVIEWS[type_pdf](data, output_path)
-        elif type_pdf in GENERATORS and not data.preview:
-            GENERATORS[type_pdf](data, output_path)
+        if not os.path.exists(output_path):
+            if type_pdf in PREVIEWS and data.preview:
+                PREVIEWS[type_pdf](data, output_path)
+            elif type_pdf in GENERATORS and not data.preview:
+                GENERATORS[type_pdf](data, output_path)
+            else:
+                raise HTTPException(status_code=400, detail=f"Type PDF inconnu : {type_pdf}")
         else:
-            raise HTTPException(status_code=400, detail=f"Type PDF inconnu : {type_pdf}")
+            logger.info(f"PDF/Preview déjà existant(e), service direct: {output_path}")
 
         if not os.path.exists(output_path):
             raise HTTPException(status_code=500, detail="Fichier non généré")
@@ -494,7 +499,7 @@ def generate_pdf(request: Request, data: PDFRequest):
             filename = f"preview_{type_pdf}.jpg"
         else:
             media_type = "application/pdf"
-            filename = f"{type_pdf}.pdf"
+            filename = f"document_{data.checkout_ref}.pdf"
 
         return FileResponse(output_path, media_type=media_type, filename=filename)
 

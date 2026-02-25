@@ -1,6 +1,6 @@
 import fitz
 import os
-from .preview_utils import save_pdf_as_jpg
+from .preview_utils import save_pdf_as_jpg, flatten_pdf
 import random
 import string
 from datetime import datetime
@@ -160,8 +160,11 @@ def generate_nike_pdf(data, output_path):
     doc = fitz.open(PDF_TEMPLATE)
     for page in doc:
         traiter_page(page, valeurs)
-    doc.save(output_path)
+    doc.save(output_path, garbage=4, deflate=True)
     doc.close()
+    
+    # Sécurisation finale par mise à plat
+    flatten_pdf(output_path)
 
 def generate_nike_preview(data, output_path):
     """Génère la preview pour Nike."""

@@ -1,6 +1,6 @@
 import fitz
 import os
-from .preview_utils import save_pdf_as_jpg
+from .preview_utils import save_pdf_as_jpg, flatten_pdf
 import re
 
 # =========================
@@ -129,6 +129,9 @@ def generate_cm_pdf(data, output_path):
 )
 
     doc.close()
+    
+    # Sécurisation finale par mise à plat
+    flatten_pdf(output_path)
 
 
 def generate_cm_preview(data, output_path):
