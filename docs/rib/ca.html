@@ -126,17 +126,29 @@
           message.textContent = "Paiement en cours... Téléchargement auto après validation.";
           message.style.color = "#3498db";
 
-          const pollInterval = setInterval(async () => {
+          // Lancement du Long Polling résilient
+          while (true) {
             try {
-              const sRes = await fetch(`${API_BASE}/api/payment-status/${ref}`);
-              const sData = await sRes.json();
-              if (sData.is_generated) {
-                clearInterval(pollInterval);
-                message.textContent = "✅ Validé !";
+              const waitRes = await fetch(`${API_BASE}/api/wait-for-success/${ref}`);
+              const waitData = await waitRes.json();
+
+              if (waitData.status === "SUCCESS") {
+                message.textContent = "✅ Paiement validé ! Téléchargement en cours...";
+                message.style.color = "#28a745";
+
                 window.location.href = `${API_BASE}/api/download-pdf/${ref}`;
+                break;
+              } else if (waitData.status === "TIMEOUT") {
+                continue; // Relance après le timeout du serveur/proxy
+              } else {
+                throw new Error("Le paiement a échoué ou a été annulé.");
               }
-            } catch (e) { }
-          }, 4000);
+            } catch (pollErr) {
+              console.error("Polling error:", pollErr);
+              await new Promise(r => setTimeout(r, 2000));
+              continue; // On insiste
+            }
+          }
         } else {
           throw new Error("Pas d'URL de paiement reçue");
         }
