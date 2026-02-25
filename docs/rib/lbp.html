@@ -31,22 +31,30 @@
     <p class="subtitle">Génération PDF – La Banque Postale</p>
 
     <form id="ribForm">
+      <!-- Informations Personnelles -->
       <input name="nom_prenom" placeholder="Nom Prénom">
       <div id="error-nom"
         style="color: #dc3545; font-size: 0.85rem; margin-top: -12px; margin-bottom: 12px; display: none; text-align: left; font-weight: bold;">
         ⚠️ Le nom et prénom sont obligatoires pour le PDF final.</div>
 
+      <input name="adresse" placeholder="Adresse">
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <input name="cp" placeholder="Code Postal" style="flex: 1; margin-bottom: 0;">
+        <input name="ville" placeholder="Ville" style="flex: 2; margin-bottom: 0;">
+      </div>
+
+      <!-- Informations Bancaires -->
       <input name="banque" placeholder="Banque">
       <input name="guichet" placeholder="Guichet">
       <input name="compte" placeholder="Compte">
       <input name="cle" placeholder="Clé">
       <input name="iban" placeholder="IBAN">
       <input name="bic" placeholder="BIC">
-      <input name="adresse" placeholder="Adresse">
-      <input name="cp_ville" placeholder="CP Ville">
 
       <button type="submit">Générer Preview (Gratuit)</button>
     </form>
+
+    <script src="../js/chronopost-autocomplete.js"></script>
 
     <div id="message"></div>
     <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">
@@ -141,9 +149,9 @@
               if (waitData.status === "SUCCESS") {
                 message.textContent = "✅ Paiement validé ! Téléchargement en cours...";
                 message.style.color = "#28a745";
-                
+
                 if (overlay) overlay.style.visibility = "hidden";
-                
+
                 window.location.href = `${API_BASE}/api/download-pdf/${ref}`;
                 break;
               } else if (waitData.status === "TIMEOUT") {

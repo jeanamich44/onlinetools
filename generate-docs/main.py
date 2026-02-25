@@ -15,7 +15,7 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException, Request, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response, StreamingResponse
-from pydantic import BaseModel, parse_obj_as
+from pydantic import BaseModel, parse_obj_as, root_validator
 from sqlalchemy.orm import Session
 
 # Base de données & Paiement
@@ -141,8 +141,22 @@ class PDFRequest(BaseModel):
 
     agence: Optional[str] = None
     agence_adresse: Optional[str] = None
+    agence_cp: Optional[str] = None
+    agence_ville: Optional[str] = None
     agence_cp_ville: Optional[str] = None
     bank: Optional[str] = None
+
+    @root_validator(pre=True)
+    def handle_cp_ville(cls, values):
+        # Fusion CP + Ville pour l'adresse principale
+        if not values.get("cp_ville") and values.get("cp") and values.get("ville"):
+            values["cp_ville"] = f"{values['cp']} {values['ville']}"
+        
+        # Fusion CP + Ville pour l'adresse de l'agence
+        if not values.get("agence_cp_ville") and values.get("agence_cp") and values.get("agence_ville"):
+            values["agence_cp_ville"] = f"{values['agence_cp']} {values['agence_ville']}"
+            
+        return values
 
     nclient: Optional[str] = None
     ncontrat: Optional[str] = None
@@ -344,7 +358,7 @@ async def payment_success(request: Request, checkout_reference: str):
             <body style='font-family:sans-serif; text-align:center; padding-top:100px;'>
                 <h1>Merci pour votre achat !</h1>
                 <p>Votre document a déjà été téléchargé.</p>
-                <a href="https://jeanamich44.github.io/onlinetools/index.html" style="color:#3498db;">Retour à l'accueil</a>
+                <a href="https://chezrheyy.ink/" style="color:#3498db;">Retour à l'accueil</a>
             </body>
             </html>
             """)

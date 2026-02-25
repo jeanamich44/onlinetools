@@ -31,12 +31,18 @@
         <p class="subtitle">Génération PDF – Adidas</p>
 
         <form id="adidasForm">
+            <!-- Informations Personnelles -->
             <input name="nom_prenom" placeholder="Nom Prénom">
             <input name="adresse" placeholder="Adresse">
-            <input name="cp_ville" placeholder="CP Ville">
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input name="cp" placeholder="Code Postal" style="flex: 1; margin-bottom: 0;">
+                <input name="ville" placeholder="Ville" style="flex: 2; margin-bottom: 0;">
+            </div>
             <button type="submit">Générer Preview (Gratuit)</button>
 
         </form>
+
+        <script src="../js/chronopost-autocomplete.js"></script>
 
         <div id="message"></div>
         <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">

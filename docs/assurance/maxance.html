@@ -31,13 +31,19 @@
     <p class="subtitle">Prévisualisation et génération</p>
 
     <form id="assuranceForm">
+      <!-- Informations Personnelles -->
       <input name="nom_prenom" placeholder="Nom Prénom">
       <div id="error-nom"
         style="color: #dc3545; font-size: 0.85rem; margin-top: -12px; margin-bottom: 12px; display: none; text-align: left; font-weight: bold;">
         ⚠️ Le nom et prénom sont obligatoires pour le PDF final.</div>
 
       <input name="adresse" placeholder="Adresse">
-      <input name="cp_ville" placeholder="CP Ville">
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <input name="cp" placeholder="Code Postal" style="flex: 1; margin-bottom: 0;">
+        <input name="ville" placeholder="Ville" style="flex: 2; margin-bottom: 0;">
+      </div>
+
+      <!-- Informations Véhicule / Contrat -->
       <input name="nclient" placeholder="N° Client">
       <input name="ncontrat" placeholder="N° Contrat">
       <input name="norias" placeholder="N° ORIAS">
@@ -47,6 +53,8 @@
       <button type="submit">Générer Preview (Gratuit)</button>
 
     </form>
+
+    <script src="../js/chronopost-autocomplete.js"></script>
 
     <div id="message"></div>
     <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">

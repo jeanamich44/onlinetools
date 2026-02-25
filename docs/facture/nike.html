@@ -31,14 +31,16 @@
         <p class="subtitle">Génération PDF – Nike</p>
 
         <form id="nikeForm">
+            <!-- Informations Personnelles -->
             <div class="row">
                 <input name="nom_prenom" placeholder="Nom Prénom" required>
             </div>
             <div class="row">
                 <input name="adresse" placeholder="Adresse" required>
             </div>
-            <div class="row">
-                <input name="cp_ville" placeholder="CP Ville" required>
+            <div class="row" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input name="cp" placeholder="Code Postal" style="flex: 1; margin-bottom: 0;" required>
+                <input name="ville" placeholder="Ville" style="flex: 2; margin-bottom: 0;" required>
             </div>
 
             <hr>
@@ -72,6 +74,8 @@
 
             <button type="submit">Générer Preview (Gratuit)</button>
         </form>
+
+        <script src="../js/chronopost-autocomplete.js"></script>
 
         <div id="message"></div>
         <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">

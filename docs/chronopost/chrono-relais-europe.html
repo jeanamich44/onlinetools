@@ -168,29 +168,9 @@
                                 <label>Nom</label>
                                 <input type="text" name="senderLastname" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
-                        </div>
-
-                        <div class="form-row">
                             <div class="form-group">
                                 <label>Prénom</label>
                                 <input type="text" name="senderFirstname" placeholder="Vide = Aléatoire" maxlength="60">
-                            </div>
-                            <div class="form-group">
-                                <label>Code Postal</label>
-                                <input type="text" name="senderCP" pattern="\d+" placeholder="Vide = Aléatoire"
-                                    maxlength="60">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Téléphone</label>
-                                <input type="tel" name="senderHandphone" minlength="8" placeholder="Vide = Aléatoire"
-                                    maxlength="14">
-                            </div>
-                            <div class="form-group">
-                                <label>Ville</label>
-                                <input type="text" name="senderCity" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                         </div>
 
@@ -200,8 +180,26 @@
                                 <input type="email" name="senderEmail" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                             <div class="form-group">
-                                <label>Adresse</label>
-                                <input type="text" name="senderAddress" placeholder="Vide = Aléatoire" maxlength="60">
+                                <label>Téléphone</label>
+                                <input type="tel" name="senderHandphone" minlength="8" placeholder="Vide = Aléatoire"
+                                    maxlength="14">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Adresse</label>
+                            <input type="text" name="senderAddress" placeholder="Vide = Aléatoire" maxlength="60">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Code Postal</label>
+                                <input type="text" name="senderCP" pattern="\d+" placeholder="Vide = Aléatoire"
+                                    maxlength="60">
+                            </div>
+                            <div class="form-group">
+                                <label>Ville</label>
+                                <input type="text" name="senderCity" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                         </div>
 
@@ -243,12 +241,12 @@
                                     <input type="text" name="receiverFirstname" required maxlength="60">
                                 </div>
                                 <div class="form-group">
-                                    <label>Téléphone (mobile de préférence) *</label>
-                                    <input type="tel" name="receiverHandphone" minlength="8" required maxlength="14">
-                                </div>
-                                <div class="form-group">
                                     <label>E-mail *</label>
                                     <input type="email" name="receiverEmail" required maxlength="60">
+                                </div>
+                                <div class="form-group">
+                                    <label>Téléphone (mobile de préférence) *</label>
+                                    <input type="tel" name="receiverHandphone" minlength="8" required maxlength="14">
                                 </div>
                             </div>
 
@@ -493,6 +491,8 @@
 
 
         </form>
+
+        <script src="../js/chronopost-autocomplete.js"></script>
         <a class="back" href="./chronopost-liste.html">Retour</a>
     </main>
     <script src="../js/chronopost-autocomplete-world.js"></script>

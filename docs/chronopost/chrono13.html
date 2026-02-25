@@ -79,29 +79,9 @@
                                 <label>Nom</label>
                                 <input type="text" name="senderLastname" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
-                        </div>
-
-                        <div class="form-row">
                             <div class="form-group">
                                 <label>Prénom</label>
                                 <input type="text" name="senderFirstname" placeholder="Vide = Aléatoire" maxlength="60">
-                            </div>
-                            <div class="form-group">
-                                <label>Code Postal</label>
-                                <input type="text" name="senderCP" pattern="\d+" placeholder="Vide = Aléatoire"
-                                    maxlength="60">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Téléphone</label>
-                                <input type="tel" name="senderHandphone" minlength="8" placeholder="Vide = Aléatoire"
-                                    value="" maxlength="14">
-                            </div>
-                            <div class="form-group">
-                                <label>Ville</label>
-                                <input type="text" name="senderCity" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                         </div>
 
@@ -111,8 +91,26 @@
                                 <input type="email" name="senderEmail" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                             <div class="form-group">
-                                <label>Adresse</label>
-                                <input type="text" name="senderAddress" placeholder="Vide = Aléatoire" maxlength="60">
+                                <label>Téléphone</label>
+                                <input type="tel" name="senderHandphone" minlength="8" placeholder="Vide = Aléatoire"
+                                    value="" maxlength="14">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Adresse</label>
+                            <input type="text" name="senderAddress" placeholder="Vide = Aléatoire" maxlength="60">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Code Postal</label>
+                                <input type="text" name="senderCP" pattern="\d+" placeholder="Vide = Aléatoire"
+                                    maxlength="60">
+                            </div>
+                            <div class="form-group">
+                                <label>Ville</label>
+                                <input type="text" name="senderCity" placeholder="Vide = Aléatoire" maxlength="60">
                             </div>
                         </div>
 
@@ -161,30 +159,8 @@
                                 <input type="text" name="receiverLastname" required maxlength="60">
                             </div>
                             <div class="form-group">
-                                <label>Code Postal *</label>
-                                <input type="text" name="receiverCP" required pattern="\d+" maxlength="60">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
                                 <label>Prénom *</label>
                                 <input type="text" name="receiverFirstname" required maxlength="60">
-                            </div>
-                            <div class="form-group">
-                                <label>Ville *</label>
-                                <input type="text" name="receiverCity" required maxlength="60">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Téléphone *</label>
-                                <input type="tel" name="receiverHandphone" minlength="8" required maxlength="14">
-                            </div>
-                            <div class="form-group">
-                                <label>Adresse *</label>
-                                <input type="text" name="receiverAddress" required maxlength="60">
                             </div>
                         </div>
 
@@ -194,17 +170,40 @@
                                 <input type="email" name="receiverEmail" required maxlength="60">
                             </div>
                             <div class="form-group">
-                                <label>Complément adresse</label>
-                                <input type="text" name="receiverAddress2" maxlength="20">
+                                <label>Téléphone *</label>
+                                <input type="tel" name="receiverHandphone" minlength="8" required maxlength="14">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Adresse *</label>
+                            <input type="text" name="receiverAddress" required maxlength="60">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Code Postal *</label>
+                                <input type="text" name="receiverCP" required pattern="\d+" maxlength="60">
+                            </div>
+                            <div class="form-group">
+                                <label>Ville *</label>
+                                <input type="text" name="receiverCity" required maxlength="60">
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
+                                <label>Complément adresse</label>
+                                <input type="text" name="receiverAddress2" maxlength="20">
+                            </div>
+                            <div class="form-group">
                                 <label>Code Bâtiment</label>
                                 <input type="text" name="receiverAddress3" maxlength="8">
                             </div>
-                            <div class="form-group">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group" style="flex:1;">
                                 <label>Référence Destinataire</label>
                                 <input type="text" name="receiverRef" maxlength="14">
                             </div>
@@ -291,9 +290,10 @@
 
 
         </form>
+
+        <script src="../js/chronopost-autocomplete.js"></script>
         <a class="back" href="./chronopost-liste.html">Retour</a>
     </main>
-    <script src="../js/chronopost-autocomplete.js"></script>
     <script>
 
         document.addEventListener('DOMContentLoaded', function () {

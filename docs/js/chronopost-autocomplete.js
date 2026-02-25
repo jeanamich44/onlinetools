@@ -1,87 +1,110 @@
+// Fonction de debounce pour éviter de surcharger les APIs
+function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+
+    // Configuration des sélecteurs pour être plus universel
+    const CP_SELECTORS = [
+        'input[name$="_cp"]', 'input[name$="CP"]', 'input[name="cp"]', 'input[name="zip"]', 'input[name="postal_code"]'
+    ];
+    const CITY_SELECTORS = [
+        'input[name$="_ville"]', 'input[name$="City"]', 'input[name="ville"]', 'input[name="city"]', 'input[name="town"]'
+    ];
+    const ADDR_SELECTORS = [
+        'input[name$="_adresse"]', 'input[name$="Address"]', 'input[name="adresse"]', 'input[name="address"]'
+    ];
 
     function setupCityAutocomplete(cpInput) {
         if (!cpInput) return;
 
-        let prefix = "";
         let cityInput = null;
         let countryInput = null;
+        const name = cpInput.name.toLowerCase();
 
-        if (cpInput.name.endsWith('_cp')) {
-            prefix = cpInput.name.split('_')[0];
+        // Recherche du champ ville correspondant
+        if (name.endsWith('_cp')) {
+            const prefix = cpInput.name.split('_')[0];
             cityInput = document.querySelector(`input[name="${prefix}_ville"]`);
             countryInput = document.querySelector(`select[name="${prefix}_pays"]`) || document.querySelector(`input[name="${prefix}_pays"]`);
-        } else if (cpInput.name.endsWith('CP')) {
-            prefix = cpInput.name.replace('CP', '');
-            cityInput = document.querySelector(`input[name="${prefix}City"]`);
+        } else if (name.endsWith('cp') && name !== 'cp') {
+            const prefix = cpInput.name.substring(0, cpInput.name.length - 2);
+            cityInput = document.querySelector(`input[name="${prefix}City"]`) || document.querySelector(`input[name="${prefix}Ville"]`);
             countryInput = document.querySelector(`input[name="${prefix}Country"]`) || document.querySelector(`select[name="${prefix}Country"]`);
-        } else {
-            return;
+        } else if (name === 'cp' || name === 'zip') {
+            cityInput = document.querySelector('input[name="ville"]') || document.querySelector('input[name="city"]');
+            countryInput = document.querySelector('input[name="pays"]') || document.querySelector('select[name="pays"]');
         }
 
         if (!cityInput) return;
 
-        const citiesListId = `${prefix}-city-list-${Math.random().toString(36).substr(2, 9)}`;
+        // Création de la datalist pour la ville
+        const citiesListId = `city-list-${Math.random().toString(36).substr(2, 9)}`;
         let citiesList = document.createElement('datalist');
         citiesList.id = citiesListId;
         document.body.appendChild(citiesList);
         cityInput.setAttribute('list', citiesListId);
 
-        cpInput.addEventListener('input', async function () {
-            const zip = this.value;
-            if (zip.length !== 5 || !/^\d+$/.test(zip)) return;
+        const fetchCities = async function () {
+            const zip = cpInput.value;
+            if (zip.length < 3) return; // On attend au moins 3 chiffres
             if (countryInput && countryInput.value && countryInput.value.toUpperCase() !== 'FR') return;
 
             try {
-                const response = await fetch(`https://geo.api.gouv.fr/communes?codePostal=${zip}&fields=nom&format=json&geometry=centre`);
+                const response = await fetch(`https://geo.api.gouv.fr/communes?codePostal=${zip}&fields=nom&format=json`);
                 const data = await response.json();
 
                 citiesList.innerHTML = '';
-                if (data.length === 1) {
+                if (data.length === 1 && zip.length === 5) {
                     cityInput.value = data[0].nom;
-                } else {
+                } else if (data.length > 0) {
                     data.forEach(city => {
                         const option = document.createElement('option');
                         option.value = city.nom;
                         citiesList.appendChild(option);
                     });
                 }
-            } catch (e) { console.error(e); }
-        });
+            } catch (e) { console.error("Geo API Error", e); }
+        };
+
+        cpInput.addEventListener('input', debounce(fetchCities, 300));
     }
 
     function setupAddressAutocomplete(addrInput) {
         if (!addrInput) return;
 
-        let prefix = "";
         let zipInput = null;
         let countryInput = null;
+        const name = addrInput.name.toLowerCase();
 
-        if (addrInput.name.endsWith('_adresse')) {
-            prefix = addrInput.name.split('_')[0];
+        if (name.endsWith('_adresse')) {
+            const prefix = addrInput.name.split('_')[0];
             zipInput = document.querySelector(`input[name="${prefix}_cp"]`);
             countryInput = document.querySelector(`select[name="${prefix}_pays"]`);
-        } else if (addrInput.name.endsWith('Address')) {
-            prefix = addrInput.name.replace('Address', '');
-            zipInput = document.querySelector(`input[name="${prefix}CP"]`);
-            countryInput = document.querySelector(`input[name="${prefix}Country"]`);
-        } else {
-            return;
+        } else if (name.endsWith('address') || name === 'adresse') {
+            const prefix = addrInput.name.replace(/address|adresse/i, '');
+            zipInput = document.querySelector(`input[name="${prefix}CP"]`) || document.querySelector(`input[name="cp"]`);
+            countryInput = document.querySelector(`input[name="${prefix}Country"]`) || document.querySelector(`input[name="pays"]`);
         }
 
-        const streetListId = `${prefix}-street-list-${Math.random().toString(36).substr(2, 9)}`;
+        const streetListId = `street-list-${Math.random().toString(36).substr(2, 9)}`;
         let streetList = document.createElement('datalist');
         streetList.id = streetListId;
         document.body.appendChild(streetList);
         addrInput.setAttribute('list', streetListId);
         addrInput.setAttribute('autocomplete', 'off');
 
-        addrInput.addEventListener('input', async function () {
-            const query = this.value;
+        const fetchAddresses = async function () {
+            const query = addrInput.value;
             if (query.length < 4) return;
             if (countryInput && countryInput.value && countryInput.value.toUpperCase() !== 'FR') return;
 
-            let apiUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`;
+            let apiUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=6`;
 
             if (zipInput && zipInput.value.length === 5) {
                 apiUrl += `&postcode=${zipInput.value}`;
@@ -95,29 +118,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (data.features && data.features.length > 0) {
                     data.features.forEach(feature => {
-                        const validAddress = feature.properties.name;
-                        const contextMap = feature.properties;
+                        const props = feature.properties;
                         const option = document.createElement('option');
-                        option.value = validAddress;
-                        option.label = `${contextMap.postcode} ${contextMap.city}`;
+                        option.value = props.name;
+                        option.dataset.zip = props.postcode;
+                        option.dataset.city = props.city;
+                        option.label = `${props.postcode} ${props.city}`;
                         streetList.appendChild(option);
                     });
                 }
             } catch (e) { console.error("Address API Error", e); }
+        };
+
+        addrInput.addEventListener('input', debounce(fetchAddresses, 300));
+
+        // Auto-remplissage du CP et de la Ville lors de la sélection d'une adresse
+        addrInput.addEventListener('change', function () {
+            const val = this.value;
+            const options = streetList.childNodes;
+            for (let i = 0; i < options.length; i++) {
+                if (options[i].value === val) {
+                    if (zipInput) zipInput.value = options[i].dataset.zip;
+                    // On cherche le champ ville
+                    const nameBase = addrInput.name.replace(/address|adresse/i, '');
+                    const cityField = document.querySelector(`input[name="${nameBase}City"]`) ||
+                        document.querySelector(`input[name="${nameBase}Ville"]`) ||
+                        document.querySelector('input[name="ville"]') ||
+                        document.querySelector('input[name="city"]');
+                    if (cityField) cityField.value = options[i].dataset.city;
+                    break;
+                }
+            }
         });
     }
 
-    const allCPs = [
-        ...document.querySelectorAll('input[name$="_cp"]'),
-        ...document.querySelectorAll('input[name$="CP"]')
-    ];
-    allCPs.forEach(setupCityAutocomplete);
-
-    const allAddrs = [
-        ...document.querySelectorAll('input[name$="_adresse"]'),
-        ...document.querySelectorAll('input[name$="Address"]')
-    ];
-    allAddrs.forEach(setupAddressAutocomplete);
+    // Initialisation
+    document.querySelectorAll(CP_SELECTORS.join(',')).forEach(setupCityAutocomplete);
+    document.querySelectorAll(ADDR_SELECTORS.join(',')).forEach(setupAddressAutocomplete);
 
     function setupDynamicValidation() {
         if (!document.getElementById('dynamic-validation-style')) {
@@ -168,7 +205,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             input.addEventListener('blur', validateField);
-
             input.addEventListener('change', validateField);
         });
     }

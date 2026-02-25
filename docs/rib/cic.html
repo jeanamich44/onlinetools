@@ -31,28 +31,40 @@
     <p class="subtitle">Génération PDF – CIC</p>
 
     <form id="cicForm">
+      <!-- Informations Personnelles -->
       <input name="nom_prenom" placeholder="Nom Prénom">
       <div id="error-nom"
         style="color: #dc3545; font-size: 0.85rem; margin-top: -12px; margin-bottom: 12px; display: none; text-align: left; font-weight: bold;">
         ⚠️ Le nom et prénom sont obligatoires pour le PDF final.</div>
-      <input name="adresse" placeholder="Adresse">
-      <input name="cp_ville" placeholder="CP Ville">
 
+      <input name="adresse" placeholder="Adresse">
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <input name="cp" placeholder="Code Postal" style="flex: 1; margin-bottom: 0;">
+        <input name="ville" placeholder="Ville" style="flex: 2; margin-bottom: 0;">
+      </div>
+
+      <input name="telephone" placeholder="Téléphone">
+
+      <!-- Informations Bancaires -->
       <input name="banque" placeholder="Code banque">
       <input name="guichet" placeholder="Code guichet">
       <input name="compte" placeholder="Numéro de compte">
       <input name="cle" placeholder="Clé RIB">
-
       <input name="iban" placeholder="IBAN">
 
+      <!-- Informations Agence -->
       <input name="agence1" placeholder="Agence (ligne 1)">
       <input name="agence2" placeholder="Agence (ligne 2)">
-      <input name="agenceadresse" placeholder="Adresse agence">
-      <input name="agencecpville" placeholder="CP Ville agence">
-      <input name="telephone" placeholder="Téléphone">
+      <input name="agence_adresse" placeholder="Adresse agence">
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <input name="agence_cp" placeholder="CP Agence" style="flex: 1; margin-bottom: 0;">
+        <input name="agence_ville" placeholder="Ville Agence" style="flex: 2; margin-bottom: 0;">
+      </div>
 
       <button type="submit">Générer Preview (Gratuit)</button>
     </form>
+
+    <script src="../js/chronopost-autocomplete.js"></script>
 
     <div id="message"></div>
     <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">

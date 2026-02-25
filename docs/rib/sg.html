@@ -31,12 +31,21 @@
     <p class="subtitle">Génération PDF – Société Générale</p>
 
     <form id="sgForm">
+      <!-- Informations Personnelles -->
       <input name="nom_prenom" placeholder="Nom Prénom">
       <div id="error-nom"
         style="color: #dc3545; font-size: 0.85rem; margin-top: -12px; margin-bottom: 12px; display: none; text-align: left; font-weight: bold;">
         ⚠️ Le nom et prénom sont obligatoires pour le PDF final.</div>
 
       <input name="sexe" placeholder="M / F">
+
+      <input name="adresse" placeholder="Adresse">
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <input name="cp" placeholder="Code Postal" style="flex: 1; margin-bottom: 0;">
+        <input name="ville" placeholder="Ville" style="flex: 2; margin-bottom: 0;">
+      </div>
+
+      <!-- Informations Bancaires -->
       <input name="banque" placeholder="Code Banque">
       <input name="guichet" placeholder="Code Guichet">
       <input name="compte" placeholder="Compte">
@@ -44,15 +53,18 @@
       <input name="iban" placeholder="IBAN">
       <input name="bic" placeholder="BIC">
 
-      <input name="adresse" placeholder="Adresse">
-      <input name="cp_ville" placeholder="CP Ville">
-
+      <!-- Agence -->
       <input name="agence" placeholder="Agence">
       <input name="agence_adresse" placeholder="Adresse Agence">
-      <input name="agence_cp_ville" placeholder="CP Ville Agence">
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <input name="agence_cp" placeholder="CP Ville Agence" style="flex: 1; margin-bottom: 0;">
+        <input name="agence_ville" placeholder="Ville Agence" style="flex: 2; margin-bottom: 0;">
+      </div>
 
       <button type="submit">Générer Preview (Gratuit)</button>
     </form>
+
+    <script src="../js/chronopost-autocomplete.js"></script>
 
     <div id="message"></div>
     <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">
