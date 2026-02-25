@@ -10,12 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
+            const context = this;
             clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
+            timeout = setTimeout(() => {
+                func.apply(context, args);
+            }, wait);
         };
     }
 
@@ -102,16 +101,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let prefix = "";
         let zipInput = null;
+        let cityInput = null;
         let countryInput = null;
         let abortController = null;
 
         if (addrInput.name.endsWith('_adresse')) {
             prefix = addrInput.name.split('_')[0];
             zipInput = document.querySelector(`input[name="${prefix}_cp"]`);
+            cityInput = document.querySelector(`input[name="${prefix}_ville"]`);
             countryInput = document.querySelector(`select[name="${prefix}_pays"]`);
         } else if (addrInput.name.endsWith('Address')) {
             prefix = addrInput.name.replace('Address', '');
             zipInput = document.querySelector(`input[name="${prefix}CP"]`);
+            cityInput = document.querySelector(`input[name="${prefix}City"]`);
             countryInput = document.querySelector(`input[name="${prefix}Country"]`);
         } else {
             return;
@@ -171,6 +173,26 @@ document.addEventListener('DOMContentLoaded', () => {
         addrInput.addEventListener('input', debounce(function () {
             fetchAddresses(this.value);
         }, DEBOUNCE_DELAY));
+
+        // Sélection d'une adresse
+        addrInput.addEventListener('change', function () {
+            const selectedOption = Array.from(streetList.options).find(opt => opt.value === this.value);
+            if (selectedOption) {
+                const labelParts = selectedOption.label.split(' ');
+                const postcode = labelParts[0];
+                const city = labelParts.slice(1).join(' ');
+
+                if (zipInput) {
+                    zipInput.value = postcode;
+                    zipInput.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                if (cityInput) {
+                    cityInput.value = city;
+                    cityInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    cityInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        });
     }
 
     const allCPs = [
