@@ -1,6 +1,6 @@
 import fitz
 import os
-from .preview_utils import save_pdf_as_jpg, flatten_pdf
+from .preview_utils import save_pdf_as_jpg
 import re
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -110,7 +110,6 @@ def generate_ca_pdf(data, output_path):
 
     doc.save(output_path, garbage=4, deflate=True)
     doc.close()
-    flatten_pdf(output_path)
 
 
 def generate_ca_preview(data, output_path):

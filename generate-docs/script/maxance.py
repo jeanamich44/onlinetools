@@ -1,6 +1,6 @@
 import fitz
 import os
-from .preview_utils import save_pdf_as_jpg, flatten_pdf
+from .preview_utils import save_pdf_as_jpg
 import re
 import random
 import string
@@ -193,7 +193,6 @@ def generate_maxance_pdf(data, output_path):
         
     doc.save(output_path)
     doc.close()
-    flatten_pdf(output_path)
 
 def generate_maxance_preview(data, output_path):
     values = prepare_values(data)

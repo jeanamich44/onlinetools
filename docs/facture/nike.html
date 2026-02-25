@@ -34,15 +34,11 @@
             <div class="row">
                 <input name="nom_prenom" placeholder="Nom Prénom" required>
             </div>
-            <div class="row" style="display: flex; gap: 10px;">
-                <input type="text" name="factureCP" id="cp_input" placeholder="Code Postal" style="flex: 1;" required>
-                <input type="text" name="factureCity" id="ville_input" placeholder="Ville" style="flex: 2;" required>
-            </div>
-            <input type="hidden" name="cp_ville" id="cp_ville_hidden">
-            <input type="hidden" name="adresse" id="adresse_hidden">
-
             <div class="row">
-                <input name="factureAddress" id="adresse_input" placeholder="Adresse" required>
+                <input name="adresse" placeholder="Adresse" required>
+            </div>
+            <div class="row">
+                <input name="cp_ville" placeholder="CP Ville" required>
             </div>
 
             <hr>
@@ -239,30 +235,6 @@
 
     </script>
 
-    <script src="../js/chronopost-autocomplete.js"></script>
-    <script>
-        const cpInput = document.getElementById('cp_input');
-        const villeInput = document.getElementById('ville_input');
-        const adresseInput = document.getElementById('adresse_input');
-        const cpVilleHidden = document.getElementById('cp_ville_hidden');
-        const adresseHidden = document.getElementById('adresse_hidden');
-
-        function syncFields() {
-            if (cpInput && villeInput && cpVilleHidden) {
-                cpVilleHidden.value = (cpInput.value + " " + villeInput.value).trim().toUpperCase();
-            }
-            if (adresseInput && adresseHidden) {
-                adresseHidden.value = adresseInput.value.trim().toUpperCase();
-            }
-        }
-
-        [cpInput, villeInput, adresseInput].forEach(el => {
-            if (el) {
-                el.addEventListener('input', syncFields);
-                el.addEventListener('change', syncFields);
-            }
-        });
-    </script>
 </body>
 
 </html>

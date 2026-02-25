@@ -280,10 +280,7 @@ async def get_payment_status(checkout_reference: str, db: Session = Depends(get_
     payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
     if not payment:
         raise HTTPException(status_code=404, detail="Error")
-    return {
-        "status": payment.status,
-        "is_generated": payment.is_generated == 1
-    }
+    return {"status": payment.status}
 
 @app.get("/api/wait-for-success/{checkout_reference}")
 async def wait_for_success(checkout_reference: str, db: Session = Depends(get_db)):

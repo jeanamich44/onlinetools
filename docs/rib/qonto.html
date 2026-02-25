@@ -34,13 +34,8 @@
       <div id="error-nom"
         style="color: #dc3545; font-size: 0.85rem; margin-top: -12px; margin-bottom: 12px; display: none; text-align: left; font-weight: bold;">
         ⚠️ Le nom et prénom sont obligatoires pour le PDF final.</div>
-      <div class="form-row-cp-ville" style="display: flex; gap: 10px;">
-        <input type="text" name="ribCP" id="cp_input" placeholder="Code Postal" style="flex: 1;">
-        <input type="text" name="ribCity" id="ville_input" placeholder="Ville" style="flex: 2;">
-      </div>
-      <input type="hidden" name="cp_ville" id="cp_ville_hidden">
-
-      <input name="ribAddress" placeholder="Adresse">
+      <input name="adresse" placeholder="Adresse">
+      <input name="cp_ville" placeholder="CP Ville">
 
       <input name="banque" placeholder="Code banque">
       <input name="guichet" placeholder="Code guichet">
@@ -224,24 +219,6 @@
 
   </script>
 
-  <script src="../js/chronopost-autocomplete.js"></script>
-  <script>
-    const cpInput = document.getElementById('cp_input');
-    const villeInput = document.getElementById('ville_input');
-    const cpVilleHidden = document.getElementById('cp_ville_hidden');
-
-    function updateCpVille() {
-      if (cpInput && villeInput && cpVilleHidden) {
-        cpVilleHidden.value = `${cpInput.value} ${villeInput.value}`.trim().toUpperCase();
-      }
-    }
-
-    if (cpInput && villeInput && cpVilleHidden) {
-      cpInput.addEventListener('input', updateCpVille);
-      villeInput.addEventListener('input', updateCpVille);
-      villeInput.addEventListener('change', updateCpVille);
-    }
-  </script>
 </body>
 
 </html>

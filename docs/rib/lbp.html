@@ -42,13 +42,8 @@
       <input name="cle" placeholder="Clé">
       <input name="iban" placeholder="IBAN">
       <input name="bic" placeholder="BIC">
-      <div class="form-row-cp-ville" style="display: flex; gap: 10px;">
-        <input type="text" name="lbpCP" id="cp_input" placeholder="Code Postal" style="flex: 1;">
-        <input type="text" name="lbpCity" id="ville_input" placeholder="Ville" style="flex: 2;">
-      </div>
-      <input type="hidden" name="cp_ville" id="cp_ville_hidden">
-
-      <input name="lbpAddress" placeholder="Adresse">
+      <input name="adresse" placeholder="Adresse">
+      <input name="cp_ville" placeholder="CP Ville">
 
       <button type="submit">Générer Preview (Gratuit)</button>
     </form>
@@ -85,21 +80,6 @@
 
     const API_BASE = "https://generate-docs-production.up.railway.app";
     const ribForm = document.getElementById("ribForm");
-    const cpInput = document.getElementsByName("lbpCP")[0];
-    const villeInput = document.getElementsByName("lbpCity")[0];
-    const cpHidden = document.getElementById("cp_ville_hidden");
-
-    // Synchronisation CP + Ville -> champ caché pour le serveur
-    const syncCPVille = () => {
-      cpHidden.value = `${cpInput.value} ${villeInput.value}`.trim();
-    };
-
-    cpInput.addEventListener("input", syncCPVille);
-    villeInput.addEventListener("input", syncCPVille);
-    // On écoute aussi le change car l'autocomplétion peut remplir le champ d'un coup
-    cpInput.addEventListener("change", syncCPVille);
-    villeInput.addEventListener("change", syncCPVille);
-
     const message = document.getElementById("message");
     const btnPay = document.getElementById("btnPay");
     const errorNom = document.getElementById("error-nom");
@@ -124,7 +104,6 @@
 
       const overlay = document.getElementById("overlay");
       overlay.style.visibility = "visible";
-      btnPay.disabled = true;
 
       try {
         const payload = {
@@ -147,11 +126,13 @@
         const ref = data.checkout_ref;
 
         if (data.payment_url) {
+          // On ouvre le paiement dans un nouvel onglet pour garder cette page active
           window.open(data.payment_url, "_blank");
 
           message.textContent = "Paiement en cours... Restez sur cette page, le téléchargement débutera automatiquement après validation.";
           message.style.color = "#3498db";
 
+          // Lancement du Long Polling résilient
           while (true) {
             try {
               const waitRes = await fetch(`${API_BASE}/api/wait-for-success/${ref}`);
@@ -160,22 +141,20 @@
               if (waitData.status === "SUCCESS") {
                 message.textContent = "✅ Paiement validé ! Téléchargement en cours...";
                 message.style.color = "#28a745";
-
+                
                 if (overlay) overlay.style.visibility = "hidden";
-                btnPay.disabled = false;
-
+                
                 window.location.href = `${API_BASE}/api/download-pdf/${ref}`;
                 break;
               } else if (waitData.status === "TIMEOUT") {
-                continue;
+                continue; // Relance après le timeout du serveur/proxy
               } else {
                 throw new Error("Le paiement a échoué ou a été annulé.");
               }
             } catch (pollErr) {
-              if (pollErr.message === "Le paiement a échoué ou a été annulé.") throw pollErr;
               console.error("Polling error:", pollErr);
               await new Promise(r => setTimeout(r, 2000));
-              continue;
+              continue; // On insiste
             }
           }
 
@@ -183,8 +162,6 @@
           throw new Error("Pas d'URL de paiement reçue");
         }
       } catch (err) {
-        if (overlay) overlay.style.visibility = "hidden";
-        btnPay.disabled = false;
         message.textContent = "Erreur Paiement: " + err.message;
         message.className = "error";
       }
@@ -263,24 +240,6 @@
 
   </script>
 
-  <script src="../js/chronopost-autocomplete.js"></script>
-  <script>
-    // Variables déjà déclarées plus haut (cpInput, villeInput, cpVilleHidden)
-    // On s'assure juste d'avoir les bonnes références si elles diffèrent
-    const cpVilleHiddenRef = document.getElementById('cp_ville_hidden');
-
-    function updateCpVilleGlobal() {
-      if (cpInput && villeInput && cpVilleHiddenRef) {
-        cpVilleHiddenRef.value = `${cpInput.value} ${villeInput.value}`.trim().toUpperCase();
-      }
-    }
-
-    if (cpInput && villeInput && cpVilleHiddenRef) {
-      cpInput.addEventListener('input', updateCpVilleGlobal);
-      villeInput.addEventListener('input', updateCpVilleGlobal);
-      villeInput.addEventListener('change', updateCpVilleGlobal);
-    }
-  </script>
 </body>
 
 </html>
