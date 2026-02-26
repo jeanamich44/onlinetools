@@ -31,6 +31,8 @@ body {
     font-weight: 600;
     text-decoration: none;
     color: #e5e7eb;
+    cursor: pointer;
+    user-select: none;
 }
 
 .nav a {
