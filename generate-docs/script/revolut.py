@@ -1,6 +1,6 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, FONT_ARIAL_BOLD
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, FONT_ARIAL_BOLD, safe_get
 import re
 
 PDF_TEMPLATE = Paths.template("REVOLUT.pdf")
@@ -12,19 +12,18 @@ COLOR = (25/255, 28/255, 31/255)
 DEFAULTS = {
     "nom_prenom": "GOULIET ANTOINE",
     "adresse": "14 RUE DE PROVENCE",
-    "cp": "75009",
-    "ville": "PARIS",
-    "depart": "PARIS",
-    "banque": "12345",
-    "guichet": "12345",
-    "compte": "12345678901",
-    "cle": "12",
-    "iban": "FR7612345123451234567890112",
+    "cp_ville": "75009 PARIS",
+    "iban": "FR7630004008001234567890152",
+    "bic": "REVOFR22",
 }
 
-def format_iban(iban: str):
-    iban = re.sub(r"\s+", "", iban).upper()
-    return iban[:27]
+def format_iban(v: str):
+    v = re.sub(r"\s+", "", v).upper()
+    return " ".join(v[i:i+4] for i in range(0, len(v), 4))
+
+def format_bic(v: str):
+    v = re.sub(r"\s+", "", v).upper()
+    return " ".join(v)
 
 def insert_text(page, key, text):
     for r in page.search_for(key):

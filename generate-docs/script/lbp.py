@@ -1,6 +1,6 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, FONT_ARIAL_BOLD
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, FONT_ARIAL_BOLD, safe_get
 
 PDF_TEMPLATE = Paths.template("LBP.pdf")
 FONT_FILE = Paths.font("arialbd.ttf")
@@ -20,28 +20,28 @@ DEFAULTS = {
     "adresse": "14 RUE DE PROVENCE",
     "cp_ville": "75009 PARIS",
     "domiciliation": "LA BANQUE POSTALE LYON CENTRE FINANCIER",
+    "sexe": "m",
 }
 
 
 def generate_lbp(data, output_path, is_preview=False):
-    titre = "MR" if (data.sexe or "m").lower() == "m" else "MME"
+    sexe = safe_get(data, "sexe", DEFAULTS).lower()
+    titre = "MR" if sexe == "m" else "MME"
     
+    iban_raw = safe_get(data, "iban", DEFAULTS).replace(" ", "").upper()
+    bic_raw = safe_get(data, "bic", DEFAULTS).replace(" ", "").upper()
+
     values = {
-        "banque": (data.banque or DEFAULTS["banque"]).upper(),
-        "guichet": (data.guichet or DEFAULTS["guichet"]).upper(),
-        "compte": (data.compte or DEFAULTS["compte"]).upper(),
-        "cle": (data.cle or DEFAULTS["cle"]).upper(),
-        "iban": " ".join(
-            (data.iban or DEFAULTS["iban"])
-            .replace(" ", "")
-            .upper()[i:i+4]
-            for i in range(0, len((data.iban or DEFAULTS["iban"]).replace(" ", "")), 4)
-        ),
-        "bic": " ".join((data.bic or DEFAULTS["bic"]).replace(" ", "").upper()),
-        "nom prenom": f"{titre} {(data.nom_prenom or DEFAULTS['nom_prenom']).upper()}",
-        "adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
-        "cp ville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
-        "domiciliation": (data.domiciliation or DEFAULTS["domiciliation"]).upper(),
+        "banque": safe_get(data, "banque", DEFAULTS).upper(),
+        "guichet": safe_get(data, "guichet", DEFAULTS).upper(),
+        "compte": safe_get(data, "compte", DEFAULTS).upper(),
+        "cle": safe_get(data, "cle", DEFAULTS).upper(),
+        "iban": " ".join(iban_raw[i:i+4] for i in range(0, len(iban_raw), 4)),
+        "bic": " ".join(bic_raw),
+        "nom prenom": f"{titre} {safe_get(data, 'nom_prenom', DEFAULTS).upper()}",
+        "adresse": safe_get(data, "adresse", DEFAULTS).upper(),
+        "cp ville": safe_get(data, "cp_ville", DEFAULTS).upper(),
+        "domiciliation": safe_get(data, "domiciliation", DEFAULTS).upper(),
     }
 
     doc = fitz.open(PDF_TEMPLATE)

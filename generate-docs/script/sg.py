@@ -1,6 +1,6 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get
 
 PDF_TEMPLATE = Paths.template("SG.pdf")
 FONT_FILE = Paths.font("arial.ttf")
@@ -22,6 +22,7 @@ DEFAULTS = {
     "cle": "52",
     "iban": "FR7630003018941234567890152",
     "bic": "SOGEFRPP",
+    "sexe": "m",
 }
 
 FONT_SIZES = {
@@ -41,21 +42,22 @@ FONT_SIZES = {
 
 
 def generate_sg(data, output_path, is_preview=False):
-    titre = "M. " if (data.sexe or "m").lower() == "m" else "Mme. "
+    sexe = safe_get(data, "sexe", DEFAULTS).lower()
+    titre = "M. " if sexe == "m" else "Mme. "
 
     values = {
-        "nom prenom": titre + (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
-        "adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
-        "cp ville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
-        "agence": (data.agence or DEFAULTS["agence"]).upper(),
-        "adagence": (data.agence_adresse or DEFAULTS["agence_adresse"]).upper(),
-        "cpvagence": (data.agence_cp_ville or DEFAULTS["agence_cp_ville"]).upper(),
-        "banque": (data.banque or DEFAULTS["banque"]).upper(),
-        "guichet": (data.guichet or DEFAULTS["guichet"]).upper(),
-        "compte": (data.compte or DEFAULTS["compte"]).upper(),
-        "cle": (data.cle or DEFAULTS["cle"]).upper(),
-        "iban": " ".join((data.iban or DEFAULTS["iban"]).replace(" ", "")[i:i+4] for i in range(0, 34, 4)),
-        "bic": (data.bic or DEFAULTS["bic"]).upper(),
+        "nom prenom": titre + safe_get(data, "nom_prenom", DEFAULTS).upper(),
+        "adresse": safe_get(data, "adresse", DEFAULTS).upper(),
+        "cp ville": safe_get(data, "cp_ville", DEFAULTS).upper(),
+        "agence": safe_get(data, "agence", DEFAULTS).upper(),
+        "adagence": safe_get(data, "agence_adresse", DEFAULTS).upper(),
+        "cpvagence": safe_get(data, "agence_cp_ville", DEFAULTS).upper(),
+        "banque": safe_get(data, "banque", DEFAULTS).upper(),
+        "guichet": safe_get(data, "guichet", DEFAULTS).upper(),
+        "compte": safe_get(data, "compte", DEFAULTS).upper(),
+        "cle": safe_get(data, "cle", DEFAULTS).upper(),
+        "iban": " ".join(safe_get(data, "iban", DEFAULTS).replace(" ", "")[i:i+4] for i in range(0, 34, 4)),
+        "bic": safe_get(data, "bic", DEFAULTS).upper(),
     }
 
     doc = fitz.open(PDF_TEMPLATE)

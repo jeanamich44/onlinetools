@@ -91,12 +91,25 @@ def traiter_page(page, remplacements):
 # GÉNÉRATEURS
 # =========================
 
+DEFAULTS = {
+    "nfacture": "FXXXXXXXXXX",
+    "ncommande": "CXXXXXXXXXX",
+    "nom_prenom": "JEAN DUPONT",
+    "adresse": "10 RUE DE LA PAIX",
+    "cp_ville": "75001 PARIS",
+    "prixx": "129.99",
+    "moyenpaiement": "CARTE DE CRÉDIT",
+    "idproduit1": "DJ6188-002",
+    "desc1": "NIKE AIR FORCE 1 '07",
+    "desc1suite": "BLACK/WHITE-BLACK",
+    "quan1": "1",
+}
+
 def preparer_valeurs(data):
     """Prépare le dictionnaire de valeurs à partir de l'objet data."""
     maintenant = datetime.now()
     
-    # Récupération des données ou valeurs par défaut
-    total_str = str(getattr(data, "prixx", None) or "129.99").replace("€", "").replace(",", ".").strip()
+    total_str = safe_get(data, "prixx", DEFAULTS).replace("€", "").replace(",", ".").strip()
     try:
         total_ttc = float(total_str)
     except:
@@ -104,23 +117,31 @@ def preparer_valeurs(data):
         
     total_ht = total_ttc / 1.2
     tva = total_ttc - total_ht
+
+    nfacture = safe_get(data, "nfacture", default_val="")
+    if not nfacture or nfacture == DEFAULTS["nfacture"]:
+        nfacture = "F" + generer_num_aleatoire(10)
+
+    ncommande = safe_get(data, "ncommande", default_val="")
+    if not ncommande or ncommande == DEFAULTS["ncommande"]:
+        ncommande = "C" + generer_num_aleatoire(10)
     
     valeurs = {
-        "*nfacture": str(getattr(data, "nfacture", None) or ("F" + generer_num_aleatoire(10))),
-        "*ncommande": str(getattr(data, "ncommande", None) or ("C" + generer_num_aleatoire(10))),
-        "*nomprenom": (str(getattr(data, "nom_prenom", None) or "JEAN DUPONT")).upper(),
-        "*adresse": (str(getattr(data, "adresse", None) or "10 RUE DE LA PAIX")).upper(),
-        "*cpville": (str(getattr(data, "cp_ville", None) or "75001 PARIS")).upper(),
-        "*date": str(getattr(data, "date", None) or maintenant.strftime("%d/%m/%Y")),
+        "*nfacture": nfacture,
+        "*ncommande": ncommande,
+        "*nomprenom": safe_get(data, "nom_prenom", DEFAULTS).upper(),
+        "*adresse": safe_get(data, "adresse", DEFAULTS).upper(),
+        "*cpville": safe_get(data, "cp_ville", DEFAULTS).upper(),
+        "*date": safe_get(data, "date", default_val=maintenant.strftime("%d/%m/%Y")),
         "*prixbb": f"{total_ht:.2f} €",
         "*tva": f"{tva:.2f} €",
         "*prixx": f"{total_ttc:.2f} €",
-        "*moyenpaiement": (str(getattr(data, "moyenpaiement", None) or "CARTE DE CRÉDIT")).upper(),
+        "*moyenpaiement": safe_get(data, "moyenpaiement", DEFAULTS).upper(),
         
-        "*idproduit1": str(getattr(data, "idproduit1", None) or "DJ6188-002"),
-        "*desc1": (str(getattr(data, "desc1", None) or "NIKE AIR FORCE 1 '07")).upper(),
-        "*desc1suite": str(getattr(data, "desc1suite", None) or "BLACK/WHITE-BLACK"),
-        "*quan1": str(getattr(data, "quan1", None) or "1"),
+        "*idproduit1": safe_get(data, "idproduit1", DEFAULTS),
+        "*desc1": safe_get(data, "desc1", DEFAULTS).upper(),
+        "*desc1suite": safe_get(data, "desc1suite", DEFAULTS).upper(),
+        "*quan1": safe_get(data, "quan1", DEFAULTS),
         "*prixbrut1": f"{total_ttc:.2f} €",
         "*prixnet1": f"{total_ttc:.2f} €",
         "*prixtotal1": f"{total_ttc:.2f} €",

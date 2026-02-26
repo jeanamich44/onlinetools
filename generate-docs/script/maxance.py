@@ -46,9 +46,9 @@ DEFAULTS = {
     "nclient": "TI0002732664",
     "ncontrat": "MOT001227011",
     "norias": "17005065",
-    "nomprenom": "LUCAS VALMIS",
+    "nom_prenom": "LUCAS VALMIS",
     "adresse": "14 RUE DE PROVENCE", 
-    "cpville": "75009 PARIS",
+    "cp_ville": "75009 PARIS",
     "typevehicule": "YAMAHA X-MAX X-MAX (SCOOTER 125 cc)",
 }
 
@@ -89,25 +89,25 @@ def process_page(page, replacements):
         page.insert_text((x, y), val, fontsize=font_size, fontfile=font_file, color=c)
 
 def prepare_values(data):
-    yesterday = get_yesterday()
-    date_str = getattr(data, "date", None) or yesterday.strftime("%d/%m/%Y")
+    yesterday = datetime.now() - timedelta(days=1)
+    date_str = safe_get(data, "date", default_val=yesterday.strftime("%d/%m/%Y"))
     try:
         jj, mm, aaaa = date_str.split('/')
     except:
         jj, mm, aaaa = yesterday.strftime("%d"), yesterday.strftime("%m"), yesterday.strftime("%Y")
 
-    plaque = getattr(data, "plaque", None) or generate_plate()
+    plaque = safe_get(data, "plaque", default_val=generate_plate())
 
     values = {
-        "*nclient": str(getattr(data, "nclient", None) or DEFAULTS["nclient"]),
-        "*ncontrat": str(getattr(data, "ncontrat", None) or DEFAULTS["ncontrat"]),
-        "*norias": str(getattr(data, "norias", None) or DEFAULTS["norias"]),
-        "*nomprenom": (getattr(data, "nom_prenom", None) or DEFAULTS["nomprenom"]).upper(),
-        "*adresse": (getattr(data, "adresse", None) or DEFAULTS["adresse"]).upper(),
-        "*cpville": (getattr(data, "cp_ville", None) or DEFAULTS["cpville"]).upper(),
+        "*nclient": safe_get(data, "nclient", DEFAULTS),
+        "*ncontrat": safe_get(data, "ncontrat", DEFAULTS),
+        "*norias": safe_get(data, "norias", DEFAULTS),
+        "*nomprenom": safe_get(data, "nom_prenom", DEFAULTS).upper(),
+        "*adresse": safe_get(data, "adresse", DEFAULTS).upper(),
+        "*cpville": safe_get(data, "cp_ville", DEFAULTS).upper(),
         "*date": date_str,
         "*plaque": plaque.upper(),
-        "*typevehicule": (getattr(data, "typevehicule", None) or DEFAULTS["typevehicule"]).upper(),
+        "*typevehicule": safe_get(data, "typevehicule", DEFAULTS).upper(),
         "*jj": jj,
         "*m": mm,
         "*aaaa": aaaa,

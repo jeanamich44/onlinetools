@@ -1,6 +1,6 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get
 import re
 
 PDF_TEMPLATE = Paths.template("CIC.pdf")
@@ -27,6 +27,9 @@ DEFAULTS = {
     "nom_prenom": "JEAN MICHEL BERNARD",
     "adresse": "8 PLACE DE LA CONCORDE",
     "cp_ville": "75006 PARIS",
+    "agence": "AGENCE TOULOUSE CENTRE",
+    "agence_adresse": "14 RUE ALSACE LORRAINE",
+    "agence_cp_ville": "31000 TOULOUSE",
 }
 
 BOLD_KEYS = {"*banque", "*guichet", "*compte", "*cle", "*iban", "*agence1"}
@@ -51,19 +54,19 @@ def overwrite(page, key, text):
 
 def generate_cic(data, output_path, is_preview=False):
     values = {
-        "*banque": (data.banque or DEFAULTS["banque"]).upper(),
-        "*guichet": (data.guichet or DEFAULTS["guichet"]).upper(),
-        "*compte": (data.compte or DEFAULTS["compte"]).upper(),
-        "*cle": (data.cle or DEFAULTS["cle"]).upper(),
-        "*iban": format_iban(data.iban or DEFAULTS["iban"]),
-        "*agence1": (data.agence or DEFAULTS["agence1"]).upper(),
-        "*agence2": (data.agence or DEFAULTS["agence2"]).upper(),
-        "*agenceadresse": (data.agence_adresse or DEFAULTS["agenceadresse"]).upper(),
-        "*agencecpville": (data.agence_cp_ville or DEFAULTS["agencecpville"]).upper(),
-        "*telephone": (data.telephone or DEFAULTS["telephone"]).upper(),
-        "*nomprenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
-        "*adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
-        "*cpville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
+        "*banque": safe_get(data, "banque", DEFAULTS).upper(),
+        "*guichet": safe_get(data, "guichet", DEFAULTS).upper(),
+        "*compte": safe_get(data, "compte", DEFAULTS).upper(),
+        "*cle": safe_get(data, "cle", DEFAULTS).upper(),
+        "*iban": format_iban(safe_get(data, "iban", DEFAULTS)),
+        "*agence1": safe_get(data, "agence", DEFAULTS).upper(),
+        "*agence2": safe_get(data, "agence", DEFAULTS).upper(),
+        "*agenceadresse": safe_get(data, "agence_adresse", DEFAULTS).upper(),
+        "*agencecpville": safe_get(data, "agence_cp_ville", DEFAULTS).upper(),
+        "*telephone": safe_get(data, "telephone", DEFAULTS).upper(),
+        "*nomprenom": safe_get(data, "nom_prenom", DEFAULTS).upper(),
+        "*adresse": safe_get(data, "adresse", DEFAULTS).upper(),
+        "*cpville": safe_get(data, "cp_ville", DEFAULTS).upper(),
     }
 
     doc = fitz.open(PDF_TEMPLATE)

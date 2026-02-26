@@ -1,6 +1,6 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get
 import re
 
 PDF_TEMPLATE = Paths.template("CA.pdf")
@@ -65,18 +65,18 @@ def insert(page, key, text, anchor_end_x=None):
     return end_x
 
 def generate_ca(data, output_path, is_preview=False):
-    agence_value = data.agence or data.bank or DEFAULTS["agence"]
+    agence_val = safe_get(data, "agence", default_val=safe_get(data, "bank", DEFAULTS["agence"]))
 
     values = {
-        "*nomprenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
-        "*adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
-        "*cpville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
-        "*banque": (data.banque or DEFAULTS["banque"]),
-        "*guichet": (data.guichet or DEFAULTS["guichet"]),
-        "*compte": (data.compte or DEFAULTS["compte"]),
-        "*cle": (data.cle or DEFAULTS["cle"]),
-        "*iban": format_iban(data.iban or DEFAULTS["iban"]),
-        "*agence": agence_value.upper(),
+        "*nomprenom": safe_get(data, "nom_prenom", DEFAULTS["nom_prenom"]).upper(),
+        "*adresse": safe_get(data, "adresse", DEFAULTS["adresse"]).upper(),
+        "*cpville": safe_get(data, "cp_ville", DEFAULTS["cp_ville"]).upper(),
+        "*banque": safe_get(data, "banque", DEFAULTS["banque"]),
+        "*guichet": safe_get(data, "guichet", DEFAULTS["guichet"]),
+        "*compte": safe_get(data, "compte", DEFAULTS["compte"]),
+        "*cle": safe_get(data, "cle", DEFAULTS["cle"]),
+        "*iban": format_iban(safe_get(data, "iban", DEFAULTS["iban"])),
+        "*agence": agence_val.upper(),
     }
 
     doc = fitz.open(PDF_TEMPLATE)

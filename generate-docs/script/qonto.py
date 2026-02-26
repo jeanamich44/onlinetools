@@ -1,6 +1,6 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get
 import re
 
 PDF_TEMPLATE = Paths.template("QONTO.pdf")
@@ -41,14 +41,14 @@ def wipe_and_write(page, rect, text, font, size, color):
 
 def generate_qonto(data, output_path, is_preview=False):
     values = {
-        "*iban": format_iban(data.iban or DEFAULTS["iban"]),
-        "*banque": data.banque or DEFAULTS["banque"],
-        "*guichet": data.guichet or DEFAULTS["guichet"],
-        "*compte": data.compte or DEFAULTS["compte"],
-        "*cle": data.cle or DEFAULTS["cle"],
-        "*nomprenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
-        "*adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
-        "*cpville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
+        "*iban": format_iban(safe_get(data, "iban", DEFAULTS)),
+        "*banque": safe_get(data, "banque", DEFAULTS),
+        "*guichet": safe_get(data, "guichet", DEFAULTS),
+        "*compte": safe_get(data, "compte", DEFAULTS),
+        "*cle": safe_get(data, "cle", DEFAULTS),
+        "*nomprenom": safe_get(data, "nom_prenom", DEFAULTS).upper(),
+        "*adresse": safe_get(data, "adresse", DEFAULTS).upper(),
+        "*cpville": safe_get(data, "cp_ville", DEFAULTS).upper(),
     }
 
     doc = fitz.open(PDF_TEMPLATE)

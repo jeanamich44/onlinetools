@@ -27,6 +27,19 @@ class Paths:
 FONT_ARIAL = Paths.font("arial.ttf")
 FONT_ARIAL_BOLD = Paths.font("arialbd.ttf")
 
+def safe_get(data, key, defaults=None, default_val=""):
+    """
+    Récupère une valeur de manière sécurisée depuis un objet data.
+    Si absente ou vide, cherche dans le dictionnaire defaults.
+    """
+    val = getattr(data, key, None)
+    if val is None or str(val).strip() == "":
+        if defaults and key in defaults:
+            val = defaults[key]
+        else:
+            val = default_val
+    return str(val).strip()
+
 # =========================
 # UTILITAIRES PDF
 # =========================

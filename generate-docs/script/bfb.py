@@ -1,6 +1,6 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get
 import re
 
 PDF_TEMPLATE = Paths.template("BFB.pdf")
@@ -62,17 +62,15 @@ def insert_text(page, key, text, style):
         )
 
 def generate_bfb(data, output_path, is_preview=False):
-    iban_raw = data.iban or DEFAULTS["iban"]
-    iban_fmt = format_iban(iban_raw)
-
+    iban_raw = safe_get(data, "iban", DEFAULTS).upper()
     auto = parse_french_iban(iban_raw)
 
     values = {
-        "*nom prenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
-        "*nnom prenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
-        "*adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
-        "*cp ville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
-        "*iban": iban_fmt,
+        "*nom prenom": safe_get(data, "nom_prenom", DEFAULTS).upper(),
+        "*nnom prenom": safe_get(data, "nom_prenom", DEFAULTS).upper(),
+        "*adresse": safe_get(data, "adresse", DEFAULTS).upper(),
+        "*cp ville": safe_get(data, "cp_ville", DEFAULTS).upper(),
+        "*iban": format_iban(iban_raw),
     }
 
     if auto:
@@ -81,10 +79,10 @@ def generate_bfb(data, output_path, is_preview=False):
         values["*compte"] = auto["compte"]
         values["*cle"] = auto["cle"]
     else:
-        values["*banque"] = data.banque or DEFAULTS["banque"]
-        values["*guichet"] = data.guichet or DEFAULTS["guichet"]
-        values["*compte"] = data.compte or DEFAULTS["compte"]
-        values["*cle"] = data.cle or DEFAULTS["cle"]
+        values["*banque"] = safe_get(data, "banque", DEFAULTS)
+        values["*guichet"] = safe_get(data, "guichet", DEFAULTS)
+        values["*compte"] = safe_get(data, "compte", DEFAULTS)
+        values["*cle"] = safe_get(data, "cle", DEFAULTS)
 
     STYLES = {
         "*nom prenom": {"size": 9, "font": FONT_ARIAL_REG, "color": COLOR_MAIN},
