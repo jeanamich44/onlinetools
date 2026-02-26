@@ -2,6 +2,9 @@ import fitz
 import os
 from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
 import re
+import random
+import string
+from datetime import datetime, timedelta
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

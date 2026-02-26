@@ -1,3 +1,5 @@
+import fitz
+import os
 from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
 import re
 
