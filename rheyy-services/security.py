@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 from typing import Optional, List
 from fastapi import Request, HTTPException, Security, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import hashlib
+import base64
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from dotenv import load_dotenv
@@ -28,13 +30,17 @@ security = HTTPBearer()
 # =========================
 
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    # Pré-hachage identique pour la vérification
+    h = hashlib.sha256(plain_password.encode('utf-8')).digest()
+    pre_hashed = base64.b64encode(h).decode('utf-8')
+    return pwd_context.verify(pre_hashed, hashed_password)
 
 def get_password_hash(password):
-    # Bcrypt a une limite de 72 octets. On s'assure que c'est bien de l'UTF-8
-    # et on tronque si nécessaire pour éviter l'erreur 500.
-    password_bytes = password.encode('utf-8')[:72]
-    return pwd_context.hash(password_bytes.decode('utf-8'))
+    # Bcrypt a une limite de 72 octets qui peut bugger sur certains environnements.
+    # On pré-hache en SHA256 + Base64 pour toujours avoir une entrée de 44 caractères (fixe).
+    h = hashlib.sha256(password.encode('utf-8')).digest()
+    pre_hashed = base64.b64encode(h).decode('utf-8')
+    return pwd_context.hash(pre_hashed)
 
 # =========================
 # GESTION JWT
