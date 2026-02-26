@@ -47,7 +47,7 @@
                 if (response.ok) {
                     const data = await response.json();
                     localStorage.setItem('adminToken', data.access_token);
-                    window.location.href = 'dashboard.html';
+                    window.location.href = './dashboard.html';
                 } else {
                     errorMsg.style.display = 'block';
                 }
