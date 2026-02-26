@@ -76,31 +76,6 @@ h1 {
 }
 
 
-.tools {
-    display: flex;
-    gap: 16px;
-}
-
-.tool-card {
-    flex: 1;
-    background: #0f1115;
-    border: 1px solid #2a2f3a;
-    border-radius: 12px;
-    padding: 16px;
-    text-decoration: none;
-    color: #e5e7eb;
-}
-
-.tool-card h2 {
-    font-size: 1.1rem;
-    margin-bottom: 6px;
-    font-weight: 500;
-}
-
-.tool-card p {
-    font-size: 0.9rem;
-    color: #9ca3af;
-}
 
 
 textarea,
@@ -353,31 +328,6 @@ button:disabled {
 }
 
 
-.home-tools {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 24px;
-}
-
-.home-tool {
-    display: block;
-    padding: 20px;
-    border: 1px solid #2a2f3a;
-    border-radius: 12px;
-    background: #0f1115;
-    text-decoration: none;
-    color: #e5e7eb;
-}
-
-.home-tool h2 {
-    font-size: 1.1rem;
-    margin-bottom: 8px;
-}
-
-.home-tool p {
-    font-size: 0.9rem;
-    color: #9ca3af;
-}
 
 
 

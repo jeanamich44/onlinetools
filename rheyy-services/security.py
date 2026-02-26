@@ -13,7 +13,7 @@ load_dotenv()
 # CONFIGURATION
 # =========================
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "rheyy-super-secret-key-change-it")
+SECRET_KEY = os.getenv("RHEYY_TOKEN_KEY", "rheyy-super-token-key-change-it")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 120
 
