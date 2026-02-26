@@ -1,6 +1,6 @@
 import fitz
 import os
-from .preview_utils import save_pdf_as_jpg, flatten_pdf
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
 import re
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -40,22 +40,8 @@ def wipe_and_write(page, rect, text, font, size, color):
         color=color,
     )
 
-def add_watermark(page):
-    rect = page.rect
-    text = "PREVIEW – NON PAYÉ"
 
-    for y in range(80, int(rect.height), 160):
-        page.insert_text(
-            (40, y),
-            text,
-            fontsize=42,
-            fontname=FONT_BOLD,
-            color=(0.55, 0.55, 0.55),
-            fill_opacity=5.22,
-        )
-
-
-def generate_qonto_pdf(data, output_path):
+def generate_qonto(data, output_path, is_preview=False):
     values = {
         "*iban": format_iban(data.iban or DEFAULTS["iban"]),
         "*banque": data.banque or DEFAULTS["banque"],
@@ -76,24 +62,10 @@ def generate_qonto_pdf(data, output_path):
         name_rects = page.search_for("*nomprenom")
 
         if len(name_rects) >= 1:
-            wipe_and_write(
-                page,
-                name_rects[0],
-                values["*nomprenom"],
-                FONT_BOLD,
-                7.5,
-                COLOR_SECOND,
-            )
+            wipe_and_write(page, name_rects[0], values["*nomprenom"], FONT_BOLD, 7.5, COLOR_SECOND)
 
         if len(name_rects) >= 2:
-            wipe_and_write(
-                page,
-                name_rects[1],
-                values["*nomprenom"],
-                FONT_REG,
-                9,
-                COLOR_MAIN,
-            )
+            wipe_and_write(page, name_rects[1], values["*nomprenom"], FONT_REG, 9, COLOR_MAIN)
 
         MAP = {
             "*iban":   (FONT_REG, 10.5, COLOR_MAIN, ""),
@@ -107,83 +79,21 @@ def generate_qonto_pdf(data, output_path):
 
         for key, (font, size, color, prefix) in MAP.items():
             for r in page.search_for(key):
-                wipe_and_write(
-                    page,
-                    r,
-                    prefix + values[key],
-                    font,
-                    size,
-                    color,
-                )
+                wipe_and_write(page, r, prefix + values[key], font, size, color)
+        
+        if is_preview:
+            add_watermark(page, FONT_ARIAL_BOLD_PATH)
 
-    doc.save(output_path, garbage=4, deflate=True, clean=True)
-    doc.close()
-    
-    # Sécurisation finale par mise à plat
-    flatten_pdf(output_path)
+    if is_preview:
+        save_pdf_as_jpg(doc, output_path)
+    else:
+        doc.save(output_path, garbage=4, deflate=True, clean=True)
+        doc.close()
+        flatten_pdf(output_path)
 
+# Wrappers pour compatibilité main.py
+def generate_qonto_pdf(data, output_path):
+    return generate_qonto(data, output_path, is_preview=False)
 
 def generate_qonto_preview(data, output_path):
-    values = {
-        "*iban": format_iban(data.iban or DEFAULTS["iban"]),
-        "*banque": data.banque or DEFAULTS["banque"],
-        "*guichet": data.guichet or DEFAULTS["guichet"],
-        "*compte": data.compte or DEFAULTS["compte"],
-        "*cle": data.cle or DEFAULTS["cle"],
-        "*nomprenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
-        "*adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
-        "*cpville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
-    }
-
-    doc = fitz.open(PDF_TEMPLATE)
-
-    for page in doc:
-        page.insert_font(FONT_REG, FONT_ARIAL_REG_PATH)
-        page.insert_font(FONT_BOLD, FONT_ARIAL_BOLD_PATH)
-
-        name_rects = page.search_for("*nomprenom")
-
-        if len(name_rects) >= 1:
-            wipe_and_write(
-                page,
-                name_rects[0],
-                values["*nomprenom"],
-                FONT_BOLD,
-                7.5,
-                COLOR_SECOND,
-            )
-
-        if len(name_rects) >= 2:
-            wipe_and_write(
-                page,
-                name_rects[1],
-                values["*nomprenom"],
-                FONT_REG,
-                9,
-                COLOR_MAIN,
-            )
-
-        MAP = {
-            "*iban":   (FONT_REG, 10.5, COLOR_MAIN, ""),
-            "*banque": (FONT_REG, 6, COLOR_SECOND, "Banque  "),
-            "*guichet":(FONT_REG, 6, COLOR_SECOND, "Guichet  "),
-            "*compte": (FONT_REG, 6, COLOR_SECOND, "Compte  "),
-            "*cle":    (FONT_REG, 6, COLOR_SECOND, "Clé  "),
-            "*adresse":(FONT_REG, 9, COLOR_MAIN, ""),
-            "*cpville":(FONT_REG, 9, COLOR_MAIN, ""),
-        }
-
-        for key, (font, size, color, prefix) in MAP.items():
-            for r in page.search_for(key):
-                wipe_and_write(
-                    page,
-                    r,
-                    prefix + values[key],
-                    font,
-                    size,
-                    color,
-                )
-
-        add_watermark(page)
-
-    save_pdf_as_jpg(doc, output_path)
+    return generate_qonto(data, output_path, is_preview=True)

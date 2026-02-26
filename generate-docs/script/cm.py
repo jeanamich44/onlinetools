@@ -1,6 +1,6 @@
 import fitz
 import os
-from .preview_utils import save_pdf_as_jpg, flatten_pdf
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
 import re
 
 # =========================
@@ -53,21 +53,6 @@ BOLD_KEYS = {
 # =========================
 
 
-def add_watermark(page):
-    rect = page.rect
-    text = "PREVIEW – NON PAYÉ"
-
-    for y in range(80, int(rect.height), 160):
-        page.insert_text(
-            (40, y),
-            text,
-            fontsize=42,
-            fontname=FONT_BOLD_NAME,
-            color=(0.55, 0.55, 0.55),
-            fill_opacity=0.5,
-        )
-
-
 def format_iban(v):
     v = re.sub(r"\s+", "", v).upper()
     return "       ".join(v[i:i+4] for i in range(0, len(v), 4))
@@ -95,46 +80,7 @@ def overwrite(page, key, text):
 # GENERATEUR PRINCIPAL (EN LIGNE)
 # =========================
 
-def generate_cm_pdf(data, output_path):
-    values = {
-        "*banque": data.banque or DEFAULTS["banque"],
-        "*guichet": data.guichet or DEFAULTS["guichet"],
-        "*compte": data.compte or DEFAULTS["compte"],
-        "*cle": data.cle or DEFAULTS["cle"],
-        "*iban": format_iban(data.iban or DEFAULTS["iban"]),
-        "*agence1": (data.agence or DEFAULTS["agence1"]).upper(),
-        "*agence2": (data.agence or DEFAULTS["agence2"]).upper(),
-        "*agenceadresse": (data.agence_adresse or DEFAULTS["agenceadresse"]).upper(),
-        "*agencecpville": (data.agence_cp_ville or DEFAULTS["agencecpville"]).upper(),
-        "*telephone": data.telephone or DEFAULTS["telephone"],
-        "*nomprenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
-        "*adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
-        "*cpville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
-    }
-
-    doc = fitz.open(PDF_TEMPLATE)
-
-    for page in doc:
-        page.insert_font(FONT_REG_NAME, FONT_ARIAL_REG_PATH)
-        page.insert_font(FONT_BOLD_NAME, FONT_ARIAL_BOLD_PATH)
-
-        for k, v in values.items():
-            overwrite(page, k, v)
-
-    doc.save(
-    output_path,
-    garbage=4,
-    deflate=True,
-    clean=True,
-)
-
-    doc.close()
-    
-    # Sécurisation finale par mise à plat
-    flatten_pdf(output_path)
-
-
-def generate_cm_preview(data, output_path):
+def generate_cm(data, output_path, is_preview=False):
     values = {
         "*banque": data.banque or DEFAULTS["banque"],
         "*guichet": data.guichet or DEFAULTS["guichet"],
@@ -160,6 +106,19 @@ def generate_cm_preview(data, output_path):
         for k, v in values.items():
             overwrite(page, k, v)
         
-        add_watermark(page)
+        if is_preview:
+            add_watermark(page, FONT_ARIAL_BOLD_PATH)
 
-    save_pdf_as_jpg(doc, output_path)
+    if is_preview:
+        save_pdf_as_jpg(doc, output_path)
+    else:
+        doc.save(output_path, garbage=4, deflate=True, clean=True)
+        doc.close()
+        flatten_pdf(output_path)
+
+# Wrappers pour compatibilité main.py
+def generate_cm_pdf(data, output_path):
+    return generate_cm(data, output_path, is_preview=False)
+
+def generate_cm_preview(data, output_path):
+    return generate_cm(data, output_path, is_preview=True)

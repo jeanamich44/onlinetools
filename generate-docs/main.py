@@ -394,7 +394,7 @@ async def payment_success(request: Request, checkout_reference: str):
                 # Fallback sur la liste si type inconnu
                 page = page_map.get(type_pdf, "chronopost-liste.html")
                 logger.info(f"REDIRECT CHRONO: {type_pdf} -> {page} pour {checkout_reference}")
-                return RedirectResponse(url=f"https://jeanamich44.github.io/onlinetools/chronopost/{page}?success=true")
+                return RedirectResponse(url=f"https://www.chezrheyy.ink/chronopost/{page}?success=true")
 
             # Dossier de stockage permanent
             storage_dir = "paid_pdfs"

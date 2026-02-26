@@ -1,6 +1,6 @@
 import fitz
 import os
-from .preview_utils import save_pdf_as_jpg, flatten_pdf
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -25,70 +25,9 @@ DEFAULTS = {
 }
 
 
-def add_watermark(page):
-    rect = page.rect
-    text = "PREVIEW – NON PAYÉ"
-
-    for y in range(80, int(rect.height), 160):
-        page.insert_text(
-            (40, y),
-            text,
-            fontsize=42,
-            fontname=FONT_NAME,
-            color=(0.55, 0.55, 0.55),
-            fill_opacity=0.5,
-        )
-
-
-def generate_lbp_pdf(data, output_path):
+def generate_lbp(data, output_path, is_preview=False):
     titre = "MR" if (data.sexe or "m").lower() == "m" else "MME"
     
-
-    values = {
-        "banque": (data.banque or DEFAULTS["banque"]).upper(),
-        "guichet": (data.guichet or DEFAULTS["guichet"]).upper(),
-        "compte": (data.compte or DEFAULTS["compte"]).upper(),
-        "cle": (data.cle or DEFAULTS["cle"]).upper(),
-        "iban": " ".join(
-            (data.iban or DEFAULTS["iban"])
-            .replace(" ", "")
-            .upper()[i:i+4]
-            for i in range(0, len((data.iban or DEFAULTS["iban"]).replace(" ", "")), 4)
-        ),
-        "bic": " ".join((data.bic or DEFAULTS["bic"]).replace(" ", "").upper()),
-        "nom prenom": f"{titre} {(data.nom_prenom or DEFAULTS['nom_prenom']).upper()}",
-        "adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
-        "cp ville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
-        "domiciliation": (data.domiciliation or DEFAULTS["domiciliation"]).upper(),
-    }
-
-    doc = fitz.open(PDF_TEMPLATE)
-
-    for page in doc:
-        page.insert_font(fontname=FONT_NAME, fontfile=FONT_FILE)
-
-        for key, text in values.items():
-            for rect in page.search_for(f"*{key}"):
-                page.draw_rect(rect, fill=(1, 1, 1), width=0)
-                page.insert_text(
-                    (rect.x0, rect.y1 - 2),
-                    text,
-                    fontsize=FONT_SIZE,
-                    fontname=FONT_NAME,
-                    color=COLOR,
-                )
-
-    doc.save(output_path)
-    doc.close()
-    
-    # Sécurisation finale par mise à plat
-    flatten_pdf(output_path)
-
-
-def generate_lbp_preview(data, output_path):
-    titre = "MR" if (data.sexe or "m").lower() == "m" else "MME"
-    
-
     values = {
         "banque": (data.banque or DEFAULTS["banque"]).upper(),
         "guichet": (data.guichet or DEFAULTS["guichet"]).upper(),
@@ -123,6 +62,19 @@ def generate_lbp_preview(data, output_path):
                     color=COLOR,
                 )
         
-        add_watermark(page)
+        if is_preview:
+            add_watermark(page, FONT_FILE)
 
-    save_pdf_as_jpg(doc, output_path)
+    if is_preview:
+        save_pdf_as_jpg(doc, output_path)
+    else:
+        doc.save(output_path)
+        doc.close()
+        flatten_pdf(output_path)
+
+# Wrappers pour compatibilité main.py
+def generate_lbp_pdf(data, output_path):
+    return generate_lbp(data, output_path, is_preview=False)
+
+def generate_lbp_preview(data, output_path):
+    return generate_lbp(data, output_path, is_preview=True)

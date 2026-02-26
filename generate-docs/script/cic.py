@@ -1,11 +1,5 @@
-import fitz
-import os
-from .preview_utils import save_pdf_as_jpg, flatten_pdf
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
 import re
-
-# =========================
-# DOSSIER BASE
-# =========================
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -18,10 +12,6 @@ FONT_BOLD_NAME = "ARIAL_BOLD"
 
 FONT_SIZE = 8.5
 COLOR = (0, 0, 0)
-
-# =========================
-# VALEURS PAR DEFAUT
-# =========================
 
 DEFAULTS = {
     "banque": "30066",
@@ -39,34 +29,7 @@ DEFAULTS = {
     "cp_ville": "75006 PARIS",
 }
 
-BOLD_KEYS = {
-    "*banque",
-    "*guichet",
-    "*compte",
-    "*cle",
-    "*iban",
-    "*agence1",
-}
-
-# =========================
-# UTILITAIRES
-# =========================
-
-
-def add_watermark(page):
-    rect = page.rect
-    text = "PREVIEW – NON PAYÉ"
-
-    for y in range(80, int(rect.height), 160):
-        page.insert_text(
-            (40, y),
-            text,
-            fontsize=42,
-            fontname=FONT_BOLD_NAME,
-            color=(0.55, 0.55, 0.55),
-            fill_opacity=0.5,
-        )
-
+BOLD_KEYS = {"*banque", "*guichet", "*compte", "*cle", "*iban", "*agence1"}
 
 def format_iban(v: str):
     v = re.sub(r"\s+", "", v).upper()
@@ -74,10 +37,6 @@ def format_iban(v: str):
 
 def fontname_for(key: str):
     return FONT_BOLD_NAME if key in BOLD_KEYS else FONT_REG_NAME
-
-# =========================
-# ECRITURE
-# =========================
 
 def overwrite(page, key, text):
     for r in page.search_for(key):
@@ -90,49 +49,7 @@ def overwrite(page, key, text):
             color=COLOR,
         )
 
-# =========================
-# GENERATEUR
-# =========================
-
-def generate_cic_pdf(data, output_path):
-    values = {
-        "*banque": (data.banque or DEFAULTS["banque"]).upper(),
-        "*guichet": (data.guichet or DEFAULTS["guichet"]).upper(),
-        "*compte": (data.compte or DEFAULTS["compte"]).upper(),
-        "*cle": (data.cle or DEFAULTS["cle"]).upper(),
-        "*iban": format_iban(data.iban or DEFAULTS["iban"]),
-        "*agence1": (data.agence or DEFAULTS["agence1"]).upper(),
-        "*agence2": (data.agence or DEFAULTS["agence2"]).upper(),
-        "*agenceadresse": (data.agence_adresse or DEFAULTS["agenceadresse"]).upper(),
-        "*agencecpville": (data.agence_cp_ville or DEFAULTS["agencecpville"]).upper(),
-        "*telephone": (data.telephone or DEFAULTS["telephone"]).upper(),
-        "*nomprenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
-        "*adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
-        "*cpville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
-    }
-
-    doc = fitz.open(PDF_TEMPLATE)
-
-    for page in doc:
-        page.insert_font(FONT_REG_NAME, FONT_ARIAL_REG)
-        page.insert_font(FONT_BOLD_NAME, FONT_ARIAL_BOLD)
-
-        for k, v in values.items():
-            overwrite(page, k, v)
-
-    doc.save(
-        output_path,
-        garbage=4,
-        deflate=True,
-        clean=True,
-    )
-    doc.close()
-    
-    # Sécurisation finale par mise à plat
-    flatten_pdf(output_path)
-
-
-def generate_cic_preview(data, output_path):
+def generate_cic(data, output_path, is_preview=False):
     values = {
         "*banque": (data.banque or DEFAULTS["banque"]).upper(),
         "*guichet": (data.guichet or DEFAULTS["guichet"]).upper(),
@@ -158,6 +75,19 @@ def generate_cic_preview(data, output_path):
         for k, v in values.items():
             overwrite(page, k, v)
         
-        add_watermark(page)
+        if is_preview:
+            add_watermark(page, FONT_ARIAL_BOLD)
 
-    save_pdf_as_jpg(doc, output_path)
+    if is_preview:
+        save_pdf_as_jpg(doc, output_path)
+    else:
+        doc.save(output_path, garbage=4, deflate=True, clean=True)
+        doc.close()
+        flatten_pdf(output_path)
+
+# Wrappers pour compatibilité main.py
+def generate_cic_pdf(data, output_path):
+    return generate_cic(data, output_path, is_preview=False)
+
+def generate_cic_preview(data, output_path):
+    return generate_cic(data, output_path, is_preview=True)

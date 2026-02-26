@@ -45,4 +45,18 @@ def flatten_pdf(file_path):
     # On écrase le fichier original avec la version "plate" sécurisée
     new_doc.save(file_path, garbage=4, deflate=True)
     new_doc.close()
-    print(f"✅ PDF Flattened and Secured: {file_path}")
+
+def add_watermark(page, font_file, text="PREVIEW – NON PAYÉ"):
+    """
+    Ajoute un filigrane de prévisualisation sur une page PDF.
+    """
+    rect = page.rect
+    for y in range(80, int(rect.height), 160):
+        page.insert_text(
+            (40, y),
+            text,
+            fontsize=42,
+            fontfile=font_file,
+            color=(0.55, 0.55, 0.55),
+            fill_opacity=0.5,
+        )

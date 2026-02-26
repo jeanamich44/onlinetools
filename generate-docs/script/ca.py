@@ -1,6 +1,6 @@
 import fitz
 import os
-from .preview_utils import save_pdf_as_jpg, flatten_pdf
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
 import re
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,21 +24,6 @@ DEFAULTS = {
     "cle": "07",
     "agence": "TOULOUSE 31",
 }
-
-
-def add_watermark(page):
-    rect = page.rect
-    text = "PREVIEW – NON PAYÉ"
-
-    for y in range(80, int(rect.height), 160):
-        page.insert_text(
-            (40, y),
-            text,
-            fontsize=42,
-            fontfile=FONT_ARIAL_BOLD,
-            color=(0.55, 0.55, 0.55),
-            fill_opacity=0.5,
-        )
 
 
 def format_iban(iban: str):
@@ -81,41 +66,7 @@ def insert(page, key, text, anchor_end_x=None):
 
     return end_x
 
-def generate_ca_pdf(data, output_path):
-    agence_value = data.agence or data.bank or DEFAULTS["agence"]
-
-    values = {
-        "*nomprenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
-        "*adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
-        "*cpville": (data.cp_ville or DEFAULTS["cp_ville"]).upper(),
-        "*banque": (data.banque or DEFAULTS["banque"]),
-        "*guichet": (data.guichet or DEFAULTS["guichet"]),
-        "*compte": (data.compte or DEFAULTS["compte"]),
-        "*cle": (data.cle or DEFAULTS["cle"]),
-        "*iban": format_iban(data.iban or DEFAULTS["iban"]),
-        "*agence": agence_value.upper(),
-    }
-
-    doc = fitz.open(PDF_TEMPLATE)
-
-    for page in doc:
-        anchor_end_x = None
-
-        anchor_end_x = insert(page, "*nomprenom", values["*nomprenom"])
-        insert(page, "*adresse", values["*adresse"], anchor_end_x)
-        insert(page, "*cpville", values["*cpville"], anchor_end_x)
-
-        for key in ["*banque", "*guichet", "*compte", "*cle", "*iban", "*agence"]:
-            insert(page, key, values[key])
-
-    doc.save(output_path, garbage=4, deflate=True)
-    doc.close()
-    
-    # Sécurisation finale par mise à plat
-    flatten_pdf(output_path)
-
-
-def generate_ca_preview(data, output_path):
+def generate_ca(data, output_path, is_preview=False):
     agence_value = data.agence or data.bank or DEFAULTS["agence"]
 
     values = {
@@ -142,6 +93,19 @@ def generate_ca_preview(data, output_path):
         for key in ["*banque", "*guichet", "*compte", "*cle", "*iban", "*agence"]:
             insert(page, key, values[key])
         
-        add_watermark(page)
+        if is_preview:
+            add_watermark(page, FONT_ARIAL_BOLD)
 
-    save_pdf_as_jpg(doc, output_path)
+    if is_preview:
+        save_pdf_as_jpg(doc, output_path)
+    else:
+        doc.save(output_path, garbage=4, deflate=True)
+        doc.close()
+        flatten_pdf(output_path)
+
+# Wrappers pour compatibilité main.py
+def generate_ca_pdf(data, output_path):
+    return generate_ca(data, output_path, is_preview=False)
+
+def generate_ca_preview(data, output_path):
+    return generate_ca(data, output_path, is_preview=True)

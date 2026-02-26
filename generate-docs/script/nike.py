@@ -1,6 +1,6 @@
 import fitz
 import os
-from .preview_utils import save_pdf_as_jpg, flatten_pdf
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
 import random
 import string
 from datetime import datetime
@@ -57,20 +57,6 @@ STYLES = {
 # =========================
 # LOGIQUE
 # =========================
-
-def ajouter_filigrane(page):
-    """Ajoute un filigrane PREVIEW sur la page."""
-    rect = page.rect
-    texte = "PREVIEW – NON PAYÉ"
-    for y in range(80, int(rect.height), 160):
-        page.insert_text(
-            (40, y),
-            texte,
-            fontsize=42,
-            fontfile=FONT_ARIAL,
-            color=(0.55, 0.55, 0.55),
-            fill_opacity=0.5,
-        )
 
 def traiter_page(page, remplacements):
     """Effectue les remplacements sur une page."""
@@ -154,24 +140,26 @@ def preparer_valeurs(data):
     }
     return valeurs
 
-def generate_nike_pdf(data, output_path):
-    """Génère le PDF final pour Nike."""
+def generate_nike(data, output_path, is_preview=False):
     valeurs = preparer_valeurs(data)
     doc = fitz.open(PDF_TEMPLATE)
     for page in doc:
         traiter_page(page, valeurs)
-    doc.save(output_path, garbage=4, deflate=True)
-    doc.close()
-    
-    # Sécurisation finale par mise à plat
-    flatten_pdf(output_path)
+        if is_preview:
+            add_watermark(page, FONT_ARIAL)
+            
+    if is_preview:
+        save_pdf_as_jpg(doc, output_path)
+    else:
+        doc.save(output_path, garbage=4, deflate=True)
+        doc.close()
+        flatten_pdf(output_path)
+
+# Wrappers
+def generate_nike_pdf(data, output_path):
+    """Génère le PDF final pour Nike."""
+    return generate_nike(data, output_path, is_preview=False)
 
 def generate_nike_preview(data, output_path):
     """Génère la preview pour Nike."""
-    valeurs = preparer_valeurs(data)
-    doc = fitz.open(PDF_TEMPLATE)
-    for page in doc:
-        traiter_page(page, valeurs)
-        ajouter_filigrane(page)
-        
-    save_pdf_as_jpg(doc, output_path)
+    return generate_nike(data, output_path, is_preview=True)

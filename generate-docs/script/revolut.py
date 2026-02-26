@@ -1,6 +1,4 @@
-import fitz
-import os
-from .preview_utils import save_pdf_as_jpg, flatten_pdf
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
 import re
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -53,22 +51,7 @@ def insert_text(page, key, text):
         )
 
 
-def add_watermark(page):
-    rect = page.rect
-    text = "PREVIEW – NON PAYÉ"
-
-    for y in range(80, int(rect.height), 160):
-        page.insert_text(
-            (40, y),
-            text,
-            fontsize=42,
-            fontfile=FONT_ARIAL_BOLD,
-            color=(0.55, 0.55, 0.55),
-            fill_opacity=0.5,
-        )
-
-
-def generate_revolut_preview(data, output_path):
+def generate_revolut(data, output_path, is_preview=False):
     values = {
         "*nom prenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
         "*adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
@@ -88,33 +71,19 @@ def generate_revolut_preview(data, output_path):
         for key, val in values.items():
             insert_text(page, key, val)
         
-        add_watermark(page)
+        if is_preview:
+            add_watermark(page, FONT_ARIAL_BOLD)
 
-    save_pdf_as_jpg(doc, output_path)
+    if is_preview:
+        save_pdf_as_jpg(doc, output_path)
+    else:
+        doc.save(output_path)
+        doc.close()
+        flatten_pdf(output_path)
 
-
+# Wrappers pour compatibilité main.py
 def generate_revolut_pdf(data, output_path):
-    values = {
-        "*nom prenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
-        "*adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
-        "*cp": (data.cp or DEFAULTS["cp"]),
-        "*ville": (data.ville or DEFAULTS["ville"]).upper(),
-        "*depart": (data.depart or DEFAULTS["depart"]).upper(),
-        "*banque": (data.banque or DEFAULTS["banque"]).upper(),
-        "*guichet": (data.guichet or DEFAULTS["guichet"]).upper(),
-        "*compte": (data.compte or DEFAULTS["compte"]).upper(),
-        "*cle": (data.cle or DEFAULTS["cle"]).upper(),
-        "*iban": format_iban(data.iban or DEFAULTS["iban"]),
-    }
+    return generate_revolut(data, output_path, is_preview=False)
 
-    doc = fitz.open(PDF_TEMPLATE)
-
-    for page in doc:
-        for key, val in values.items():
-            insert_text(page, key, val)
-
-    doc.save(output_path)
-    doc.close()
-    
-    # Sécurisation finale par mise à plat
-    flatten_pdf(output_path)
+def generate_revolut_preview(data, output_path):
+    return generate_revolut(data, output_path, is_preview=True)
