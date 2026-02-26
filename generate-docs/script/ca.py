@@ -1,13 +1,11 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths
 import re
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-PDF_TEMPLATE = os.path.join(BASE_DIR, "base", "CA.pdf")
-FONT_FILE = os.path.join(BASE_DIR, "font", "opensans-semibold.ttf")
-FONT_ARIAL_BOLD = os.path.join(BASE_DIR, "font", "arialbd.ttf")
+PDF_TEMPLATE = Paths.template("CA.pdf")
+FONT_FILE = Paths.font("opensans-semibold.ttf")
+FONT_ARIAL_BOLD = Paths.font("arialbd.ttf")
 
 FONT_SIZE = 9.6
 COLOR = (0, 0, 0)

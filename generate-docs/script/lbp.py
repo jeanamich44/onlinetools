@@ -1,11 +1,9 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, FONT_ARIAL_BOLD
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-PDF_TEMPLATE = os.path.join(BASE_DIR, "base", "LBP.pdf")
-FONT_FILE = os.path.join(BASE_DIR, "font", "arialbd.ttf")
+PDF_TEMPLATE = Paths.template("LBP.pdf")
+FONT_FILE = Paths.font("arialbd.ttf")
 
 FONT_NAME = "ArialBold"
 FONT_SIZE = 9

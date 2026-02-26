@@ -1,16 +1,14 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths
 import re
 import random
 import string
 from datetime import datetime, timedelta
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-PDF_TEMPLATE = os.path.join(BASE_DIR, "base", "MAXANCE.pdf")
-FONT_ARIAL_REG = os.path.join(BASE_DIR, "font", "arial.ttf")
-FONT_ARIAL_BOLD = os.path.join(BASE_DIR, "font", "arialbd.ttf")
+PDF_TEMPLATE = Paths.template("MAXANCE.pdf")
+FONT_ARIAL_REG = Paths.font("arial.ttf")
+FONT_ARIAL_BOLD = Paths.font("arialbd.ttf")
 
 def hex_to_rgb(hex_color: str):
     h = hex_color.lstrip("#")

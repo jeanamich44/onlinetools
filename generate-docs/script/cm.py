@@ -1,17 +1,15 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths
 import re
 
 # =========================
 # CHEMINS (EN LIGNE)
 # =========================
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-PDF_TEMPLATE = os.path.join(BASE_DIR, "base", "CM.pdf")
-FONT_ARIAL_REG_PATH = os.path.join(BASE_DIR, "font", "arial.ttf")
-FONT_ARIAL_BOLD_PATH = os.path.join(BASE_DIR, "font", "arialbd.ttf")
+PDF_TEMPLATE = Paths.template("CM.pdf")
+FONT_ARIAL_REG_PATH = Paths.font("arial.ttf")
+FONT_ARIAL_BOLD_PATH = Paths.font("arialbd.ttf")
 
 FONT_REG_NAME = "ARIAL_REG"
 FONT_BOLD_NAME = "ARIAL_BOLD"

@@ -1,18 +1,13 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths
 import random
 import string
 from datetime import datetime
 
-# =========================
-# DOSSIER BASE
-# =========================
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-PDF_TEMPLATE = os.path.join(BASE_DIR, "base", "NIKE.pdf")
-FONT_ARIAL = os.path.join(BASE_DIR, "font", "arial.ttf")
+PDF_TEMPLATE = Paths.template("NIKE.pdf")
+FONT_ARIAL = Paths.font("arial.ttf")
 
 # =========================
 # UTILS

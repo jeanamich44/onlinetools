@@ -1,13 +1,10 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, FONT_ARIAL_BOLD
 import re
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-PDF_TEMPLATE = os.path.join(BASE_DIR, "base", "REVOLUT.pdf")
-FONT_FILE = os.path.join(BASE_DIR, "font", "roboto-regular.ttf")
-FONT_ARIAL_BOLD = os.path.join(BASE_DIR, "font", "arialbd.ttf")
+PDF_TEMPLATE = Paths.template("REVOLUT.pdf")
+FONT_FILE = Paths.font("roboto-regular.ttf")
 
 FONT_SIZE = 8.25
 COLOR = (25/255, 28/255, 31/255)

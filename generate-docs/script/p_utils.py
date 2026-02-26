@@ -1,54 +1,64 @@
 import fitz
+import os
+
+# =========================
+# GESTION DES CHEMINS
+# =========================
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+class Paths:
+    """Centralise tous les chemins du projet."""
+    BASE = BASE_DIR
+    FONTS = os.path.join(BASE_DIR, "font")
+    TEMPLATES = os.path.join(BASE_DIR, "base")
+    
+    @classmethod
+    def font(cls, name):
+        """Retourne le chemin complet d'une police."""
+        return os.path.join(cls.FONTS, name)
+    
+    @classmethod
+    def template(cls, name):
+        """Retourne le chemin complet d'un modèle PDF."""
+        return os.path.join(cls.TEMPLATES, name)
+
+# Raccourcis pour les polices communes
+FONT_ARIAL = Paths.font("arial.ttf")
+FONT_ARIAL_BOLD = Paths.font("arialbd.ttf")
+
+# =========================
+# UTILITAIRES PDF
+# =========================
 
 def save_pdf_as_jpg(doc, output_path, zoom=1.8, quality=75):
     """
     Convertit la première page d'un document PDF en image JPG optimisée pour la preview.
-    
-    Args:
-        doc: Objet fitz.Document.
-        output_path: Chemin de destination du fichier (doit finir par .jpg).
-        zoom: Facteur de zoom pour la résolution (1.8 par défaut).
-        quality: Qualité de compression JPG (75 par défaut).
     """
-    # Sélection de la première page
     page = doc[0]
-    
-    # Création du pixmap avec le zoom spécifié
     pix = page.get_pixmap(matrix=fitz.Matrix(zoom, zoom))
-    
-    # Sauvegarde en JPG avec la qualité spécifiée
     pix.save(output_path, jpg_quality=quality)
-    
-    # Fermeture du document
     doc.close()
 
 def flatten_pdf(file_path):
     """
-    Rend le PDF non modifiable en convertissant chaque page en image haute résolution
-    puis en reconstruisant un PDF à partir de ces images.
+    Rend le PDF non modifiable (aplatissement).
     """
     doc = fitz.open(file_path)
     new_doc = fitz.open()
 
     for page in doc:
-        # Conversion en image (zoom 2.0 pour la netteté)
         pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
-        
-        # Nouvelle page aux mêmes dimensions
         new_page = new_doc.new_page(width=page.rect.width, height=page.rect.height)
-        
-        # On plaque l'image brute (Pixmap)
         new_page.insert_image(page.rect, pixmap=pix)
 
     doc.close()
-    
-    # On écrase le fichier original avec la version "plate" sécurisée
     new_doc.save(file_path, garbage=4, deflate=True)
     new_doc.close()
 
-def add_watermark(page, font_file, text="PREVIEW – NON PAYÉ"):
+def add_watermark(page, font_file=FONT_ARIAL_BOLD, text="PREVIEW – NON PAYÉ"):
     """
-    Ajoute un filigrane de prévisualisation sur une page PDF.
+    Ajoute un filigrane de prévisualisation.
     """
     rect = page.rect
     for y in range(80, int(rect.height), 160):

@@ -1,13 +1,11 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths
 import re
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-PDF_TEMPLATE = os.path.join(BASE_DIR, "base", "BFB.pdf")
-FONT_ARIAL_REG = os.path.join(BASE_DIR, "font", "arial.ttf")
-FONT_ARIAL_BOLD = os.path.join(BASE_DIR, "font", "arialbd.ttf")
+PDF_TEMPLATE = Paths.template("BFB.pdf")
+FONT_ARIAL_REG = Paths.font("arial.ttf")
+FONT_ARIAL_BOLD = Paths.font("arialbd.ttf")
 
 COLOR_MAIN = (29/255, 29/255, 27/255)
 COLOR_SECOND = (99/255, 99/255, 96/255)
