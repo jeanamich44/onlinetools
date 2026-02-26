@@ -22,7 +22,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 120
 # Whitelist IP chargée depuis les variables d'environnement (séparées par des virgules)
 ALLOWED_IPS = os.getenv("ADMIN_IP_WHITELIST", "127.0.0.1").split(",")
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 security = HTTPBearer()
 
 # =========================
@@ -30,17 +30,10 @@ security = HTTPBearer()
 # =========================
 
 def verify_password(plain_password, hashed_password):
-    # Pré-hachage identique pour la vérification
-    h = hashlib.sha256(plain_password.encode('utf-8')).digest()
-    pre_hashed = base64.b64encode(h).decode('utf-8')
-    return pwd_context.verify(pre_hashed, hashed_password)
+    return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password):
-    # Bcrypt a une limite de 72 octets qui peut bugger sur certains environnements.
-    # On pré-hache en SHA256 + Base64 pour toujours avoir une entrée de 44 caractères (fixe).
-    h = hashlib.sha256(password.encode('utf-8')).digest()
-    pre_hashed = base64.b64encode(h).decode('utf-8')
-    return pwd_context.hash(pre_hashed)
+    return pwd_context.hash(password)
 
 # =========================
 # GESTION JWT
