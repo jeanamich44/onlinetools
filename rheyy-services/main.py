@@ -85,17 +85,22 @@ async def setup_first_admin(req: LoginRequest, request: Request, db: Session = D
     """Route temporaire pour créer le premier admin (protégée par IP)."""
     check_ip_whitelist(request)
     
-    existing = db.query(Admin).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Un administrateur existe déjà")
-    
-    new_admin = Admin(
-        username=req.username,
-        hashed_password=get_password_hash(req.password)
-    )
-    db.add(new_admin)
-    db.commit()
-    return {"message": "Administrateur créé avec succès"}
+    try:
+        existing = db.query(Admin).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Un administrateur existe déjà")
+        
+        hashed = get_password_hash(req.password)
+        new_admin = Admin(
+            username=req.username,
+            hashed_password=hashed
+        )
+        db.add(new_admin)
+        db.commit()
+        return {"message": "Administrateur créé avec succès"}
+    except Exception as e:
+        logger.error(f"Erreur lors de la création de l'admin: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # =========================
 # ROUTES TOOLS (PROTÉGÉES)
