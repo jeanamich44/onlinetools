@@ -31,7 +31,10 @@ def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 def get_password_hash(password):
-    return pwd_context.hash(password)
+    # Bcrypt a une limite de 72 octets. On s'assure que c'est bien de l'UTF-8
+    # et on tronque si nécessaire pour éviter l'erreur 500.
+    password_bytes = password.encode('utf-8')[:72]
+    return pwd_context.hash(password_bytes.decode('utf-8'))
 
 # =========================
 # GESTION JWT
