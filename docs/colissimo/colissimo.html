@@ -138,17 +138,6 @@
                     </div>
                 </div>
 
-                <div class="form-section">
-                    <div class="section-header">
-                        <span><span class="section-number">4</span> Réception</span>
-                    </div>
-                    <div class="section-content">
-                        <div class="form-group">
-                            <label>Email de réception (PDF) *</label>
-                            <input type="email" name="sendToThirdPersonInfo" required placeholder="votre@email.com">
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <div class="action-bar">
@@ -161,10 +150,28 @@
 
         </form>
 
+        <script src="../js/chronopost-autocomplete.js"></script>
         <a class="back" href="./colissimo-liste.html">Retour</a>
     </main>
 
     <script>
+        // Valeurs par défaut pour l'expéditeur (similaire à Chronopost)
+        const DEFAULT_SENDER = {
+            lastname: "Dupont",
+            firstname: "Jean",
+            cp: "75001",
+            city: "Paris",
+            address: "10 rue de la Paix"
+        };
+
+        function fillDefaultSender() {
+            document.querySelector('input[name="senderLastname"]').value = DEFAULT_SENDER.lastname;
+            document.querySelector('input[name="senderFirstname"]').value = DEFAULT_SENDER.firstname;
+            document.querySelector('input[name="senderCP"]').value = DEFAULT_SENDER.cp;
+            document.querySelector('input[name="senderCity"]').value = DEFAULT_SENDER.city;
+            document.querySelector('input[name="senderAddress"]').value = DEFAULT_SENDER.address;
+        }
+
         async function handleSubmit(event) {
             event.preventDefault();
             const form = event.target;
@@ -189,7 +196,27 @@
                 const result = await response.json();
 
                 if (response.ok && result.status === 'success') {
-                    statusDiv.innerHTML = "<span class='success-message'>✅ Génération réussie ! L'étiquette a été envoyée par mail.</span>";
+                    statusDiv.innerHTML = "<span class='success-message'>✅ Génération réussie !</span>";
+
+                    // Téléchargement automatique de l'étiquette
+                    if (result.label) {
+                        const link = document.createElement("a");
+                        link.href = `data:application/pdf;base64,${result.label}`;
+                        link.download = `etiquette_colissimo_${result.parcelNumber || 'test'}.pdf`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+
+                    // Téléchargement CN23 si présent
+                    if (result.cn23) {
+                        const linkCn = document.createElement("a");
+                        linkCn.href = `data:application/pdf;base64,${result.cn23}`;
+                        linkCn.download = `CN23_${result.parcelNumber || 'test'}.pdf`;
+                        document.body.appendChild(linkCn);
+                        linkCn.click();
+                        document.body.removeChild(linkCn);
+                    }
                 } else {
                     statusDiv.innerHTML = "<span class='error-message'>❌ Erreur: " + (result.message || "Erreur serveur") + "</span>";
                 }
@@ -204,6 +231,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('shippingDate').value = today;
+
+            // Pré-remplissage auto de l'expéditeur
+            fillDefaultSender();
         });
     </script>
 </body>
