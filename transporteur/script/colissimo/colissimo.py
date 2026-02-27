@@ -2,6 +2,7 @@ import requests
 import logging
 import json
 import email
+import base64
 from email.policy import default
 from datetime import datetime
 
@@ -151,8 +152,13 @@ def run_colissimo(data, config, method="generateLabel"):
             }
             if method in ["generateLabel", "checkGenerateLabel"]:
                 result["parcelNumber"] = json_infos.get("labelV2Response", {}).get("parcelNumber")
-                if "label" in files: result["label"] = files["label"]
-                if "cn23" in files: result["cn23"] = files["cn23"]
+                
+                # Conversion des binaires en Base64 pour le client
+                if "label" in files:
+                    result["label"] = base64.b64encode(files["label"]).decode('utf-8')
+                if "cn23" in files:
+                    result["cn23"] = base64.b64encode(files["cn23"]).decode('utf-8')
+                    
             return result
         else:
             error_msg = errors[0].get("messageContent") if errors else f"Erreur {response.status_code}"

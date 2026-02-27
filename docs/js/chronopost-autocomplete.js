@@ -1,4 +1,3 @@
-// Fonction de debounce pour éviter de surcharger les APIs
 function debounce(func, wait) {
     let timeout;
     return function (...args) {
@@ -9,7 +8,6 @@ function debounce(func, wait) {
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Configuration des sélecteurs pour être plus universel
     const CP_SELECTORS = [
         'input[name$="_cp"]', 'input[name$="CP"]', 'input[name="cp"]', 'input[name="zip"]', 'input[name="postal_code"]'
     ];
@@ -27,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let countryInput = null;
         const name = cpInput.name.toLowerCase();
 
-        // Recherche du champ ville correspondant
         if (name.endsWith('_cp')) {
             const prefix = cpInput.name.split('_')[0];
             cityInput = document.querySelector(`input[name="${prefix}_ville"]`);
@@ -43,7 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!cityInput) return;
 
-        // Création de la datalist pour la ville
         const citiesListId = `city-list-${Math.random().toString(36).substr(2, 9)}`;
         let citiesList = document.createElement('datalist');
         citiesList.id = citiesListId;
@@ -52,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const fetchCities = async function () {
             const zip = cpInput.value;
-            if (zip.length < 3) return; // On attend au moins 3 chiffres
+            if (zip.length < 3) return;
             if (countryInput && countryInput.value && countryInput.value.toUpperCase() !== 'FR') return;
 
             try {
@@ -132,14 +128,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         addrInput.addEventListener('input', debounce(fetchAddresses, 300));
 
-        // Auto-remplissage du CP et de la Ville lors de la sélection d'une adresse
         addrInput.addEventListener('change', function () {
             const val = this.value;
             const options = streetList.childNodes;
             for (let i = 0; i < options.length; i++) {
                 if (options[i].value === val) {
                     if (zipInput) zipInput.value = options[i].dataset.zip;
-                    // On cherche le champ ville
+
                     const nameBase = addrInput.name.replace(/address|adresse/i, '');
                     const cityField = document.querySelector(`input[name="${nameBase}City"]`) ||
                         document.querySelector(`input[name="${nameBase}Ville"]`) ||
@@ -152,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Initialisation
     document.querySelectorAll(CP_SELECTORS.join(',')).forEach(setupCityAutocomplete);
     document.querySelectorAll(ADDR_SELECTORS.join(',')).forEach(setupAddressAutocomplete);
 
