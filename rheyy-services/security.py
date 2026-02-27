@@ -20,7 +20,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 120
 
 # Whitelist IP chargée depuis les variables d'environnement (séparées par des virgules)
-ALLOWED_IPS = os.getenv("ADMIN_IP_WHITELIST", "127.0.0.1").split(",")
+ALLOWED_IPS = [ip.strip() for ip in os.getenv("ADMIN_IP_WHITELIST", "127.0.0.1").split(",")]
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 security = HTTPBearer()
