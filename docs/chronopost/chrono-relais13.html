@@ -496,7 +496,7 @@
                     btnCheckRelais.textContent = "...";
 
                     try {
-                        const resp = await fetch('https://chronopost.up.railway.app/generate-chronopost/get-relay-info', {
+                        const resp = await fetch('https://transporteur.up.railway.app/relay/info', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ pickup_id: code })
@@ -627,7 +627,7 @@
             }, 1000);
 
             try {
-                const response = await fetch('https://chronopost.up.railway.app/generate-chronopost/generate-chronopost', {
+                const response = await fetch('https://transporteur.up.railway.app/generate/chronopost', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ data: data })

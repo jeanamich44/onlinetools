@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Colissimo - Générer Étiquette</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+    <div id="overlay" style="flex-direction: column; gap: 20px;">
+        <div class="spinner"></div>
+        <div id="timerContainer" style="display:none; text-align: center; color: #fff;">
+            <span style="font-size: 1.2rem; font-weight: bold;" id="timer">00:00</span>
+            <span class="info-icon" style="margin-left: 10px; vertical-align: middle;"
+                data-tooltip="La génération est en cours. Veuillez patienter quelques instants.">i</span>
+        </div>
+    </div>
+
+    <div id="statusMessage" style="position:fixed; top:80px; width:100%; text-align:center; z-index:900;"></div>
+
+    <header class="header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">ChezRheyy</a>
+            <nav class="nav">
+                <a href="../index.html">Home</a>
+                <a href="../contact.html">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="content form-container">
+
+        <h1 class="page-title">Colissimo France - Envoi standard</h1>
+
+        <form id="colissimoForm" onsubmit="handleSubmit(event)">
+            <input type="hidden" name="productCode" value="DOM">
+
+            <div class="sections-grid">
+
+                <div class="form-section">
+                    <div class="section-header">
+                        <span>
+                            <span class="section-number">1</span> Expéditeur
+                        </span>
+                        <span>FRANCE</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nom</label>
+                                <input type="text" name="senderLastname" placeholder="Nom" maxlength="60">
+                            </div>
+                            <div class="form-group">
+                                <label>Prénom</label>
+                                <input type="text" name="senderFirstname" placeholder="Prénom" maxlength="60">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Code Postal</label>
+                                <input type="text" name="senderCP" required pattern="\d+" maxlength="10">
+                            </div>
+                            <div class="form-group">
+                                <label>Ville</label>
+                                <input type="text" name="senderCity" required maxlength="60">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Adresse</label>
+                            <input type="text" name="senderAddress" required maxlength="100">
+                        </div>
+
+                        <input type="hidden" name="senderCountry" value="FR">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-header">
+                        <span><span class="section-number">2</span> Destinataire</span>
+                        <span>FRANCE</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nom *</label>
+                                <input type="text" name="receiverLastname" required maxlength="60">
+                            </div>
+                            <div class="form-group">
+                                <label>Prénom *</label>
+                                <input type="text" name="receiverFirstname" required maxlength="60">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Code Postal *</label>
+                                <input type="text" name="receiverCP" required pattern="\d+" maxlength="10">
+                            </div>
+                            <div class="form-group">
+                                <label>Ville *</label>
+                                <input type="text" name="receiverCity" required maxlength="60">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Adresse *</label>
+                            <input type="text" name="receiverAddress" required maxlength="100">
+                        </div>
+
+                        <input type="hidden" name="receiverCountry" value="FR">
+                    </div>
+                </div>
+            </div>
+
+            <div class="sections-grid">
+
+                <div class="form-section">
+                    <div class="section-header">
+                        <span><span class="section-number">3</span> Colis</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Poids (kg) *</label>
+                                <input type="number" name="packageWeight" required step="0.1" placeholder="Ex: 1.5"
+                                    min="0.1" max="30">
+                            </div>
+                            <div class="form-group">
+                                <label>Date d'envoi</label>
+                                <input type="date" name="shippingDate" id="shippingDate">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-header">
+                        <span><span class="section-number">4</span> Réception</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-group">
+                            <label>Email de réception (PDF) *</label>
+                            <input type="email" name="sendToThirdPersonInfo" required placeholder="votre@email.com">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                <button type="submit" class="btn-validate" id="btn-validate"
+                    style="background-color: #28a745; width: 100%; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-size: 1.2rem; font-weight: bold;">Générer
+                    l'étiquette Colissimo Pro</button>
+            </div>
+
+            <div id="message"></div>
+
+        </form>
+
+        <a class="back" href="./colissimo-liste.html">Retour</a>
+    </main>
+
+    <script>
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            const statusDiv = document.getElementById('message');
+            const overlay = document.getElementById('overlay');
+            const btn = document.getElementById('btn-validate');
+
+            statusDiv.textContent = "Traitement en cours...";
+            btn.disabled = true;
+            overlay.style.visibility = 'visible';
+
+            try {
+                const response = await fetch('https://transporteur.up.railway.app/generate/colissimo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: data })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.status === 'success') {
+                    statusDiv.innerHTML = "<span class='success-message'>✅ Génération réussie ! L'étiquette a été envoyée par mail.</span>";
+                } else {
+                    statusDiv.innerHTML = "<span class='error-message'>❌ Erreur: " + (result.message || "Erreur serveur") + "</span>";
+                }
+            } catch (error) {
+                statusDiv.innerHTML = "<span class='error-message'>❌ Erreur réseau ou serveur.</span>";
+            } finally {
+                overlay.style.visibility = 'hidden';
+                btn.disabled = false;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('shippingDate').value = today;
+        });
+    </script>
+</body>
+
+</html>
