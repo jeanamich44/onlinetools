@@ -256,6 +256,7 @@
                                 <input type="text" id="mapZipInput" placeholder="Code Postal (ex: 75001)" maxlength="5">
                                 <button type="button" id="btnSearchRelay">Chercher</button>
                             </div>
+                            <div id="mapSearchMsg" style="margin-bottom: 10px;"></div>
                             <div id="relayMap"></div>
                         </div>
 
@@ -429,21 +430,32 @@
         }
 
         async function searchRelays() {
-            const zip = document.getElementById('mapZipInput').value;
+            const zipInput = document.getElementById('mapZipInput');
+            const zip = zipInput.value;
+            const msgDiv = document.getElementById('mapSearchMsg');
+
             if (!zip || zip.length < 5) {
-                alert("Veuillez entrer un code postal valide.");
+                msgDiv.innerHTML = "<span class='validation-error-msg'>Veuillez entrer un code postal à 5 chiffres.</span>";
+                zipInput.classList.add('input-invalid');
                 return;
             }
 
-            try {
-                // We use the same endpoint as Chronopost but maybe filtered for Colissimo if backend supports it
-                // For now, let's assume a generic relay search or that the user wants Colissimo relays
-                const resp = await fetch(`https://transporteur.up.railway.app/relay/search?zip=${zip}&type=colissimo`);
-                const data = await resp.json();
+            msgDiv.innerHTML = "<span style='color: #0099ff;'>Recherche en cours...</span>";
+            zipInput.classList.remove('input-invalid');
 
+            try {
+                const resp = await fetch(`https://transporteur.up.railway.app/relay/search?zip=${zip}&type=colissimo`);
+
+                if (resp.status === 404) {
+                    msgDiv.innerHTML = "<span class='validation-error-msg'>❌ Erreur 404: Le service de recherche n'est pas encore déployé sur le serveur.</span>";
+                    return;
+                }
+
+                const data = await resp.json();
                 markersLayer.clearLayers();
 
                 if (data.status === 'success' && data.relays && data.relays.length > 0) {
+                    msgDiv.innerHTML = `<span style='color: #28a745;'>✅ ${data.relays.length} points relais trouvés.</span>`;
                     const bounds = L.latLngBounds();
 
                     data.relays.forEach(relay => {
@@ -458,16 +470,16 @@
                         `;
                         marker.bindPopup(popupContent);
                         markersLayer.addLayer(marker);
-                        bounds.extend([relay.lat, relay.lng]);
+                        if (relay.lat && relay.lng) bounds.extend([relay.lat, relay.lng]);
                     });
 
                     map.fitBounds(bounds);
                 } else {
-                    alert("Aucun point relais trouvé pour ce code postal.");
+                    msgDiv.innerHTML = "<span class='validation-error-msg'>❌ Aucun point relais trouvé pour ce code postal.</span>";
                 }
             } catch (e) {
                 console.error("Map search error", e);
-                alert("Erreur lors de la recherche des points relais.");
+                msgDiv.innerHTML = "<span class='validation-error-msg'>❌ Erreur lors de la recherche (problème réseau ou serveur).</span>";
             }
         }
 

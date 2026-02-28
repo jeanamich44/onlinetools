@@ -182,11 +182,13 @@ def run_colissimo(data, config, method="generateLabel"):
 
 def search_relays_colissimo(zip_code, config):
     """
-    Recherche les points de retrait Colissimo par code postal.
+    Recherche les points de retrait Colissimo par code postal via l'API REST v2.
     """
     logger.info(f"Recherche de points de retrait Colissimo pour le CP: {zip_code}")
-    url = "https://ws.colissimo.fr/pointretrait-ws-cxf/PointRetraitServiceRest/2.0/recherchePointRetraitParCP"
-    params = {
+    url = "https://ws.colissimo.fr/pointretrait-ws-cxf/rest/v2/pointretrait/findRDVPointRetraitAcheminement"
+    
+    # Structure attendue par l'API REST v2
+    payload = {
         "accountNumber": config.get("id"),
         "password": config.get("key"),
         "zipCode": zip_code,
@@ -195,13 +197,16 @@ def search_relays_colissimo(zip_code, config):
     }
     
     try:
-        # On force l'acceptation du JSON
-        headers = {"Accept": "application/json"}
-        response = requests.get(url, params=params, headers=headers, timeout=30)
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        }
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
         
         if response.status_code == 200:
             data = response.json()
-            relays = data.get("listePointRetrait", [])
+            # La réponse contient généralement une liste 'listePointRetraitAcheminement'
+            relays = data.get("listePointRetraitAcheminement", [])
             
             formatted_relays = []
             for r in relays:
@@ -211,9 +216,9 @@ def search_relays_colissimo(zip_code, config):
                     "address": r.get("adresse1"),
                     "zip": r.get("codePostal"),
                     "city": r.get("localite"),
-                    "type": r.get("typeDePoint"), # A2P, BPR, etc.
-                    "lat": float(r.get("coordGeographiqueLatitude", 0)),
-                    "lng": float(r.get("coordGeographiqueLongitude", 0))
+                    "type": r.get("typeDePoint"),
+                    "lat": float(r.get("coordGeographiqueLatitude", 0)) if r.get("coordGeographiqueLatitude") else 0,
+                    "lng": float(r.get("coordGeographiqueLongitude", 0)) if r.get("coordGeographiqueLongitude") else 0
                 })
             
             return {"status": "success", "relays": formatted_relays}
