@@ -208,7 +208,7 @@
     </main>
 
     <script>
-        // Valeurs par défaut pour l'expéditeur (similaire à Chronopost)
+
         const DEFAULT_SENDER = {
             lastname: "Dupont",
             firstname: "Jean",
@@ -238,7 +238,6 @@
             statusDiv.innerHTML = "";
             statusDiv.className = "";
 
-            // Validation par champ style Chronopost
             let firstInvalid = null;
             form.querySelectorAll('input, select, textarea').forEach(input => {
                 if (input.hasAttribute('required') || input.hasAttribute('pattern')) {
@@ -282,7 +281,6 @@
                 if (response.ok && result.status === 'success') {
                     statusDiv.innerHTML = "<span class='success-message'>✅ Génération réussie !</span>";
 
-                    // Téléchargement automatique de l'étiquette
                     if (result.label) {
                         const link = document.createElement("a");
                         link.href = `data:application/pdf;base64,${result.label}`;
@@ -292,7 +290,6 @@
                         document.body.removeChild(link);
                     }
 
-                    // Téléchargement CN23 si présent
                     if (result.cn23) {
                         const linkCn = document.createElement("a");
                         linkCn.href = `data:application/pdf;base64,${result.cn23}`;
@@ -336,7 +333,6 @@
             setupVisibilityToggle('senderType', 'senderCompanyDiv');
             setupVisibilityToggle('receiverType', 'receiverCompanyDiv');
 
-            // Pré-remplissage auto de l'expéditeur
             fillDefaultSender();
         });
     </script>

@@ -51,7 +51,7 @@ def format_iban(v: str):
 # =========================
 
 def overwrite(page, key, text, is_bold=False):
-    fontname = FONT_BOLD_NAME if is_bold else FONT_REG_NAME
+    fontfile = FONT_ARIAL_BOLD_PATH if is_bold else FONT_ARIAL_REG_PATH
     rects = page.search_for(key)
     if not rects:
         return
@@ -66,7 +66,7 @@ def overwrite(page, key, text, is_bold=False):
             (r.x0, r.y1 - 1.4),
             text,
             fontsize=FONT_SIZE,
-            fontname=fontname,
+            fontfile=fontfile,
             color=COLOR,
         )
 
@@ -93,9 +93,6 @@ def generate_cm(data, output_path, is_preview=False):
     doc = fitz.open(PDF_TEMPLATE)
 
     for page in doc:
-        page.insert_font(FONT_REG_NAME, FONT_ARIAL_REG_PATH)
-        page.insert_font(FONT_BOLD_NAME, FONT_ARIAL_BOLD_PATH)
-
         # Tri par longueur décroissante pour éviter les conflits de sous-chaînes (ex: *agence vs *agencead)
         for k in sorted(values.keys(), key=len, reverse=True):
             overwrite(page, k, values[k])
