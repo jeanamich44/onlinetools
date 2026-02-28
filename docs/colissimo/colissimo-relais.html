@@ -9,10 +9,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
-        /* Correctif Radical : Layout Vertical Stable */
+
         .relay-explorer {
             display: block !important;
-            /* On casse le flexbox qui causait les superpositions */
             background: #161b22;
             border: 1px solid #30363d;
             border-radius: 8px;
@@ -27,11 +26,10 @@
             border-bottom: 1px solid #30363d;
         }
 
-        /* Utilisation de GRID pour garantir que l'input a de la place */
+
         .map-search-grid {
             display: grid !important;
             grid-template-columns: 1fr 120px;
-            /* L'input prend le reste, le bouton est fixe */
             gap: 10px;
             width: 100%;
         }
@@ -129,7 +127,6 @@
             border-color: #ff4444 !important;
         }
 
-        /* Leaflet Overrides */
         .leaflet-popup-content-wrapper {
             background: #1f242d !important;
             color: #fff !important;
@@ -305,7 +302,6 @@
                             </div>
                         </div>
 
-                        <!-- L'adresse du destinataire peut être laissée vide ou aléatoire pour COL, mais l'API peut la demander -->
                         <input type="hidden" name="receiverAddress" value="POINT RELAIS">
                         <input type="hidden" name="receiverCity" value="TRANSIT">
                         <input type="hidden" name="receiverCP" value="00000">
@@ -384,7 +380,6 @@
             statusDiv.innerHTML = "";
             statusDiv.className = "";
 
-            // Validation par champ style Chronopost
             let firstInvalid = null;
             form.querySelectorAll('input, select, textarea').forEach(input => {
                 if (input.hasAttribute('required') || input.hasAttribute('pattern')) {
@@ -467,7 +462,7 @@
         let markersLayer;
 
         function initMap() {
-            map = L.map('relayMap').setView([46.603354, 1.888334], 5); // Center of France
+            map = L.map('relayMap').setView([46.603354, 1.888334], 5);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
@@ -511,7 +506,7 @@
                     const bounds = L.latLngBounds();
 
                     data.relays.forEach(relay => {
-                        // Ajouter Marqueur
+
                         const marker = L.marker([relay.lat, relay.lng]);
                         const popupContent = `
                             <div class="relay-popup">
@@ -527,7 +522,6 @@
 
                         if (relay.lat && relay.lng) bounds.extend([relay.lat, relay.lng]);
 
-                        // Ajouter Carte Latérale
                         const card = document.createElement("div");
                         card.className = "relay-card";
                         card.id = `card-${relay.id}`;
@@ -569,7 +563,7 @@
             if (type) {
                 document.getElementById('pickupLocationType').value = type;
             }
-            // Optional: visual feedback
+
             const input = document.getElementById('pickupLocationId');
             input.style.backgroundColor = 'rgba(40, 167, 69, 0.2)';
             setTimeout(() => input.style.backgroundColor = '', 1000);

@@ -196,30 +196,33 @@ def geocode_zip(zip_code):
         "User-Agent": "ChezRheyy-Transporteur-App/1.0"
     }
     try:
-        response = requests.get(url, params=params, headers=headers, timeout=10)
+        response = requests.get(url, params=params, headers=headers, timeout=15)
         if response.status_code == 200:
             data = response.json()
-            if data:
-                return data[0]["lat"], data[0]["lon"]
+            if data and isinstance(data, list) and len(data) > 0:
+                lat = data[0].get("lat")
+                lon = data[0].get("lon")
+                logger.info(f"Géocodage réussi pour {zip_code}: {lat}, {lon}")
+                return lat, lon
+            else:
+                logger.warning(f"Aucun résultat de géocodage pour le CP {zip_code}")
     except Exception as e:
-        logger.error(f"Erreur géocodage: {str(e)}")
+        logger.error(f"Erreur durant le géocodage de {zip_code}: {str(e)}")
     return None, None
 
 def search_relays_colissimo(zip_code, config=None):
     """
     Recherche les points de retrait Colissimo via l'API publique La Poste.
-    Utilise le géocodage pour des résultats locaux précis.
     """
-    logger.info(f"Recherche de points de retrait Colissimo pour: {zip_code}")
+    logger.info(f"Recherche de points de retrait Colissimo pour le CP: {zip_code}")
     
-    # Étape 1: Géocodage pour obtenir lat/lng
     lat, lon = geocode_zip(zip_code)
     
     url = "https://localiser.laposte.fr/index.html"
     params = {
         "jesuis": "particulier",
-        "contact": "depot", # Filtre crucial pour les retraits colis
-        "r": "10",          # Rayon en km
+        "contact": "depot",
+        "r": "10",
         "per": "30",
         "l": "fr"
     }
@@ -227,10 +230,11 @@ def search_relays_colissimo(zip_code, config=None):
     if lat and lon:
         params["q"] = f"{lat},{lon}"
         params["qp"] = f"{zip_code}, France"
+        logger.info(f"Appel API La Poste avec coordonnées: {params['q']}")
     else:
-        # Fallback si géocodage échoue (moins précis)
         params["qp"] = zip_code
         params["q"] = zip_code
+        logger.info(f"Appel API La Poste avec CP uniquement (Fallback): {zip_code}")
 
     headers = {
         "Accept": "application/json",
@@ -239,6 +243,7 @@ def search_relays_colissimo(zip_code, config=None):
     
     try:
         response = requests.get(url, params=params, headers=headers, timeout=20)
+        logger.info(f"Réponse API La Poste: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
@@ -246,33 +251,44 @@ def search_relays_colissimo(zip_code, config=None):
             
             formatted_relays = []
             for item in entities:
-                p = item.get("profile", {})
-                address_obj = p.get("address", {})
-                coords = p.get("yextDisplayCoordinate", {})
-                
-                relay_id = p.get("meta", {}).get("yextId") or p.get("meta", {}).get("uid")
-                
-                raw_type = p.get("c_typePointDeContact", "")
-                relay_type = "A2P"
-                if "BUREAU" in raw_type.upper(): relay_type = "BPR"
-                if "CONSIGNE" in raw_type.upper(): relay_type = "PCS"
+                try:
+                    p = item.get("profile", {})
+                    address_obj = p.get("address", {})
+                    coords = p.get("yextDisplayCoordinate", {})
+                    
+                    relay_id = p.get("meta", {}).get("yextId") or p.get("meta", {}).get("uid")
+                    
+                    raw_type = p.get("c_typePointDeContact", "")
+                    relay_type = "A2P"
+                    if raw_type and "BUREAU" in str(raw_type).upper(): relay_type = "BPR"
+                    if raw_type and "CONSIGNE" in str(raw_type).upper(): relay_type = "PCS"
 
-                distance_raw = item.get("distance")
-                distance_km = 0
-                if distance_raw is not None:
-                    distance_km = float(distance_raw) / 1000
+                    # Sécurisation du parsing de la distance
+                    distance_raw = item.get("distance", 0)
+                    distance_km = 0
+                    if isinstance(distance_raw, (int, float)):
+                        distance_km = float(distance_raw) / 1000
+                    elif isinstance(distance_raw, str) and distance_raw.replace('.','',1).isdigit():
+                        distance_km = float(distance_raw) / 1000
+                    elif isinstance(distance_raw, dict):
+                        # Cas où distance est un dict {"value": ..., "unit": ...}
+                        val = distance_raw.get("value", 0)
+                        distance_km = float(val) / 1000 if isinstance(val, (int, float, str)) else 0
 
-                formatted_relays.append({
-                    "id": relay_id,
-                    "name": p.get("c_intituleEtablissement") or p.get("name") or "Point de retrait",
-                    "address": address_obj.get("line1", ""),
-                    "zip": address_obj.get("postalCode", ""),
-                    "city": address_obj.get("city", ""),
-                    "type": relay_type,
-                    "lat": coords.get("lat"),
-                    "lng": coords.get("long"),
-                    "distance": distance_km
-                })
+                    formatted_relays.append({
+                        "id": relay_id,
+                        "name": p.get("c_intituleEtablissement") or p.get("name") or "Point de retrait",
+                        "address": address_obj.get("line1", ""),
+                        "zip": address_obj.get("postalCode", ""),
+                        "city": address_obj.get("city", ""),
+                        "type": relay_type,
+                        "lat": coords.get("lat"),
+                        "lng": coords.get("long"),
+                        "distance": distance_km
+                    })
+                except Exception as item_err:
+                    logger.error(f"Erreur lors du traitement d'un point relais: {str(item_err)}")
+                    continue
             
             return {"status": "success", "relays": formatted_relays}
         else:
@@ -280,7 +296,8 @@ def search_relays_colissimo(zip_code, config=None):
             
     except Exception as e:
         logger.error(f"Erreur technique recherche: {str(e)}")
-        return {"status": "error", "message": str(e)}
+        # Retourner l'erreur propre au client
+        return {"status": "error", "message": f"Détail technique: {str(e)}"}
 
 if __name__ == "__main__":
     # Exemple de test (remplacer par des vraies clés)

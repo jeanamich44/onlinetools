@@ -239,7 +239,6 @@
             statusDiv.innerHTML = "";
             statusDiv.className = "";
 
-            // Validation par champ style Chronopost
             let firstInvalid = null;
             form.querySelectorAll('input, select, textarea').forEach(input => {
                 if (input.hasAttribute('required') || input.hasAttribute('pattern')) {
