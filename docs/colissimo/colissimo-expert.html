@@ -239,8 +239,31 @@
             statusDiv.innerHTML = "";
             statusDiv.className = "";
 
-            if (!form.checkValidity()) {
-                statusDiv.innerHTML = "<span class='error-message'>❌ Veuillez remplir correctement tous les champs obligatoires (*).</span>";
+            // Validation par champ style Chronopost
+            let firstInvalid = null;
+            form.querySelectorAll('input, select, textarea').forEach(input => {
+                if (input.hasAttribute('required') || input.hasAttribute('pattern')) {
+                    const isValid = input.checkValidity();
+                    let errorSpan = input.parentNode.querySelector('.validation-error-msg');
+
+                    if (!isValid) {
+                        input.classList.add('input-invalid');
+                        if (!errorSpan) {
+                            errorSpan = document.createElement('span');
+                            errorSpan.className = 'validation-error-msg';
+                            input.parentNode.appendChild(errorSpan);
+                        }
+                        errorSpan.textContent = input.validationMessage;
+                        if (!firstInvalid) firstInvalid = input;
+                    } else {
+                        input.classList.remove('input-invalid');
+                        if (errorSpan) errorSpan.remove();
+                    }
+                }
+            });
+
+            if (firstInvalid) {
+                firstInvalid.focus();
                 return;
             }
 

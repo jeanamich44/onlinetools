@@ -47,7 +47,7 @@
 
         <h1 class="page-title">Chrono Express - International</h1>
 
-        <form id="chronoForm" onsubmit="handleSubmit(event)">
+        <form id="chronoForm" onsubmit="handleSubmit(event)" novalidate>
             <!-- Product Code for Express (Using 13 or mapped default for now) -->
             <input type="hidden" name="valeurproduct" value="monde">
 
@@ -776,8 +776,37 @@
                 statusDiv.className = '';
             }
 
-            const formData = new FormData(event.target);
+            const form = event.target;
+            const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
+
+            // Validation par champ style Chronopost
+            let firstInvalid = null;
+            form.querySelectorAll('input, select, textarea').forEach(input => {
+                if (input.hasAttribute('required') || input.hasAttribute('pattern') || input.type === 'email' || input.type === 'tel') {
+                    const isValid = input.checkValidity();
+                    let errorSpan = input.parentNode.querySelector('.validation-error-msg');
+
+                    if (!isValid) {
+                        input.classList.add('input-invalid');
+                        if (!errorSpan) {
+                            errorSpan = document.createElement('span');
+                            errorSpan.className = 'validation-error-msg';
+                            input.parentNode.appendChild(errorSpan);
+                        }
+                        errorSpan.textContent = input.validationMessage;
+                        if (!firstInvalid) firstInvalid = input;
+                    } else {
+                        input.classList.remove('input-invalid');
+                        if (errorSpan) errorSpan.remove();
+                    }
+                }
+            });
+
+            if (firstInvalid) {
+                firstInvalid.focus();
+                return;
+            }
 
             try {
                 const btn = document.getElementById('btn-validate');

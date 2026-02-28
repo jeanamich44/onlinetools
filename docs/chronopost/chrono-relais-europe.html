@@ -137,7 +137,7 @@
 
         <h1 class="page-title">Chrono Relais Europe - Livraison en Relais Europe</h1>
 
-        <form id="chronoForm" onsubmit="handleSubmit(event)">
+        <form id="chronoForm" onsubmit="handleSubmit(event)" novalidate>
             <input type="hidden" name="valeurproduct" value="relais">
 
             <div class="sections-grid">
@@ -659,8 +659,31 @@
             const data = Object.fromEntries(formData.entries());
 
 
-            if (!data.receiverLastname || !data.receiverFirstname || !data.receiverEmail || !data.codeRelais || !data.destinationCountry) {
-                alert("Veuillez remplir les informations obligatoires du destinataire, choisir un pays et un point relais.");
+            // Validation par champ style Chronopost
+            let firstInvalid = null;
+            form.querySelectorAll('input, select, textarea').forEach(input => {
+                if (input.hasAttribute('required') || input.hasAttribute('pattern') || input.type === 'email' || input.type === 'tel') {
+                    const isValid = input.checkValidity();
+                    let errorSpan = input.parentNode.querySelector('.validation-error-msg');
+
+                    if (!isValid) {
+                        input.classList.add('input-invalid');
+                        if (!errorSpan) {
+                            errorSpan = document.createElement('span');
+                            errorSpan.className = 'validation-error-msg';
+                            input.parentNode.appendChild(errorSpan);
+                        }
+                        errorSpan.textContent = input.validationMessage;
+                        if (!firstInvalid) firstInvalid = input;
+                    } else {
+                        input.classList.remove('input-invalid');
+                        if (errorSpan) errorSpan.remove();
+                    }
+                }
+            });
+
+            if (firstInvalid) {
+                firstInvalid.focus();
                 return;
             }
 
