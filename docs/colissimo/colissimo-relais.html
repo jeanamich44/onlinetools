@@ -9,34 +9,73 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
-        /* Nouveau Design Sidebar + Map */
+        /* Correctif Radical : Layout Vertical Stable */
         .relay-explorer {
-            display: flex;
-            height: 500px;
+            display: block !important;
+            /* On casse le flexbox qui causait les superpositions */
             background: #161b22;
             border: 1px solid #30363d;
             border-radius: 8px;
+            margin-top: 15px;
+            width: 100%;
             overflow: hidden;
-            margin-top: 20px;
         }
 
-        .relay-sidebar {
-            width: 350px;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid #30363d;
-        }
-
-        .relay-sidebar-header {
+        .relay-search-zone {
             padding: 15px;
-            border-bottom: 1px solid #30363d;
             background: #0d1117;
+            border-bottom: 1px solid #30363d;
+        }
+
+        /* Utilisation de GRID pour garantir que l'input a de la place */
+        .map-search-grid {
+            display: grid !important;
+            grid-template-columns: 1fr 120px;
+            /* L'input prend le reste, le bouton est fixe */
+            gap: 10px;
+            width: 100%;
+        }
+
+        #mapZipInput {
+            width: 100% !important;
+            height: 42px !important;
+            background: #0d1117 !important;
+            border: 1px solid #30363d !important;
+            color: white !important;
+            padding: 0 12px !important;
+            border-radius: 4px !important;
+            box-sizing: border-box !important;
+        }
+
+        #btnSearchRelay {
+            width: 100% !important;
+            height: 42px !important;
+            background: #0099ff !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 4px !important;
+            font-weight: bold !important;
+            cursor: pointer !important;
+        }
+
+        .relay-map-cont {
+            height: 350px;
+            width: 100%;
+            border-bottom: 1px solid #30363d;
+            position: relative;
+            z-index: 1;
+        }
+
+        #relayMap {
+            height: 100%;
+            width: 100%;
         }
 
         .relay-list {
-            flex: 1;
+            max-height: 300px;
             overflow-y: auto;
             padding: 10px;
+            background: #0d1117;
         }
 
         .relay-card {
@@ -46,26 +85,19 @@
             padding: 12px;
             margin-bottom: 10px;
             cursor: pointer;
-            transition: all 0.2s;
         }
 
-        .relay-card:hover {
-            border-color: #0099ff;
-            background: #30363d;
-        }
-
+        .relay-card:hover,
         .relay-card.active {
             border-color: #0099ff;
-            box-shadow: 0 0 0 1px #0099ff;
         }
 
         .relay-card-title {
             color: #0099ff;
             font-weight: bold;
-            margin-bottom: 5px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            font-size: 1rem;
         }
 
         .relay-distance {
@@ -79,7 +111,7 @@
         .relay-card-address {
             font-size: 0.85rem;
             color: #c9d1d9;
-            margin-bottom: 8px;
+            margin: 6px 0;
         }
 
         .relay-card-select-btn {
@@ -87,59 +119,10 @@
             background: #238636;
             color: white;
             border: none;
-            padding: 6px;
+            padding: 8px;
             border-radius: 4px;
-            font-size: 0.85rem;
             cursor: pointer;
-        }
-
-        .relay-card-select-btn:hover {
-            background: #2ea043;
-        }
-
-        .relay-map-cont {
-            flex: 1;
-            position: relative;
-        }
-
-        #relayMap {
-            height: 100%;
-            width: 100%;
-            z-index: 1;
-        }
-
-        .map-search-row {
-            display: flex !important;
-            gap: 8px !important;
-            width: 100% !important;
-        }
-
-        #mapZipInput {
-            flex: 1 !important;
-            padding: 10px !important;
-            background-color: #0d1117 !important;
-            border: 1px solid #30363d !important;
-            border-radius: 4px !important;
-            color: white !important;
-            height: 40px !important;
-        }
-
-        #btnSearchRelay {
-            height: 40px !important;
-            padding: 0 15px !important;
-            background: #0099ff !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 4px !important;
-            cursor: pointer !important;
-            font-weight: bold !important;
-        }
-
-        .validation-error-msg {
-            color: #ff4444;
-            font-size: 0.8rem;
-            margin-top: 5px;
-            display: block;
+            font-weight: bold;
         }
 
         input.input-invalid {
@@ -159,24 +142,6 @@
 
         .relay-popup b {
             color: #0099ff !important;
-        }
-
-        @media (max-width: 768px) {
-            .relay-explorer {
-                flex-direction: column;
-                height: 700px;
-            }
-
-            .relay-sidebar {
-                width: 100%;
-                height: 300px;
-                border-right: none;
-                border-bottom: 1px solid #30363d;
-            }
-
-            .relay-map-cont {
-                height: 400px;
-            }
         }
     </style>
 </head>
@@ -323,22 +288,19 @@
                             <label>Rechercher un point relais (Colissimo)</label>
 
                             <div class="relay-explorer">
-                                <div class="relay-sidebar">
-                                    <div class="relay-sidebar-header">
-                                        <div class="map-search-row">
-                                            <input type="text" id="mapZipInput" placeholder="CP (ex: 75001)"
-                                                maxlength="5">
-                                            <button type="button" id="btnSearchRelay">Chercher</button>
-                                        </div>
-                                        <div id="mapSearchMsg"></div>
+                                <div class="relay-search-zone">
+                                    <div class="map-search-grid">
+                                        <input type="text" id="mapZipInput" placeholder="CP (ex: 75001)" maxlength="5">
+                                        <button type="button" id="btnSearchRelay">Chercher</button>
                                     </div>
-                                    <div id="relayList" class="relay-list">
-                                        <div style="text-align:center; padding-top:20px; color:#8b949e;">Entrez un code
-                                            postal pour voir les points relais.</div>
-                                    </div>
+                                    <div id="mapSearchMsg" style="margin-top:5px;"></div>
                                 </div>
                                 <div class="relay-map-cont">
                                     <div id="relayMap"></div>
+                                </div>
+                                <div id="relayList" class="relay-list">
+                                    <div style="text-align:center; padding:20px; color:#8b949e;">Entrez un code postal.
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -569,10 +531,12 @@
                         const card = document.createElement("div");
                         card.className = "relay-card";
                         card.id = `card-${relay.id}`;
+                        const distText = relay.distance > 0 ? `<span class="relay-distance">${relay.distance.toFixed(1)} km</span>` : '';
+
                         card.innerHTML = `
                             <div class="relay-card-title">
                                 <span>${relay.name}</span>
-                                <span class="relay-distance">${relay.distance.toFixed(1)} km</span>
+                                ${distText}
                             </div>
                             <div class="relay-card-address">${relay.address}<br>${relay.zip} ${relay.city}</div>
                             <button type="button" class="relay-card-select-btn" onclick="event.stopPropagation(); selectRelay('${relay.id}', '${relay.type}')">Choisir ce point</button>

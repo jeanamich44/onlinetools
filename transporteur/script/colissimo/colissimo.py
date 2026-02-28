@@ -225,6 +225,12 @@ def search_relays_colissimo(zip_code, config=None):
                 if "BUREAU" in raw_type.upper(): relay_type = "BPR"
                 if "CONSIGNE" in raw_type.upper(): relay_type = "PCS"
 
+                # Gestion de la distance (peut être None ou manquante)
+                distance_raw = item.get("distance")
+                distance_km = 0
+                if distance_raw is not None:
+                    distance_km = float(distance_raw) / 1000
+
                 formatted_relays.append({
                     "id": relay_id,
                     "name": p.get("c_intituleEtablissement") or p.get("name") or "Point de retrait",
@@ -234,7 +240,7 @@ def search_relays_colissimo(zip_code, config=None):
                     "type": relay_type,
                     "lat": coords.get("lat"),
                     "lng": coords.get("long"),
-                    "distance": item.get("distance", 0) / 1000 # Conversion en km
+                    "distance": distance_km
                 })
             
             return {"status": "success", "relays": formatted_relays}
