@@ -79,7 +79,8 @@ def run_colissimo(data, config, method="generateLabel"):
                     "productCode": data.get("productCode", "DOM"),
                     "depositDate": data.get("shippingDate", datetime.now().strftime("%Y-%m-%d")),
                     "totalAmount": data.get("totalAmount", 0),
-                    "orderNumber": data.get("orderNumber", "")
+                    "orderNumber": data.get("orderNumber", ""),
+                    "ftd": True  # Franc de Taxes et Droits : l'expéditeur paie les taxes (DDP)
                 },
                 "parcel": {
                     "weight": data.get("packageWeight", 1.0)

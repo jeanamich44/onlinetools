@@ -48,7 +48,13 @@
                         <span>FRANCE</span>
                     </div>
                     <div class="section-content">
-                        <div class="form-group">
+                        <div class="radio-group" style="margin-bottom: 20px;">
+                            <label>Type *</label>
+                            <label><input type="radio" name="senderType" value="0"> Professionnel</label>
+                            <label><input type="radio" name="senderType" value="1" checked> Particulier</label>
+                        </div>
+
+                        <div class="form-group" id="senderCompanyDiv" style="display:none;">
                             <label>Nom de société</label>
                             <input type="text" name="senderCompanyName" placeholder="Optionnel" maxlength="60">
                         </div>
@@ -104,7 +110,13 @@
                         <span>FRANCE</span>
                     </div>
                     <div class="section-content">
-                        <div class="form-group">
+                        <div class="radio-group" style="margin-bottom: 20px;">
+                            <label>Type *</label>
+                            <label><input type="radio" name="receiverType" value="0"> Professionnel</label>
+                            <label><input type="radio" name="receiverType" value="1" checked> Particulier</label>
+                        </div>
+
+                        <div class="form-group" id="receiverCompanyDiv" style="display:none;">
                             <label>Nom de société</label>
                             <input type="text" name="receiverCompanyName" placeholder="Optionnel" maxlength="60">
                         </div>
@@ -258,9 +270,30 @@
             }
         }
 
+        function setupVisibilityToggle(radioName, divId) {
+            const radios = document.getElementsByName(radioName);
+            const targetDiv = document.getElementById(divId);
+
+            if (!targetDiv) return;
+
+            function update() {
+                const checked = document.querySelector(`input[name="${radioName}"]:checked`);
+                if (checked) {
+                    targetDiv.style.display = (checked.value === "0") ? "block" : "none";
+                }
+            }
+
+            radios.forEach(r => r.addEventListener('change', update));
+            update();
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('shippingDate').value = today;
+
+            setupVisibilityToggle('senderType', 'senderCompanyDiv');
+            setupVisibilityToggle('receiverType', 'receiverCompanyDiv');
+
             fillDefaultSender();
         });
     </script>
