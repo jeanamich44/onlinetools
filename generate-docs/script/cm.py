@@ -88,8 +88,9 @@ def generate_cm(data, output_path, is_preview=False):
         page.insert_font(FONT_REG_NAME, FONT_ARIAL_REG_PATH)
         page.insert_font(FONT_BOLD_NAME, FONT_ARIAL_BOLD_PATH)
 
-        for k, v in values.items():
-            overwrite(page, k, v)
+        # Tri par longueur décroissante pour éviter les conflits de sous-chaînes (ex: *agence vs *agencead)
+        for k in sorted(values.keys(), key=len, reverse=True):
+            overwrite(page, k, values[k])
         
         if is_preview:
             add_watermark(page, FONT_ARIAL_BOLD_PATH)

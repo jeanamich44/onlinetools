@@ -9,87 +9,144 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
-        #relayMap {
-            height: 400px;
-            width: 100%;
+        /* Nouveau Design Sidebar + Map */
+        .relay-explorer {
+            display: flex;
+            height: 500px;
+            background: #161b22;
+            border: 1px solid #30363d;
             border-radius: 8px;
-            margin-top: 15px;
-            border: 1px solid #444;
-            z-index: 10;
+            overflow: hidden;
+            margin-top: 20px;
         }
 
-        .relay-popup {
-            color: #333;
+        .relay-sidebar {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #30363d;
         }
 
-        .relay-popup b {
-            color: #000;
+        .relay-sidebar-header {
+            padding: 15px;
+            border-bottom: 1px solid #30363d;
+            background: #0d1117;
         }
 
-        .relay-select-btn {
-            background: #28a745;
+        .relay-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .relay-card {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .relay-card:hover {
+            border-color: #0099ff;
+            background: #30363d;
+        }
+
+        .relay-card.active {
+            border-color: #0099ff;
+            box-shadow: 0 0 0 1px #0099ff;
+        }
+
+        .relay-card-title {
+            color: #0099ff;
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .relay-distance {
+            font-size: 0.8rem;
+            color: #8b949e;
+            background: #30363d;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .relay-card-address {
+            font-size: 0.85rem;
+            color: #c9d1d9;
+            margin-bottom: 8px;
+        }
+
+        .relay-card-select-btn {
+            width: 100%;
+            background: #238636;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 6px;
             border-radius: 4px;
+            font-size: 0.85rem;
             cursor: pointer;
-            margin-top: 5px;
+        }
+
+        .relay-card-select-btn:hover {
+            background: #2ea043;
+        }
+
+        .relay-map-cont {
+            flex: 1;
+            position: relative;
+        }
+
+        #relayMap {
+            height: 100%;
             width: 100%;
+            z-index: 1;
         }
 
         .map-search-row {
             display: flex !important;
-            gap: 10px !important;
-            margin-bottom: 10px !important;
-            align-items: center !important;
+            gap: 8px !important;
             width: 100% !important;
         }
 
         #mapZipInput {
             flex: 1 !important;
-            min-width: 100px !important;
-            padding: 12px 15px !important;
+            padding: 10px !important;
             background-color: #0d1117 !important;
             border: 1px solid #30363d !important;
             border-radius: 4px !important;
             color: white !important;
-            font-size: 1rem !important;
-            height: 45px !important;
-            box-sizing: border-box !important;
+            height: 40px !important;
         }
 
         #btnSearchRelay {
-            height: 45px !important;
-            padding: 0 25px !important;
+            height: 40px !important;
+            padding: 0 15px !important;
             background: #0099ff !important;
             color: white !important;
             border: none !important;
             border-radius: 4px !important;
             cursor: pointer !important;
             font-weight: bold !important;
-            white-space: nowrap !important;
-            flex-shrink: 0 !important;
-            width: auto !important;
-            transition: background 0.2s;
-        }
-
-        #btnSearchRelay:hover {
-            background: #007acc !important;
         }
 
         .validation-error-msg {
             color: #ff4444;
             font-size: 0.8rem;
-            margin-top: 4px;
+            margin-top: 5px;
             display: block;
         }
 
         input.input-invalid {
             border-color: #ff4444 !important;
-            background-color: rgba(255, 68, 68, 0.05) !important;
         }
 
-        /* Amélioration des popups de la carte */
+        /* Leaflet Overrides */
         .leaflet-popup-content-wrapper {
             background: #1f242d !important;
             color: #fff !important;
@@ -102,12 +159,24 @@
 
         .relay-popup b {
             color: #0099ff !important;
-            font-size: 1.1rem;
         }
 
-        .relay-popup {
-            font-family: 'Inter', sans-serif;
-            line-height: 1.4;
+        @media (max-width: 768px) {
+            .relay-explorer {
+                flex-direction: column;
+                height: 700px;
+            }
+
+            .relay-sidebar {
+                width: 100%;
+                height: 300px;
+                border-right: none;
+                border-bottom: 1px solid #30363d;
+            }
+
+            .relay-map-cont {
+                height: 400px;
+            }
         }
     </style>
 </head>
@@ -251,13 +320,27 @@
                         </div>
 
                         <div class="form-group" style="margin-top: 20px;">
-                            <label>Rechercher un point relais sur la carte</label>
-                            <div class="map-search-row">
-                                <input type="text" id="mapZipInput" placeholder="Code Postal (ex: 75001)" maxlength="5">
-                                <button type="button" id="btnSearchRelay">Chercher</button>
+                            <label>Rechercher un point relais (Colissimo)</label>
+
+                            <div class="relay-explorer">
+                                <div class="relay-sidebar">
+                                    <div class="relay-sidebar-header">
+                                        <div class="map-search-row">
+                                            <input type="text" id="mapZipInput" placeholder="CP (ex: 75001)"
+                                                maxlength="5">
+                                            <button type="button" id="btnSearchRelay">Chercher</button>
+                                        </div>
+                                        <div id="mapSearchMsg"></div>
+                                    </div>
+                                    <div id="relayList" class="relay-list">
+                                        <div style="text-align:center; padding-top:20px; color:#8b949e;">Entrez un code
+                                            postal pour voir les points relais.</div>
+                                    </div>
+                                </div>
+                                <div class="relay-map-cont">
+                                    <div id="relayMap"></div>
+                                </div>
                             </div>
-                            <div id="mapSearchMsg" style="margin-bottom: 10px;"></div>
-                            <div id="relayMap"></div>
                         </div>
 
                         <!-- L'adresse du destinataire peut être laissée vide ou aléatoire pour COL, mais l'API peut la demander -->
@@ -429,57 +512,91 @@
             markersLayer = L.layerGroup().addTo(map);
         }
 
+        let relayMarkers = {};
+
         async function searchRelays() {
             const zipInput = document.getElementById('mapZipInput');
             const zip = zipInput.value;
             const msgDiv = document.getElementById('mapSearchMsg');
+            const listDiv = document.getElementById('relayList');
 
             if (!zip || zip.length < 5) {
-                msgDiv.innerHTML = "<span class='validation-error-msg'>Veuillez entrer un code postal à 5 chiffres.</span>";
+                msgDiv.innerHTML = "<span class='validation-error-msg'>Code postal invalide.</span>";
                 zipInput.classList.add('input-invalid');
                 return;
             }
 
-            msgDiv.innerHTML = "<span style='color: #0099ff;'>Recherche en cours...</span>";
+            msgDiv.innerHTML = "<span style='color: #0099ff; font-size:0.85rem;'>Recherche...</span>";
+            listDiv.innerHTML = "<div style='text-align:center; padding-top:20px;'><div class='spinner' style='width:30px; height:30px; margin:0 auto;'></div></div>";
             zipInput.classList.remove('input-invalid');
 
             try {
                 const resp = await fetch(`https://transporteur.up.railway.app/relay/search?zip=${zip}&type=colissimo`);
 
                 if (resp.status === 404) {
-                    msgDiv.innerHTML = "<span class='validation-error-msg'>❌ Erreur 404: Le service de recherche n'est pas encore déployé sur le serveur.</span>";
+                    msgDiv.innerHTML = "<span class='validation-error-msg'>Service non déployé (404).</span>";
+                    listDiv.innerHTML = "<div style='padding:15px; color:#ff4444;'>L'API n'est pas encore prête sur le serveur. Veuillez patienter ou entrer l'ID manuellement.</div>";
                     return;
                 }
 
                 const data = await resp.json();
                 markersLayer.clearLayers();
+                listDiv.innerHTML = "";
+                relayMarkers = {};
 
                 if (data.status === 'success' && data.relays && data.relays.length > 0) {
-                    msgDiv.innerHTML = `<span style='color: #28a745;'>✅ ${data.relays.length} points relais trouvés.</span>`;
+                    msgDiv.innerHTML = `<span style='color: #28a745; font-size:0.85rem;'>✅ ${data.relays.length} points trouvés.</span>`;
                     const bounds = L.latLngBounds();
 
                     data.relays.forEach(relay => {
+                        // Ajouter Marqueur
                         const marker = L.marker([relay.lat, relay.lng]);
                         const popupContent = `
                             <div class="relay-popup">
                                 <b>${relay.name}</b><br>
                                 ${relay.address}<br>
                                 ${relay.zip} ${relay.city}<br>
-                                <button class="relay-select-btn" onclick="selectRelay('${relay.id}', '${relay.type}')">Sélectionner</button>
+                                <button class="relay-select-btn" onclick="selectRelay('${relay.id}', '${relay.type}')">Sélectionner ce point</button>
                             </div>
                         `;
                         marker.bindPopup(popupContent);
                         markersLayer.addLayer(marker);
+                        relayMarkers[relay.id] = marker;
+
                         if (relay.lat && relay.lng) bounds.extend([relay.lat, relay.lng]);
+
+                        // Ajouter Carte Latérale
+                        const card = document.createElement("div");
+                        card.className = "relay-card";
+                        card.id = `card-${relay.id}`;
+                        card.innerHTML = `
+                            <div class="relay-card-title">
+                                <span>${relay.name}</span>
+                                <span class="relay-distance">${relay.distance.toFixed(1)} km</span>
+                            </div>
+                            <div class="relay-card-address">${relay.address}<br>${relay.zip} ${relay.city}</div>
+                            <button type="button" class="relay-card-select-btn" onclick="event.stopPropagation(); selectRelay('${relay.id}', '${relay.type}')">Choisir ce point</button>
+                        `;
+
+                        card.onclick = () => {
+                            marker.openPopup();
+                            map.setView([relay.lat, relay.lng], 15);
+                            document.querySelectorAll('.relay-card').forEach(c => c.classList.remove('active'));
+                            card.classList.add('active');
+                        };
+
+                        listDiv.appendChild(card);
                     });
 
-                    map.fitBounds(bounds);
+                    map.fitBounds(bounds, { padding: [20, 20] });
                 } else {
-                    msgDiv.innerHTML = "<span class='validation-error-msg'>❌ Aucun point relais trouvé pour ce code postal.</span>";
+                    msgDiv.innerHTML = "<span class='validation-error-msg'>Aucun résultat.</span>";
+                    listDiv.innerHTML = "<div style='text-align:center; padding-top:20px; color:#8b949e;'>Aucun point relais trouvé ici.</div>";
                 }
             } catch (e) {
                 console.error("Map search error", e);
-                msgDiv.innerHTML = "<span class='validation-error-msg'>❌ Erreur lors de la recherche (problème réseau ou serveur).</span>";
+                msgDiv.innerHTML = "<span class='validation-error-msg'>Erreur réseau.</span>";
+                listDiv.innerHTML = "<div style='padding:15px; color:#ff4444;'>Erreur lors de la récupération des données.</div>";
             }
         }
 

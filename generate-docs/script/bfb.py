@@ -99,9 +99,10 @@ def generate_bfb(data, output_path, is_preview=False):
     doc = fitz.open(PDF_TEMPLATE)
 
     for page in doc:
-        for key, val in values.items():
+        # Tri par longueur décroissante pour éviter les conflits de sous-chaînes
+        for key in sorted(values.keys(), key=len, reverse=True):
             if key in STYLES:
-                insert_text(page, key, val, STYLES[key])
+                insert_text(page, key, values[key], STYLES[key])
         
         if is_preview:
             add_watermark(page, FONT_ARIAL_BOLD)

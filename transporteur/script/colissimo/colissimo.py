@@ -180,54 +180,70 @@ def run_colissimo(data, config, method="generateLabel"):
         logger.error(f"Erreur technique Colissimo: {str(e)}")
         return {"status": "error", "message": str(e)}
 
-def search_relays_colissimo(zip_code, config):
+def search_relays_colissimo(zip_code, config=None):
     """
-    Recherche les points de retrait Colissimo par code postal via l'API REST v2.
+    Recherche les points de retrait Colissimo via l'API publique La Poste (Yext).
+    Plus fiable que l'API contractuelle pour la simple recherche de points.
     """
-    logger.info(f"Recherche de points de retrait Colissimo pour le CP: {zip_code}")
-    url = "https://ws.colissimo.fr/pointretrait-ws-cxf/rest/v2/pointretrait/findRDVPointRetraitAcheminement"
+    logger.info(f"Recherche de points de retrait Colissimo (API Publique) pour: {zip_code}")
     
-    # Structure attendue par l'API REST v2
-    payload = {
-        "accountNumber": config.get("id"),
-        "password": config.get("key"),
-        "zipCode": zip_code,
-        "countryCode": "FR",
-        "weight": "1"
+    url = "https://localiser.laposte.fr/index.html"
+    params = {
+        "qp": zip_code,
+        "r": "10", # Rayon 10km par défaut
+        "contact": "relais", # Uniquement les points de retrait
+        "jesuis": "particulier",
+        "l": "fr",
+        "per": "30"
+    }
+    
+    headers = {
+        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
     
     try:
-        headers = {
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        }
-        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        response = requests.get(url, params=params, headers=headers, timeout=20)
         
         if response.status_code == 200:
             data = response.json()
-            # La réponse contient généralement une liste 'listePointRetraitAcheminement'
-            relays = data.get("listePointRetraitAcheminement", [])
+            entities = data.get("response", {}).get("entities", [])
             
             formatted_relays = []
-            for r in relays:
+            for item in entities:
+                p = item.get("profile", {})
+                address_obj = p.get("address", {})
+                coords = p.get("yextDisplayCoordinate", {})
+                
+                # Extraction de l'ID (yextId ou uid)
+                relay_id = p.get("meta", {}).get("yextId") or p.get("meta", {}).get("uid")
+                
+                # Détermination du type (A2P pour relais, BPR pour bureau, etc.)
+                # Par défaut on met A2P pour les relais Pickup
+                raw_type = p.get("c_typePointDeContact", "")
+                relay_type = "A2P"
+                if "BUREAU" in raw_type.upper(): relay_type = "BPR"
+                if "CONSIGNE" in raw_type.upper(): relay_type = "PCS"
+
                 formatted_relays.append({
-                    "id": r.get("identifiant"),
-                    "name": r.get("nom"),
-                    "address": r.get("adresse1"),
-                    "zip": r.get("codePostal"),
-                    "city": r.get("localite"),
-                    "type": r.get("typeDePoint"),
-                    "lat": float(r.get("coordGeographiqueLatitude", 0)) if r.get("coordGeographiqueLatitude") else 0,
-                    "lng": float(r.get("coordGeographiqueLongitude", 0)) if r.get("coordGeographiqueLongitude") else 0
+                    "id": relay_id,
+                    "name": p.get("c_intituleEtablissement") or p.get("name") or "Point de retrait",
+                    "address": address_obj.get("line1", ""),
+                    "zip": address_obj.get("postalCode", ""),
+                    "city": address_obj.get("city", ""),
+                    "type": relay_type,
+                    "lat": coords.get("lat"),
+                    "lng": coords.get("long"),
+                    "distance": item.get("distance", 0) / 1000 # Conversion en km
                 })
             
             return {"status": "success", "relays": formatted_relays}
         else:
-            logger.error(f"Erreur API Colissimo PointRetrait: {response.status_code} - {response.text}")
-            return {"status": "error", "message": f"Erreur API Colissimo ({response.status_code})"}
+            logger.error(f"Erreur API Publique La Poste: {response.status_code}")
+            return {"status": "error", "message": f"Erreur API La Poste ({response.status_code})"}
             
     except Exception as e:
-        logger.error(f"Erreur technique lors de la recherche Colissimo: {str(e)}")
+        logger.error(f"Erreur technique recherche publique: {str(e)}")
         return {"status": "error", "message": str(e)}
 
 if __name__ == "__main__":
