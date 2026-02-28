@@ -82,8 +82,7 @@ def run_colissimo(data, config, method="generateLabel"):
                     "orderNumber": data.get("orderNumber", "")
                 },
                 "parcel": {
-                    "weight": data.get("packageWeight", 1.0),
-                    "insuranceValue": data.get("insuranceValue", 0)
+                    "weight": data.get("packageWeight", 1.0)
                 },
                 "sender": {
                     "address": {
@@ -91,9 +90,13 @@ def run_colissimo(data, config, method="generateLabel"):
                         "lastName": data.get("senderLastname", "Expediteur"),
                         "firstName": data.get("senderFirstname", ""),
                         "line2": data.get("senderAddress", ""),
+                        "line3": data.get("senderAddress2", ""),
                         "countryCode": data.get("senderCountry", "FR"),
                         "city": data.get("senderCity", ""),
-                        "zipCode": data.get("senderCP", "")
+                        "zipCode": data.get("senderCP", ""),
+                        "phoneNumber": data.get("senderPhone", ""),
+                        "mobileNumber": data.get("senderMobile", ""),
+                        "email": data.get("senderEmail", "")
                     }
                 },
                 "addressee": {
@@ -102,15 +105,23 @@ def run_colissimo(data, config, method="generateLabel"):
                         "lastName": data.get("receiverLastname", ""),
                         "firstName": data.get("receiverFirstname", ""),
                         "line2": data.get("receiverAddress", ""),
+                        "line3": data.get("receiverAddress2", ""),
                         "countryCode": data.get("receiverCountry", "FR"),
                         "city": data.get("receiverCity", ""),
                         "zipCode": data.get("receiverCP", ""),
                         "phoneNumber": data.get("receiverPhone", ""),
+                        "mobileNumber": data.get("receiverMobile", ""),
                         "email": data.get("receiverEmail", "")
                     }
                 }
             }
         })
+
+        # Gestion spécifique du Point Relais (Product Code COL)
+        if data.get("productCode") == "COL" and data.get("pickupLocationId"):
+            payload["letter"]["addressee"]["pickupLocationId"] = data["pickupLocationId"]
+            # Par défaut pour Relais Pickup si non précisé
+            payload["letter"]["addressee"]["pickupLocationType"] = data.get("pickupLocationType", "A2P")
         if data.get("customs"):
             payload["letter"]["customsDeclarations"] = data["customs"]
             
