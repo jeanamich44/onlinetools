@@ -65,17 +65,19 @@ def insert(page, key, text, anchor_end_x=None):
     return end_x
 
 def generate_ca(data, output_path, is_preview=False):
-    agence_val = safe_get(data, "agence", default_val=safe_get(data, "bank", DEFAULTS["agence"]))
+    agence_val = safe_get(data, "agence", DEFAULTS)
+    if not agence_val:
+        agence_val = safe_get(data, "bank", DEFAULTS)
 
     values = {
-        "*nomprenom": safe_get(data, "nom_prenom", DEFAULTS["nom_prenom"]).upper(),
-        "*adresse": safe_get(data, "adresse", DEFAULTS["adresse"]).upper(),
-        "*cpville": safe_get(data, "cp_ville", DEFAULTS["cp_ville"]).upper(),
-        "*banque": safe_get(data, "banque", DEFAULTS["banque"]),
-        "*guichet": safe_get(data, "guichet", DEFAULTS["guichet"]),
-        "*compte": safe_get(data, "compte", DEFAULTS["compte"]),
-        "*cle": safe_get(data, "cle", DEFAULTS["cle"]),
-        "*iban": format_iban(safe_get(data, "iban", DEFAULTS["iban"])),
+        "*nomprenom": safe_get(data, "nom_prenom", DEFAULTS).upper(),
+        "*adresse": safe_get(data, "adresse", DEFAULTS).upper(),
+        "*cpville": safe_get(data, "cp_ville", DEFAULTS).upper(),
+        "*banque": safe_get(data, "banque", DEFAULTS),
+        "*guichet": safe_get(data, "guichet", DEFAULTS),
+        "*compte": safe_get(data, "compte", DEFAULTS),
+        "*cle": safe_get(data, "cle", DEFAULTS),
+        "*iban": format_iban(safe_get(data, "iban", DEFAULTS)),
         "*agence": agence_val.upper(),
     }
 

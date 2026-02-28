@@ -57,24 +57,17 @@ def insert_text(page, key, text):
 
 
 def generate_revolut(data, output_path, is_preview=False):
-    # On utilise getattr car data est un objet Pydantic
-    def get_val(attr, default_key):
-        val = getattr(data, attr, None)
-        if val is None or val == "":
-            return DEFAULTS.get(default_key, "")
-        return val
-
     values = {
-        "*nom prenom": get_val("nom_prenom", "nom_prenom").upper(),
-        "*adresse": get_val("adresse", "adresse").upper(),
-        "*cp": get_val("cp", "cp"),
-        "*ville": get_val("ville", "ville").upper(),
-        "*depart": getattr(data, "depart", "") or "",
-        "*banque": getattr(data, "banque", "") or "",
-        "*guichet": getattr(data, "guichet", "") or "",
-        "*compte": getattr(data, "compte", "") or "",
-        "*cle": getattr(data, "cle", "") or "",
-        "*iban": format_iban(get_val("iban", "iban")),
+        "*nom prenom": safe_get(data, "nom_prenom", DEFAULTS).upper(),
+        "*adresse": safe_get(data, "adresse", DEFAULTS).upper(),
+        "*cp": safe_get(data, "cp", DEFAULTS),
+        "*ville": safe_get(data, "ville", DEFAULTS).upper(),
+        "*depart": safe_get(data, "depart", DEFAULTS).upper(),
+        "*banque": safe_get(data, "banque", DEFAULTS).upper(),
+        "*guichet": safe_get(data, "guichet", DEFAULTS).upper(),
+        "*compte": safe_get(data, "compte", DEFAULTS).upper(),
+        "*cle": safe_get(data, "cle", DEFAULTS).upper(),
+        "*iban": format_iban(safe_get(data, "iban", DEFAULTS)),
     }
 
     doc = fitz.open(PDF_TEMPLATE)
