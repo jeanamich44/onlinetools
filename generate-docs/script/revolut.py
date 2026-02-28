@@ -12,9 +12,16 @@ COLOR = (25/255, 28/255, 31/255)
 DEFAULTS = {
     "nom_prenom": "GOULIET ANTOINE",
     "adresse": "14 RUE DE PROVENCE",
+    "cp": "75009",
+    "ville": "PARIS",
     "cp_ville": "75009 PARIS",
     "iban": "FR7630004008001234567890152",
     "bic": "REVOFR22",
+    "depart": "75",
+    "banque": "30004",
+    "guichet": "00800",
+    "compte": "12345678901",
+    "cle": "52",
 }
 
 def format_iban(v: str):
@@ -50,17 +57,24 @@ def insert_text(page, key, text):
 
 
 def generate_revolut(data, output_path, is_preview=False):
+    # On utilise getattr car data est un objet Pydantic
+    def get_val(attr, default_key):
+        val = getattr(data, attr, None)
+        if val is None or val == "":
+            return DEFAULTS.get(default_key, "")
+        return val
+
     values = {
-        "*nom prenom": (data.nom_prenom or DEFAULTS["nom_prenom"]).upper(),
-        "*adresse": (data.adresse or DEFAULTS["adresse"]).upper(),
-        "*cp": (data.cp or DEFAULTS["cp"]),
-        "*ville": (data.ville or DEFAULTS["ville"]).upper(),
-        "*depart": (data.depart or DEFAULTS["depart"]).upper(),
-        "*banque": (data.banque or DEFAULTS["banque"]).upper(),
-        "*guichet": (data.guichet or DEFAULTS["guichet"]).upper(),
-        "*compte": (data.compte or DEFAULTS["compte"]).upper(),
-        "*cle": (data.cle or DEFAULTS["cle"]).upper(),
-        "*iban": format_iban(data.iban or DEFAULTS["iban"]),
+        "*nom prenom": get_val("nom_prenom", "nom_prenom").upper(),
+        "*adresse": get_val("adresse", "adresse").upper(),
+        "*cp": get_val("cp", "cp"),
+        "*ville": get_val("ville", "ville").upper(),
+        "*depart": getattr(data, "depart", "") or "",
+        "*banque": getattr(data, "banque", "") or "",
+        "*guichet": getattr(data, "guichet", "") or "",
+        "*compte": getattr(data, "compte", "") or "",
+        "*cle": getattr(data, "cle", "") or "",
+        "*iban": format_iban(get_val("iban", "iban")),
     }
 
     doc = fitz.open(PDF_TEMPLATE)
