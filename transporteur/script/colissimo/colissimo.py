@@ -180,6 +180,51 @@ def run_colissimo(data, config, method="generateLabel"):
         logger.error(f"Erreur technique Colissimo: {str(e)}")
         return {"status": "error", "message": str(e)}
 
+def search_relays_colissimo(zip_code, config):
+    """
+    Recherche les points de retrait Colissimo par code postal.
+    """
+    logger.info(f"Recherche de points de retrait Colissimo pour le CP: {zip_code}")
+    url = "https://ws.colissimo.fr/pointretrait-ws-cxf/PointRetraitServiceRest/2.0/recherchePointRetraitParCP"
+    params = {
+        "accountNumber": config.get("id"),
+        "password": config.get("key"),
+        "zipCode": zip_code,
+        "countryCode": "FR",
+        "weight": "1"
+    }
+    
+    try:
+        # On force l'acceptation du JSON
+        headers = {"Accept": "application/json"}
+        response = requests.get(url, params=params, headers=headers, timeout=30)
+        
+        if response.status_code == 200:
+            data = response.json()
+            relays = data.get("listePointRetrait", [])
+            
+            formatted_relays = []
+            for r in relays:
+                formatted_relays.append({
+                    "id": r.get("identifiant"),
+                    "name": r.get("nom"),
+                    "address": r.get("adresse1"),
+                    "zip": r.get("codePostal"),
+                    "city": r.get("localite"),
+                    "type": r.get("typeDePoint"), # A2P, BPR, etc.
+                    "lat": float(r.get("coordGeographiqueLatitude", 0)),
+                    "lng": float(r.get("coordGeographiqueLongitude", 0))
+                })
+            
+            return {"status": "success", "relays": formatted_relays}
+        else:
+            logger.error(f"Erreur API Colissimo PointRetrait: {response.status_code} - {response.text}")
+            return {"status": "error", "message": f"Erreur API Colissimo ({response.status_code})"}
+            
+    except Exception as e:
+        logger.error(f"Erreur technique lors de la recherche Colissimo: {str(e)}")
+        return {"status": "error", "message": str(e)}
+
 if __name__ == "__main__":
     # Exemple de test (remplacer par des vraies clés)
     test_config = {"id": "123456", "key": "API_KEY_HERE"}

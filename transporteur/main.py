@@ -7,7 +7,7 @@ import os
 import logging
 
 from script.chronopost.chr import run_chronopost, get_relay_detail
-from script.colissimo.colissimo import run_colissimo
+from script.colissimo.colissimo import run_colissimo, search_relays_colissimo
 
 app = FastAPI()
 
@@ -71,4 +71,19 @@ def generate_colissimo_endpoint(req: ColissimoRequest):
         return result
     except Exception as e:
         logger.error(f"Erreur Colissimo: {str(e)}")
+        raise HTTPException(status_code=500, detail="error")
+
+# --- RELAY SEARCH ---
+
+@app.get("/relay/search")
+def search_relays_endpoint(zip: str, type: str = "colissimo"):
+    try:
+        if type == "colissimo":
+            result = search_relays_colissimo(zip, COLISSIMO_CONFIG)
+            return result
+        else:
+            # Fallback or other types if needed later
+            return {"status": "error", "message": f"Type de recherche non supporté: {type}"}
+    except Exception as e:
+        logger.error(f"Erreur recherche relais: {str(e)}")
         raise HTTPException(status_code=500, detail="error")
