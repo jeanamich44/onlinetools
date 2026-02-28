@@ -71,17 +71,10 @@ def generate_sg(data, output_path, is_preview=False):
         # Tri par longueur décroissante pour éviter les conflits de sous-chaînes
         for key in sorted(values.keys(), key=len, reverse=True):
             text = values[key]
-            rects = page.search_for(f"*{key}")
-            if not rects:
-                continue
-
-            for r in rects:
-                page.add_redact_annot(r, fill=(1, 1, 1))
-            
-            page.apply_redactions()
-
-            for rect in rects:
+            for rect in page.search_for(f"*{key}"):
+                page.draw_rect(rect, fill=(1, 1, 1), width=0)
                 fontsize = FONT_SIZES.get(key, 9)
+
                 x = rect.x0
                 if key in ["agence", "adagence", "cpvagence"]:
                     w = fitz.get_text_length(text, "helv", fontsize)

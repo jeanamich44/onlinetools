@@ -49,18 +49,9 @@ def generate_lbp(data, output_path, is_preview=False):
     for page in doc:
         page.insert_font(fontname=FONT_NAME, fontfile=FONT_FILE)
 
-        for key in sorted(values.keys(), key=len, reverse=True):
-            text = values[key]
-            rects = page.search_for(f"*{key}")
-            if not rects:
-                continue
-
-            for r in rects:
-                page.add_redact_annot(r, fill=(1, 1, 1))
-            
-            page.apply_redactions()
-
-            for rect in rects:
+        for key, text in values.items():
+            for rect in page.search_for(f"*{key}"):
+                page.draw_rect(rect, fill=(1, 1, 1), width=0)
                 page.insert_text(
                     (rect.x0, rect.y1 - 2),
                     text,

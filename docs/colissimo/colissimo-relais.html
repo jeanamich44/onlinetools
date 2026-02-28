@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
-
         .relay-explorer {
             display: block !important;
             background: #161b22;
@@ -513,7 +512,7 @@
                                 <b>${relay.name}</b><br>
                                 ${relay.address}<br>
                                 ${relay.zip} ${relay.city}<br>
-                                <button class="relay-select-btn" onclick="selectRelay('${relay.id}', '${relay.type}')">Sélectionner ce point</button>
+                                <button type="button" class="relay-select-btn" onclick="selectRelay('${relay.id}', '${relay.type}')">Sélectionner ce point</button>
                             </div>
                         `;
                         marker.bindPopup(popupContent);
