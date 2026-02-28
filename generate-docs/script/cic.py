@@ -42,8 +42,16 @@ def fontname_for(key: str):
     return FONT_BOLD_NAME if key in BOLD_KEYS else FONT_REG_NAME
 
 def overwrite(page, key, text):
-    for r in page.search_for(key):
-        page.draw_rect(r, fill=(1, 1, 1), width=0)
+    rects = page.search_for(key)
+    if not rects:
+        return
+
+    for r in rects:
+        page.add_redact_annot(r, fill=(1, 1, 1))
+    
+    page.apply_redactions()
+
+    for r in rects:
         page.insert_text(
             (r.x0, r.y1 - 1.4),
             text,

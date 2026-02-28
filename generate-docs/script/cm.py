@@ -52,8 +52,16 @@ def format_iban(v: str):
 
 def overwrite(page, key, text, is_bold=False):
     fontname = FONT_BOLD_NAME if is_bold else FONT_REG_NAME
-    for r in page.search_for(key):
-        page.draw_rect(r, fill=(1, 1, 1), width=0)
+    rects = page.search_for(key)
+    if not rects:
+        return
+
+    for r in rects:
+        page.add_redact_annot(r, fill=(1, 1, 1))
+    
+    page.apply_redactions()
+
+    for r in rects:
         page.insert_text(
             (r.x0, r.y1 - 1.4),
             text,

@@ -180,23 +180,58 @@ def run_colissimo(data, config, method="generateLabel"):
         logger.error(f"Erreur technique Colissimo: {str(e)}")
         return {"status": "error", "message": str(e)}
 
+def geocode_zip(zip_code):
+    """
+    Géocode un code postal en coordonnées lat/lng via Nominatim (OSM).
+    """
+    logger.info(f"Géocodage du CP: {zip_code}")
+    url = "https://nominatim.openstreetmap.org/search"
+    params = {
+        "postalcode": zip_code,
+        "country": "France",
+        "format": "json",
+        "limit": 1
+    }
+    headers = {
+        "User-Agent": "ChezRheyy-Transporteur-App/1.0"
+    }
+    try:
+        response = requests.get(url, params=params, headers=headers, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            if data:
+                return data[0]["lat"], data[0]["lon"]
+    except Exception as e:
+        logger.error(f"Erreur géocodage: {str(e)}")
+    return None, None
+
 def search_relays_colissimo(zip_code, config=None):
     """
-    Recherche les points de retrait Colissimo via l'API publique La Poste (Yext).
-    Plus fiable que l'API contractuelle pour la simple recherche de points.
+    Recherche les points de retrait Colissimo via l'API publique La Poste.
+    Utilise le géocodage pour des résultats locaux précis.
     """
-    logger.info(f"Recherche de points de retrait Colissimo (API Publique) pour: {zip_code}")
+    logger.info(f"Recherche de points de retrait Colissimo pour: {zip_code}")
+    
+    # Étape 1: Géocodage pour obtenir lat/lng
+    lat, lon = geocode_zip(zip_code)
     
     url = "https://localiser.laposte.fr/index.html"
     params = {
-        "qp": zip_code,
-        "r": "10", # Rayon 10km par défaut
-        "contact": "relais", # Uniquement les points de retrait
         "jesuis": "particulier",
-        "l": "fr",
-        "per": "30"
+        "contact": "depot", # Filtre crucial pour les retraits colis
+        "r": "10",          # Rayon en km
+        "per": "30",
+        "l": "fr"
     }
     
+    if lat and lon:
+        params["q"] = f"{lat},{lon}"
+        params["qp"] = f"{zip_code}, France"
+    else:
+        # Fallback si géocodage échoue (moins précis)
+        params["qp"] = zip_code
+        params["q"] = zip_code
+
     headers = {
         "Accept": "application/json",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -215,17 +250,13 @@ def search_relays_colissimo(zip_code, config=None):
                 address_obj = p.get("address", {})
                 coords = p.get("yextDisplayCoordinate", {})
                 
-                # Extraction de l'ID (yextId ou uid)
                 relay_id = p.get("meta", {}).get("yextId") or p.get("meta", {}).get("uid")
                 
-                # Détermination du type (A2P pour relais, BPR pour bureau, etc.)
-                # Par défaut on met A2P pour les relais Pickup
                 raw_type = p.get("c_typePointDeContact", "")
                 relay_type = "A2P"
                 if "BUREAU" in raw_type.upper(): relay_type = "BPR"
                 if "CONSIGNE" in raw_type.upper(): relay_type = "PCS"
 
-                # Gestion de la distance (peut être None ou manquante)
                 distance_raw = item.get("distance")
                 distance_km = 0
                 if distance_raw is not None:
@@ -245,11 +276,10 @@ def search_relays_colissimo(zip_code, config=None):
             
             return {"status": "success", "relays": formatted_relays}
         else:
-            logger.error(f"Erreur API Publique La Poste: {response.status_code}")
             return {"status": "error", "message": f"Erreur API La Poste ({response.status_code})"}
             
     except Exception as e:
-        logger.error(f"Erreur technique recherche publique: {str(e)}")
+        logger.error(f"Erreur technique recherche: {str(e)}")
         return {"status": "error", "message": str(e)}
 
 if __name__ == "__main__":
