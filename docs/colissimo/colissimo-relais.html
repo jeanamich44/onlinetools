@@ -33,7 +33,7 @@
 
         <h1 class="page-title">Colissimo - Livraison en Point de Retrait (Relais)</h1>
 
-        <form id="colissimoForm" onsubmit="handleSubmit(event)">
+        <form id="colissimoForm" onsubmit="handleSubmit(event)" novalidate>
             <input type="hidden" name="productCode" value="COL">
 
             <div class="sections-grid">
@@ -218,6 +218,14 @@
             const statusDiv = document.getElementById('message');
             const overlay = document.getElementById('overlay');
             const btn = document.getElementById('btn-validate');
+
+            statusDiv.innerHTML = "";
+            statusDiv.className = "";
+
+            if (!form.checkValidity()) {
+                statusDiv.innerHTML = "<span class='error-message'>❌ Veuillez remplir correctement tous les champs obligatoires (*).</span>";
+                return;
+            }
 
             statusDiv.textContent = "Traitement en cours...";
             btn.disabled = true;

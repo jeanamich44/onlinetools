@@ -35,135 +35,136 @@
 
         <h1 class="page-title">Colissimo France - Envoi standard</h1>
 
-        <form id="colissimoForm" onsubmit="handleSubmit(event)">
+        <form id="colissimoForm" onsubmit="handleSubmit(event)" novalidate>
             <input type="hidden" name="productCode" value="DOM">
 
-            <div class="form-section">
-                <div class="section-header">
-                    <span>
-                        <span class="section-number">1</span> Expéditeur
-                    </span>
-                    <span>FRANCE</span>
+            <div class="sections-grid">
+                <div class="form-section">
+                    <div class="section-header">
+                        <span>
+                            <span class="section-number">1</span> Expéditeur
+                        </span>
+                        <span>FRANCE</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="radio-group" style="margin-bottom: 20px;">
+                            <label>Type *</label>
+                            <label><input type="radio" name="senderType" value="0"> Professionnel</label>
+                            <label><input type="radio" name="senderType" value="1" checked> Particulier</label>
+                        </div>
+
+                        <div class="form-group" id="senderCompanyDiv" style="display:none;">
+                            <label>Nom de société</label>
+                            <input type="text" name="senderCompanyName" placeholder="Optionnel" maxlength="60">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nom</label>
+                                <input type="text" name="senderLastname" placeholder="Nom" maxlength="60">
+                            </div>
+                            <div class="form-group">
+                                <label>Prénom</label>
+                                <input type="text" name="senderFirstname" placeholder="Prénom" maxlength="60">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>E-mail</label>
+                                <input type="email" name="senderEmail" placeholder="votre@email.com" maxlength="60">
+                            </div>
+                            <div class="form-group">
+                                <label>Téléphone</label>
+                                <input type="tel" name="senderPhone" placeholder="06..." maxlength="14">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Code Postal</label>
+                                <input type="text" name="senderCP" required pattern="\d+" maxlength="10">
+                            </div>
+                            <div class="form-group">
+                                <label>Ville</label>
+                                <input type="text" name="senderCity" required maxlength="60">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Adresse</label>
+                            <input type="text" name="senderAddress" required maxlength="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Complément adresse</label>
+                            <input type="text" name="senderAddress2" placeholder="Bâtiment, étage..." maxlength="60">
+                        </div>
+
+                        <input type="hidden" name="senderCountry" value="FR">
+                    </div>
                 </div>
-                <div class="section-content">
-                    <div class="radio-group" style="margin-bottom: 20px;">
-                        <label>Type *</label>
-                        <label><input type="radio" name="senderType" value="0"> Professionnel</label>
-                        <label><input type="radio" name="senderType" value="1" checked> Particulier</label>
-                    </div>
 
-                    <div class="form-group" id="senderCompanyDiv" style="display:none;">
-                        <label>Nom de société</label>
-                        <input type="text" name="senderCompanyName" placeholder="Optionnel" maxlength="60">
+                <div class="form-section">
+                    <div class="section-header">
+                        <span><span class="section-number">2</span> Destinataire</span>
+                        <span>FRANCE</span>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Nom</label>
-                            <input type="text" name="senderLastname" placeholder="Nom" maxlength="60">
+                    <div class="section-content">
+                        <div class="radio-group" style="margin-bottom: 20px;">
+                            <label>Type *</label>
+                            <label><input type="radio" name="receiverType" value="0"> Professionnel</label>
+                            <label><input type="radio" name="receiverType" value="1" checked> Particulier</label>
                         </div>
-                        <div class="form-group">
-                            <label>Prénom</label>
-                            <input type="text" name="senderFirstname" placeholder="Prénom" maxlength="60">
-                        </div>
-                    </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>E-mail</label>
-                            <input type="email" name="senderEmail" placeholder="votre@email.com" maxlength="60">
+                        <div class="form-group" id="receiverCompanyDiv" style="display:none;">
+                            <label>Nom de société</label>
+                            <input type="text" name="receiverCompanyName" placeholder="Optionnel" maxlength="60">
                         </div>
-                        <div class="form-group">
-                            <label>Téléphone</label>
-                            <input type="tel" name="senderPhone" placeholder="06..." maxlength="14">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nom *</label>
+                                <input type="text" name="receiverLastname" required maxlength="60">
+                            </div>
+                            <div class="form-group">
+                                <label>Prénom *</label>
+                                <input type="text" name="receiverFirstname" required maxlength="60">
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="form-row">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>E-mail *</label>
+                                <input type="email" name="receiverEmail" required placeholder="client@email.com"
+                                    maxlength="60">
+                            </div>
+                            <div class="form-group">
+                                <label>Téléphone *</label>
+                                <input type="tel" name="receiverPhone" required placeholder="06..." maxlength="14">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Code Postal *</label>
+                                <input type="text" name="receiverCP" required pattern="\d+" maxlength="10">
+                            </div>
+                            <div class="form-group">
+                                <label>Ville *</label>
+                                <input type="text" name="receiverCity" required maxlength="60">
+                            </div>
+                        </div>
+
                         <div class="form-group">
-                            <label>Code Postal</label>
-                            <input type="text" name="senderCP" required pattern="\d+" maxlength="10">
+                            <label>Adresse *</label>
+                            <input type="text" name="receiverAddress" required maxlength="100">
                         </div>
                         <div class="form-group">
-                            <label>Ville</label>
-                            <input type="text" name="senderCity" required maxlength="60">
+                            <label>Complément adresse</label>
+                            <input type="text" name="receiverAddress2" placeholder="Bâtiment, étage..." maxlength="60">
                         </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label>Adresse</label>
-                        <input type="text" name="senderAddress" required maxlength="100">
+                        <input type="hidden" name="receiverCountry" value="FR">
                     </div>
-                    <div class="form-group">
-                        <label>Complément adresse</label>
-                        <input type="text" name="senderAddress2" placeholder="Bâtiment, étage..." maxlength="60">
-                    </div>
-
-                    <input type="hidden" name="senderCountry" value="FR">
                 </div>
-            </div>
-
-            <div class="form-section">
-                <div class="section-header">
-                    <span><span class="section-number">2</span> Destinataire</span>
-                    <span>FRANCE</span>
-                </div>
-                <div class="section-content">
-                    <div class="radio-group" style="margin-bottom: 20px;">
-                        <label>Type *</label>
-                        <label><input type="radio" name="receiverType" value="0"> Professionnel</label>
-                        <label><input type="radio" name="receiverType" value="1" checked> Particulier</label>
-                    </div>
-
-                    <div class="form-group" id="receiverCompanyDiv" style="display:none;">
-                        <label>Nom de société</label>
-                        <input type="text" name="receiverCompanyName" placeholder="Optionnel" maxlength="60">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Nom *</label>
-                            <input type="text" name="receiverLastname" required maxlength="60">
-                        </div>
-                        <div class="form-group">
-                            <label>Prénom *</label>
-                            <input type="text" name="receiverFirstname" required maxlength="60">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>E-mail *</label>
-                            <input type="email" name="receiverEmail" required placeholder="client@email.com"
-                                maxlength="60">
-                        </div>
-                        <div class="form-group">
-                            <label>Téléphone *</label>
-                            <input type="tel" name="receiverPhone" required placeholder="06..." maxlength="14">
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Code Postal *</label>
-                            <input type="text" name="receiverCP" required pattern="\d+" maxlength="10">
-                        </div>
-                        <div class="form-group">
-                            <label>Ville *</label>
-                            <input type="text" name="receiverCity" required maxlength="60">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Adresse *</label>
-                        <input type="text" name="receiverAddress" required maxlength="100">
-                    </div>
-                    <div class="form-group">
-                        <label>Complément adresse</label>
-                        <input type="text" name="receiverAddress2" placeholder="Bâtiment, étage..." maxlength="60">
-                    </div>
-
-                    <input type="hidden" name="receiverCountry" value="FR">
-                </div>
-            </div>
             </div>
 
             <div class="sections-grid">
@@ -200,7 +201,6 @@
             </div>
 
             <div id="message"></div>
-
         </form>
 
         <script src="../js/chronopost-autocomplete.js"></script>
@@ -234,6 +234,14 @@
             const statusDiv = document.getElementById('message');
             const overlay = document.getElementById('overlay');
             const btn = document.getElementById('btn-validate');
+
+            statusDiv.innerHTML = "";
+            statusDiv.className = "";
+
+            if (!form.checkValidity()) {
+                statusDiv.innerHTML = "<span class='error-message'>❌ Veuillez remplir correctement tous les champs obligatoires (*).</span>";
+                return;
+            }
 
             statusDiv.textContent = "Traitement en cours...";
             btn.disabled = true;
