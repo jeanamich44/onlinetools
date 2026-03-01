@@ -54,14 +54,10 @@ def format_iban(v: str):
     v = re.sub(r"\s+", "", v).upper()
     return "       ".join(v[i:i+4] for i in range(0, len(v), 4))
 
-def fontname_for(key):
-    return FONT_BOLD_NAME if key in BOLD_KEYS else FONT_REG_NAME
-
-# =========================
-# ECRITURE
-# =========================
-
 def overwrite(page, key, text):
+    is_bold = key in BOLD_KEYS
+    fontfile = FONT_ARIAL_BOLD_PATH if is_bold else FONT_ARIAL_REG_PATH
+    
     rects = page.search_for(key)
     if not rects:
         return
@@ -72,13 +68,13 @@ def overwrite(page, key, text):
     
     page.apply_redactions()
 
-    # Insertion du nouveau texte
+    # Insertion du nouveau texte avec fontfile direct
     for r in rects:
         page.insert_text(
             (r.x0, r.y1 - 1.4),
             text,
             fontsize=FONT_SIZE,
-            fontname=fontname_for(key),
+            fontfile=fontfile,
             color=COLOR,
         )
 
@@ -107,9 +103,6 @@ def generate_cm(data, output_path, is_preview=False):
     doc = fitz.open(PDF_TEMPLATE)
 
     for page in doc:
-        page.insert_font(FONT_REG_NAME, FONT_ARIAL_REG_PATH)
-        page.insert_font(FONT_BOLD_NAME, FONT_ARIAL_BOLD_PATH)
-
         # Tri par longueur décroissante pour être sûr de ne pas écraser les sous-tags
         for k in sorted(values.keys(), key=len, reverse=True):
             overwrite(page, k, values[k])
