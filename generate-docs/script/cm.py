@@ -1,7 +1,7 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get
 import re
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get
 
 # =========================
 # CHEMINS (EN LIGNE)
@@ -14,7 +14,7 @@ FONT_ARIAL_BOLD_PATH = Paths.font("arialbd.ttf")
 FONT_REG_NAME = "ARIAL_REG"
 FONT_BOLD_NAME = "ARIAL_BOLD"
 
-FONT_SIZE = 8.5
+FONT_SIZE = 8
 COLOR = (0, 0, 0)
 
 # =========================
@@ -22,69 +22,83 @@ COLOR = (0, 0, 0)
 # =========================
 
 DEFAULTS = {
-    "banque": "30066",
-    "guichet": "10278",
+    "banque": "10278",
+    "guichet": "02100",
     "compte": "00012345678",
     "cle": "45",
-    "iban": "FR7630066102780001234567845",
-    "agence": "AGENCE CRÉDIT MUTUEL",
-    "agence_adresse": "14 RUE DES LILAS",
-    "agence_cp_ville": "31000 TOULOUSE",
+    "iban": "FR761027802100001234567845",
+    "agence1": "AGENCE CRÉDIT MUTUEL",
+    "agence2": "AGENCE CRÉDIT MUTUEL",
+    "agenceadresse": "14 RUE DES LILAS",
+    "agencecpville": "31000 TOULOUSE",
     "telephone": "01 23 45 67 89",
-    "nom_prenom": "JEAN DUPONT",
-    "adresse": "10 RUE DE LA PAIX",
-    "cp_ville": "75001 PARIS",
+    "nom_prenom": "JEAN MICHEL BERNARD",
+    "adresse": "8 PLACE DE LA CONCORDE",
+    "cp_ville": "75006 PARIS",
 }
 
+BOLD_KEYS = {
+    "*banque",
+    "*guichet",
+    "*compte",
+    "*cle",
+    "*iban",
+    "*agence1",
+}
 
 # =========================
-# UTILITAIRES (IDENTIQUE LOCAL)
+# UTILITAIRES
 # =========================
-
 
 def format_iban(v: str):
     v = re.sub(r"\s+", "", v).upper()
     return "       ".join(v[i:i+4] for i in range(0, len(v), 4))
 
+def fontname_for(key):
+    return FONT_BOLD_NAME if key in BOLD_KEYS else FONT_REG_NAME
+
 # =========================
-# ECRITURE (IDENTIQUE LOCAL)
+# ECRITURE
 # =========================
 
-def overwrite(page, key, text, is_bold=False):
-    fontfile = FONT_ARIAL_BOLD_PATH if is_bold else FONT_ARIAL_REG_PATH
+def overwrite(page, key, text):
     rects = page.search_for(key)
     if not rects:
         return
 
+    # Rédaction réelle pour éviter les superpositions au moteur de recherche
     for r in rects:
         page.add_redact_annot(r, fill=(1, 1, 1))
     
     page.apply_redactions()
 
+    # Insertion du nouveau texte
     for r in rects:
         page.insert_text(
             (r.x0, r.y1 - 1.4),
             text,
             fontsize=FONT_SIZE,
-            fontfile=fontfile,
+            fontname=fontname_for(key),
             color=COLOR,
         )
 
 # =========================
-# GENERATEUR PRINCIPAL (EN LIGNE)
+# GENERATEUR PRINCIPAL
 # =========================
 
 def generate_cm(data, output_path, is_preview=False):
+    # Mapping des valeurs avec fallback sur les nouveaux DEFAULTS
     values = {
-        "*banque": safe_get(data, "banque", DEFAULTS).upper(),
-        "*guichet": safe_get(data, "guichet", DEFAULTS).upper(),
-        "*compte": safe_get(data, "compte", DEFAULTS).upper(),
-        "*cle": safe_get(data, "cle", DEFAULTS).upper(),
+        "*banque": safe_get(data, "banque", DEFAULTS),
+        "*guichet": safe_get(data, "guichet", DEFAULTS),
+        "*compte": safe_get(data, "compte", DEFAULTS),
+        "*cle": safe_get(data, "cle", DEFAULTS),
         "*iban": format_iban(safe_get(data, "iban", DEFAULTS)),
-        "*agence": safe_get(data, "agence", DEFAULTS).upper(),
-        "*agencead": safe_get(data, "agence_adresse", DEFAULTS).upper(),
-        "*agencecpv": safe_get(data, "agence_cp_ville", DEFAULTS).upper(),
-        "*telephone": safe_get(data, "telephone", DEFAULTS).upper(),
+        "*agence1": safe_get(data, "agence", DEFAULTS).upper() or DEFAULTS["agence1"],
+        "*agence2": safe_get(data, "agence", DEFAULTS).upper() or DEFAULTS["agence2"],
+        "*agenceadresse": safe_get(data, "agence_adresse", DEFAULTS).upper() or DEFAULTS["agenceadresse"],
+        "*agencecpville": safe_get(data, "agence_cp_ville", DEFAULTS).upper() or DEFAULTS["agencecpville"],
+        "*telephone": safe_get(data, "telephone", DEFAULTS),
         "*nomprenom": safe_get(data, "nom_prenom", DEFAULTS).upper(),
         "*adresse": safe_get(data, "adresse", DEFAULTS).upper(),
         "*cpville": safe_get(data, "cp_ville", DEFAULTS).upper(),
@@ -93,7 +107,10 @@ def generate_cm(data, output_path, is_preview=False):
     doc = fitz.open(PDF_TEMPLATE)
 
     for page in doc:
-        # Tri par longueur décroissante pour éviter les conflits de sous-chaînes (ex: *agence vs *agencead)
+        page.insert_font(FONT_REG_NAME, FONT_ARIAL_REG_PATH)
+        page.insert_font(FONT_BOLD_NAME, FONT_ARIAL_BOLD_PATH)
+
+        # Tri par longueur décroissante pour être sûr de ne pas écraser les sous-tags
         for k in sorted(values.keys(), key=len, reverse=True):
             overwrite(page, k, values[k])
         
