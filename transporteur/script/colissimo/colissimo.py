@@ -72,7 +72,7 @@ def run_colissimo(data, config, method="generateLabel"):
         payload.update({
             "outputFormat": {
                 "x": 0, "y": 0,
-                "outputPrintingType": data.get("outputType", "PDF_10x15_300dpi")
+                "outputPrintingType": data.get("outputType", "PDF_A4_300dpi")
             },
             "letter": {
                 "service": {
@@ -299,18 +299,3 @@ def search_relays_colissimo(zip_code, config=None):
         # Retourner l'erreur propre au client
         return {"status": "error", "message": f"Détail technique: {str(e)}"}
 
-if __name__ == "__main__":
-    # Exemple de test (remplacer par des vraies clés)
-    test_config = {"id": "123456", "key": "API_KEY_HERE"}
-    test_data = {
-        "senderLastname": "Dupont",
-        "senderAddress": "10 rue de la Paix",
-        "senderCP": "75001",
-        "senderCity": "Paris",
-        "receiverLastname": "Martin",
-        "receiverAddress": "5 avenue des Champs",
-        "receiverCP": "75008",
-        "receiverCity": "Paris",
-        "packageWeight": 0.5
-    }
-    # print(run_colissimo(test_data, test_config, method="checkGenerateLabel"))
