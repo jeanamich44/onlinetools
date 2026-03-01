@@ -5,6 +5,7 @@ import email
 import base64
 from email.policy import default
 from datetime import datetime
+import fitz  # PyMuPDF pour le traitement PDF ultra-rapide en mémoire
 
 # Configuration du logging
 logger = logging.getLogger(__name__)
@@ -167,6 +168,19 @@ def run_colissimo(data, config, method="generateLabel"):
                 
                 # Conversion des binaires en Base64 pour le client
                 if "label" in files:
+                    try:
+                        # Masquage du numéro de contrat à la volée
+                        pdf_doc = fitz.open(stream=files["label"], filetype="pdf")
+                        page = pdf_doc[0]
+                        # Coordonnées (x1, y1, x2, y2)
+                        rect = fitz.Rect(991, 272, 1023, 504)
+                        # Dessiner un rectangle blanc sans bordure (fill=(1, 1, 1) = blanc opaque)
+                        page.draw_rect(rect, color=(1, 1, 1), fill=(1, 1, 1))
+                        files["label"] = pdf_doc.write()
+                        pdf_doc.close()
+                    except Exception as pdf_err:
+                        logger.warning(f"Impossible de masquer le contrat sur le PDF: {str(pdf_err)}")
+                        
                     result["label"] = base64.b64encode(files["label"]).decode('utf-8')
                 if "cn23" in files:
                     result["cn23"] = base64.b64encode(files["cn23"]).decode('utf-8')

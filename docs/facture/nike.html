@@ -31,7 +31,7 @@
         <p class="subtitle">Génération PDF – Nike</p>
 
         <form id="nikeForm">
-            <!-- Informations Personnelles -->
+            
             <div class="row">
                 <input name="nom_prenom" placeholder="Nom Prénom" required>
             </div>
@@ -151,7 +151,6 @@
                     message.textContent = "Paiement en cours... Le téléchargement débutera ici automatiquement.";
                     message.style.color = "#3498db";
 
-                    // Lancement du Long Polling résilient
                     while (true) {
                         try {
                             const waitRes = await fetch(`${API_BASE}/api/wait-for-success/${ref}`);
@@ -228,7 +227,7 @@
 
                 const a = document.createElement("a");
                 a.href = url;
-                // Détection de l'extension selon le type MIME
+
                 const extension = blob.type.includes("image") ? "jpg" : "pdf";
                 a.download = `preview_nike.${extension}`;
                 document.body.appendChild(a);

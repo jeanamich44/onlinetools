@@ -468,8 +468,7 @@
             markersLayer = L.layerGroup().addTo(map);
         }
 
-        // Icônes Officielles La Poste
-        // Icônes Officielles La Poste via L.divIcon pour une compatibilité max
+
         const orangeIcon = L.divIcon({
             className: 'custom-icon',
             html: `<svg width="34" height="43" viewBox="0 0 34 43" version="1.1" xmlns="http://www.w3.org/2000/svg"><defs><path d="M26.687 34.988C31.228 29.799 33.851 23.803 33.851 16.975S26.274 0 16.926 0C7.577 0 0 7.600 0 16.975C0 23.802 2.623 29.797 7.163 34.986C10.245 38.509 13.748 41.18 16.924 43C20.099 41.182 23.604 38.511 26.687 34.988Z" id="path-1"/></defs><g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd"><g id="orange-pin"><mask id="mask-2" fill="white"><use xlink:href="#path-1"/></mask><use id="Path-base" fill="#ED7203" fill-rule="nonzero" xlink:href="#path-1"/><path d="M16.707 9.06ZM9.405 13.047L17.585 17.809C17.661 17.85 17.719 17.949 17.719 18.038L17.719 18.038L17.719 24.985C17.719 25.073 17.656 25.173 17.58 25.214L17.58 25.214L17.14 25.458C17.103 25.478 17.057 25.488 17.008 25.488L17.008 25.488L16.999 25.488C16.946 25.489 16.897 25.479 16.859 25.458L16.859 25.458L16.417 25.214C16.342 25.174 16.281 25.073 16.281 24.985L16.281 24.985L16.281 18.792C16.277 18.747 16.244 18.691 16.208 18.67L16.208 18.67L9 14.475L9 22.693C9 22.877 9.13 23.104 9.289 23.197L16.712 27.575C16.791 27.621 16.896 27.644 17 27.644C17.105 27.644 17.209 27.622 17.288 27.575L24.713 23.197C24.871 23.103 25 22.877 25 22.693L25 22.693L25 14.475L20.115 17.321C20.04 17.365 19.922 17.361 19.848 17.316L19.415 17.058C19.38 17.036 19.348 17.002 19.323 16.959C19.322 16.957 19.32 16.955 19.319 16.952L19.319 16.952C19.291 16.907 19.276 16.859 19.274 16.816L19.274 16.816L19.263 16.311C19.26 16.226 19.315 16.122 19.391 16.078L24.596 13.047L17.293 9.066C17.212 9.022 11.106 9.000 17 9C17 9 17 9 17 9C16.893 9 16.787 9.022 16.707 9.066" id="Fill-box" fill="#FFFFFF" mask="url(#mask-2)"/></g></g></svg>`,
@@ -524,7 +523,7 @@
 
                     data.relays.forEach(relay => {
 
-                        // Appliquer l'icône selon le type
+
                         let activeIcon = orangeIcon;
                         if (relay.type === 'BPR') activeIcon = yellowIcon;
 

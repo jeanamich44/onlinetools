@@ -31,7 +31,7 @@
     <p class="subtitle">Prévisualisation et génération</p>
 
     <form id="assuranceForm">
-      <!-- Informations Personnelles -->
+      
       <input name="nom_prenom" placeholder="Nom Prénom">
       <div id="error-nom"
         style="color: #dc3545; font-size: 0.85rem; margin-top: -12px; margin-bottom: 12px; display: none; text-align: left; font-weight: bold;">
@@ -43,7 +43,7 @@
       </div>
       <input name="adresse" placeholder="Adresse">
 
-      <!-- Informations Véhicule / Contrat -->
+      
       <input name="nclient" placeholder="N° Client">
       <input name="ncontrat" placeholder="N° Contrat">
       <input name="norias" placeholder="N° ORIAS">
@@ -142,7 +142,6 @@
           message.textContent = "Paiement en cours... Le document sera téléchargé ici automatiquement.";
           message.style.color = "#3498db";
 
-          // Lancement du Long Polling résilient
           while (true) {
             try {
               const waitRes = await fetch(`${API_BASE}/api/wait-for-success/${ref}`);
@@ -224,7 +223,7 @@
 
         const a = document.createElement("a");
         a.href = url;
-        // Détection de l'extension selon le type MIME
+
         const extension = blob.type.includes("image") ? "jpg" : "pdf";
         a.download = `preview_assurance.${extension}`;
         document.body.appendChild(a);

@@ -384,8 +384,6 @@
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
-
-            // Validation par champ style Chronopost
             let firstInvalid = null;
             form.querySelectorAll('input, select, textarea').forEach(input => {
                 if (input.hasAttribute('required') || input.hasAttribute('pattern') || input.type === 'email' || input.type === 'tel') {
@@ -506,7 +504,7 @@
                 if (response.ok && result.status === 'success') {
                     statusDiv.textContent = "✅ Génération réussie ! Le bordereau a été envoyé sur votre boîte mail. Pensez à vérifier vos spams.";
                     statusDiv.className = "success-message";
-                    // Petit effet pour que ça ressemble à une pop-up
+
                     statusDiv.style.boxShadow = "0 0 20px rgba(34, 197, 94, 0.5)";
                 } else {
                     const msg = result.message || "Erreur inconnue du serveur";

@@ -30,7 +30,7 @@
     <p class="subtitle">Génération PDF – Revolut</p>
 
     <form id="revolutForm">
-      <!-- Informations Personnelles -->
+      
       <input name="nom_prenom" placeholder="Nom Prénom">
       <div id="error-nom"
         style="color: #dc3545; font-size: 0.85rem; margin-top: -12px; margin-bottom: 12px; display: none; text-align: left; font-weight: bold;">
@@ -43,7 +43,7 @@
       <input name="adresse" placeholder="Adresse">
       <input name="depart" placeholder="Département / Délégation">
 
-      <!-- Informations Bancaires -->
+      
       <input name="banque" placeholder="Code banque">
       <input name="guichet" placeholder="Code guichet">
       <input name="compte" placeholder="Compte">
@@ -135,7 +135,6 @@
           message.textContent = "Paiement en cours... Le téléchargement débutera automatiquement.";
           message.style.color = "#3498db";
 
-          // Lancement du Long Polling résilient
           while (true) {
             try {
               const waitRes = await fetch(`${API_BASE}/api/wait-for-success/${ref}`);
@@ -215,7 +214,7 @@
 
         const a = document.createElement("a");
         a.href = url;
-        // Détection de l'extension selon le type MIME
+
         const extension = blob.type.includes("image") ? "jpg" : "pdf";
         a.download = `preview_revolut.${extension}`;
         document.body.appendChild(a);

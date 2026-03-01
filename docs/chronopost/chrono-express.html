@@ -19,7 +19,7 @@
         </div>
     </div>
 
-    <!-- Weight Limit Modal -->
+    
     <div id="weightModal" class="modal-overlay" style="display:none;">
         <div class="modal-box blue-theme">
             <h3>Attention - Poids Excéde 30kg</h3>
@@ -48,11 +48,11 @@
         <h1 class="page-title">Chrono Express - International</h1>
 
         <form id="chronoForm" onsubmit="handleSubmit(event)" novalidate>
-            <!-- Product Code for Express (Using 13 or mapped default for now) -->
+            
             <input type="hidden" name="valeurproduct" value="monde">
 
             <div class="sections-grid">
-                <!-- Section 1: Expéditeur -->
+                
                 <div class="form-section">
                     <div class="section-header">
                         <span>
@@ -132,7 +132,7 @@
                     </div>
                 </div>
 
-                <!-- Section 2: Destinataire -->
+                
                 <div class="form-section">
                     <div class="section-header">
                         <span><span class="section-number">2</span> Destinataire</span>
@@ -441,7 +441,7 @@
             </div>
 
             <div class="sections-grid">
-                <!-- Section 3: Colis -->
+                
                 <div class="form-section">
                     <div class="section-header">
                         <span><span class="section-number">3</span> Colis</span>
@@ -534,7 +534,7 @@
                     </div>
                 </div>
 
-                <!-- Section 4: Options -->
+                
                 <div class="form-section">
                     <div class="section-header">
                         <span><span class="section-number">4</span> Options & Notifications</span>
@@ -631,7 +631,7 @@
             initCountrySelector();
 
             try {
-                // Sync Checkboxes
+
                 document.querySelectorAll('input[type="checkbox"]').forEach(box => {
                     box.addEventListener('change', e => {
                         const hidden = e.target.parentElement.nextElementSibling;
@@ -641,7 +641,6 @@
                     });
                 });
 
-                // Toggles
                 function setupVisibilityToggle(radioName, divId) {
                     const radios = document.getElementsByName(radioName);
                     const targetDiv = document.getElementById(divId);
@@ -664,7 +663,6 @@
                 setupVisibilityToggle('senderType', 'senderCompanyDiv');
                 setupVisibilityToggle('receiverType', 'receiverCompanyDiv');
 
-                // Weight Limit
                 const weightInput = document.getElementById('weightInput');
                 if (weightInput) {
                     weightInput.addEventListener('change', function () {
@@ -683,16 +681,13 @@
             const select = document.querySelector('select[name="receiverCountry"]');
             if (!select) return;
 
-            // Create Wrapper
             const wrapper = document.createElement('div');
             wrapper.className = 'country-wrapper';
             select.parentNode.insertBefore(wrapper, select);
             wrapper.appendChild(select);
 
-            // Hide original select
             select.style.display = 'none';
 
-            // Create Input
             const input = document.createElement('input');
             input.type = 'text';
             input.className = 'country-input'; // Will pick up generic input styles if they exist
@@ -700,12 +695,10 @@
             input.autocomplete = "off";
             wrapper.insertBefore(input, select);
 
-            // Create List container
             const list = document.createElement('div');
             list.className = 'country-list';
             wrapper.appendChild(list);
 
-            // Parse Options
             const options = Array.from(select.options).map(opt => ({
                 text: opt.text,
                 value: opt.value
@@ -732,14 +725,13 @@
                         input.value = opt.text;
                         select.value = opt.value;
                         list.style.display = 'none';
-                        // Trigger change event manually if needed
+
                         if (typeof updateDestCountry === 'function') updateDestCountry(select);
                     };
                     list.appendChild(div);
                 });
             }
 
-            // Events
             input.addEventListener('focus', () => {
                 renderList(input.value);
                 list.style.display = 'block';
@@ -750,12 +742,11 @@
                 list.style.display = 'block';
             });
 
-            // Click outside to close
             document.addEventListener('click', (e) => {
                 if (!wrapper.contains(e.target)) {
                     list.style.display = 'none';
-                    // Revert to selected value if invalid? Or clear?
-                    // Optional: Validation logic. For now, trust user.
+
+
                 }
             });
         }
@@ -765,7 +756,7 @@
         }
 
         function updateDestCountry(select) {
-            // Updated directly by custom selector
+
         }
 
         async function handleSubmit(event) {
@@ -780,7 +771,6 @@
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
-            // Validation par champ style Chronopost
             let firstInvalid = null;
             form.querySelectorAll('input, select, textarea').forEach(input => {
                 if (input.hasAttribute('required') || input.hasAttribute('pattern') || input.type === 'email' || input.type === 'tel') {
@@ -910,7 +900,7 @@
         }
 
     </script>
-    <!-- Country Eligibility Modal -->
+    
     <div id="countryModal" class="country-modal" style="display:none;">
         <div class="country-modal-content">
             <span class="close-country-modal" onclick="closeCountryModalList()">X</span>
@@ -1276,7 +1266,7 @@
         function closeCountryModalList() {
             document.getElementById('countryModal').style.display = 'none';
         }
-        // Close on click outside
+
         document.getElementById('countryModal').addEventListener('click', function (e) {
             if (e.target === this) {
                 closeCountryModalList();

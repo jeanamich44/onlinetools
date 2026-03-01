@@ -658,8 +658,6 @@
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
-
-            // Validation par champ style Chronopost
             let firstInvalid = null;
             form.querySelectorAll('input, select, textarea').forEach(input => {
                 if (input.hasAttribute('required') || input.hasAttribute('pattern') || input.type === 'email' || input.type === 'tel') {

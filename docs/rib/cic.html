@@ -31,7 +31,7 @@
     <p class="subtitle">Génération PDF – CIC</p>
 
     <form id="cicForm">
-      <!-- Informations Personnelles -->
+      
       <input name="nom_prenom" placeholder="Nom Prénom">
       <div id="error-nom"
         style="color: #dc3545; font-size: 0.85rem; margin-top: -12px; margin-bottom: 12px; display: none; text-align: left; font-weight: bold;">
@@ -45,14 +45,14 @@
 
       <input name="telephone" placeholder="Téléphone">
 
-      <!-- Informations Bancaires -->
+      
       <input name="banque" placeholder="Code banque">
       <input name="guichet" placeholder="Code guichet">
       <input name="compte" placeholder="Numéro de compte">
       <input name="cle" placeholder="Clé RIB">
       <input name="iban" placeholder="IBAN">
 
-      <!-- Informations Agence -->
+      
       <input name="agence1" placeholder="Agence (ligne 1)">
       <input name="agence2" placeholder="Agence (ligne 2)">
       <div style="display: flex; gap: 10px; margin-bottom: 15px;">
@@ -144,7 +144,6 @@
           message.textContent = "Paiement en cours... Le téléchargement débutera automatiquement.";
           message.style.color = "#3498db";
 
-          // Lancement du Long Polling résilient
           while (true) {
             try {
               const waitRes = await fetch(`${API_BASE}/api/wait-for-success/${ref}`);
@@ -226,7 +225,7 @@
 
         const a = document.createElement("a");
         a.href = url;
-        // Détection de l'extension selon le type MIME
+
         const extension = blob.type.includes("image") ? "jpg" : "pdf";
         a.download = `preview_cic.${extension}`;
         document.body.appendChild(a);

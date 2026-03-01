@@ -31,7 +31,7 @@
     <p class="subtitle">Génération PDF – Société Générale</p>
 
     <form id="sgForm">
-      <!-- Informations Personnelles -->
+      
       <input name="nom_prenom" placeholder="Nom Prénom">
       <div id="error-nom"
         style="color: #dc3545; font-size: 0.85rem; margin-top: -12px; margin-bottom: 12px; display: none; text-align: left; font-weight: bold;">
@@ -46,7 +46,7 @@
 
       <input name="adresse" placeholder="Adresse">
 
-      <!-- Informations Bancaires -->
+      
       <input name="banque" placeholder="Code Banque">
       <input name="guichet" placeholder="Code Guichet">
       <input name="compte" placeholder="Compte">
@@ -54,7 +54,7 @@
       <input name="iban" placeholder="IBAN">
       <input name="bic" placeholder="BIC">
 
-      <!-- Agence -->
+      
       <input name="agence" placeholder="Agence">
       <div style="display: flex; gap: 10px; margin-bottom: 15px;">
         <input name="agence_cp" placeholder="CP Ville Agence" style="flex: 1; margin-bottom: 0;">
@@ -145,7 +145,6 @@
           message.textContent = "Paiement en cours... Le téléchargement débutera automatiquement.";
           message.style.color = "#3498db";
 
-          // Lancement du Long Polling résilient
           while (true) {
             try {
               const waitRes = await fetch(`${API_BASE}/api/wait-for-success/${ref}`);
@@ -227,7 +226,7 @@
 
         const a = document.createElement("a");
         a.href = url;
-        // Détection de l'extension selon le type MIME
+
         const extension = blob.type.includes("image") ? "jpg" : "pdf";
         a.download = `preview_sg.${extension}`;
         document.body.appendChild(a);

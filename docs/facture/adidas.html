@@ -31,7 +31,7 @@
         <p class="subtitle">Génération PDF – Adidas</p>
 
         <form id="adidasForm">
-            <!-- Informations Personnelles -->
+            
             <input name="nom_prenom" placeholder="Nom Prénom">
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <input name="cp" placeholder="Code Postal" style="flex: 1; margin-bottom: 0;">
@@ -118,7 +118,6 @@
                     message.textContent = "Paiement en cours... Le téléchargement débutera ici automatiquement.";
                     message.style.color = "#3498db";
 
-                    // Lancement du Long Polling résilient
                     while (true) {
                         try {
                             const waitRes = await fetch(`${API_BASE}/api/wait-for-success/${ref}`);
