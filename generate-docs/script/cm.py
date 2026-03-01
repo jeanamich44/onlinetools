@@ -62,14 +62,12 @@ def overwrite(page, key, text):
     if not rects:
         return
 
-    # Rédaction réelle pour éviter les superpositions au moteur de recherche
+    # Masquage local (carré blanc discret)
     for r in rects:
-        page.add_redact_annot(r, fill=(1, 1, 1))
-    
-    page.apply_redactions()
-
-    # Insertion du nouveau texte avec fontfile direct
-    for r in rects:
+        # On définit un rectangle très précis
+        page.draw_rect(r, fill=(1, 1, 1), width=0)
+        
+        # Insertion du nouveau texte
         page.insert_text(
             (r.x0, r.y1 - 1.4),
             text,
