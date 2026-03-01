@@ -172,8 +172,9 @@ def run_colissimo(data, config, method="generateLabel"):
                         # Masquage du numéro de contrat à la volée
                         pdf_doc = fitz.open(stream=files["label"], filetype="pdf")
                         page = pdf_doc[0]
-                        # Coordonnées (x1, y1, x2, y2)
-                        rect = fitz.Rect(991, 272, 1023, 504)
+                        # Coordonnées converties en Points PDF (72dpi) depuis des pixels (300dpi)
+                        # (991, 272) -> (237.84, 65.28) et (1023, 504) -> (245.52, 120.96)
+                        rect = fitz.Rect(237.84, 65.28, 245.52, 120.96)
                         # Dessiner un rectangle blanc sans bordure (fill=(1, 1, 1) = blanc opaque)
                         page.draw_rect(rect, color=(1, 1, 1), fill=(1, 1, 1))
                         files["label"] = pdf_doc.write()
