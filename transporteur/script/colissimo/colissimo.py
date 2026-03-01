@@ -277,7 +277,7 @@ def search_relays_colissimo(zip_code, config=None):
 
                     formatted_relays.append({
                         "id": relay_id,
-                        "name": p.get("c_intituleEtablissement") or p.get("name") or "Point de retrait",
+                        "name": p.get("geomodifier") or p.get("c_intituléÉtablissement") or p.get("c_intituleEtablissement") or p.get("name") or "Point de retrait",
                         "address": address_obj.get("line1", ""),
                         "zip": address_obj.get("postalCode", ""),
                         "city": address_obj.get("city", ""),
