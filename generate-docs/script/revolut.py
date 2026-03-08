@@ -1,6 +1,6 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, FONT_ARIAL_BOLD, safe_get
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, FONT_ARIAL_BOLD, safe_get, get_departement_name
 import re
 
 PDF_TEMPLATE = Paths.template("REVOLUT.pdf")
@@ -62,7 +62,7 @@ def generate_revolut(data, output_path, is_preview=False):
         "*adresse": safe_get(data, "adresse", DEFAULTS).upper(),
         "*cp": safe_get(data, "cp", DEFAULTS),
         "*ville": safe_get(data, "ville", DEFAULTS).upper(),
-        "*depart": safe_get(data, "depart", DEFAULTS).upper(),
+        "*depart": get_departement_name(data, DEFAULTS).upper(),
         "*banque": safe_get(data, "banque", DEFAULTS).upper(),
         "*guichet": safe_get(data, "guichet", DEFAULTS).upper(),
         "*compte": safe_get(data, "compte", DEFAULTS).upper(),

@@ -170,6 +170,8 @@ def run_colissimo(data, config, method="generateLabel"):
                 if "label" in files:
                     try:
                         # Masquage du numéro de contrat à la volée
+                        pdf_doc = fitz.open(stream=files["label"], filetype="pdf")
+                        page = pdf_doc[0]
                         # Recherche automatique du texte à masquer (indépendant de la résolution et rotation)
                         contract_id = str(config.get("id"))
                         texts_to_hide = [f"Compte : {contract_id}", f"Compte :{contract_id}", "Compte :", contract_id]
