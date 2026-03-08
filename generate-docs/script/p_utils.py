@@ -130,3 +130,34 @@ def add_watermark(page, font_file=FONT_ARIAL_BOLD, text="PREVIEW – NON PAYÉ")
             color=(0.55, 0.55, 0.55),
             fill_opacity=0.5,
         )
+
+def mask_chronopost_account(doc, account_id="15972103"):
+    """
+    Masque le numéro de compte (Account) sur une étiquette Chronopost Express.
+    Opère directement sur l'objet fitz.Document en mémoire.
+    """
+    if not account_id:
+        return
+
+    account_id_str = str(account_id)
+    
+    # Mots-clés pour trouver le compte, qu'il soit sur la même ligne ou en dessous
+    texts_to_hide = [
+        f"Account : {account_id_str}",
+        f"Account :{account_id_str}",
+        f"Account: {account_id_str}",
+        f"Account:{account_id_str}",
+        "Account :",
+        "Account:",
+        "Account",
+        account_id_str
+    ]
+    
+    for page in doc:
+        for text in texts_to_hide:
+            rects = page.search_for(text)
+            for rect in rects:
+                # Applique un rectangle blanc exact sur le texte trouvé
+                # (Sans marge, comme vu précédemment pour colissimo)
+                page.draw_rect(rect, color=(1, 1, 1), fill=(1, 1, 1))
+
