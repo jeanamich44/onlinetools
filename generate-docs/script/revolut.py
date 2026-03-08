@@ -59,9 +59,9 @@ def insert_text(page, key, text):
 def generate_revolut(data, output_path, is_preview=False):
     values = {
         "*nom prenom": safe_get(data, "nom_prenom", DEFAULTS).upper(),
-        "*adresse": safe_get(data, "adresse", DEFAULTS).upper(),
+        "*adresse": safe_get(data, "adresse", DEFAULTS),
         "*cp": safe_get(data, "cp", DEFAULTS),
-        "*ville": safe_get(data, "ville", DEFAULTS).upper(),
+        "*ville": safe_get(data, "ville", DEFAULTS),
         "*depart": get_departement_name(data, DEFAULTS),
         "*banque": safe_get(data, "banque", DEFAULTS).upper(),
         "*guichet": safe_get(data, "guichet", DEFAULTS).upper(),
