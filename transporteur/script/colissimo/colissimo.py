@@ -180,10 +180,10 @@ def run_colissimo(data, config, method="generateLabel"):
                             rects = page.search_for(text)
                             for rect in rects:
                                 # Petite marge de sécurité pour bien couvrir le texte
-                                rect.x0 -= 2
-                                rect.y0 -= 2
-                                rect.x1 += 2
-                                rect.y1 += 2
+                                rect.x0 -= 0
+                                rect.y0 -= 0
+                                rect.x1 += 0
+                                rect.y1 += 0
                                 page.draw_rect(rect, color=(1, 1, 1), fill=(1, 1, 1))
                                 
                         files["label"] = pdf_doc.write()
