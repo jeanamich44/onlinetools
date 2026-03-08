@@ -11,10 +11,10 @@ COLOR = (25/255, 28/255, 31/255)
 
 DEFAULTS = {
     "nom_prenom": "GOULIET ANTOINE",
-    "adresse": "14 RUE DE PROVENCE",
+    "adresse": "14 Rue de Provence",
     "cp": "75009",
-    "ville": "PARIS",
-    "cp_ville": "75009 PARIS",
+    "ville": "Paris",
+    "cp_ville": "75009 Paris",
     "iban": "FR7630004008001234567890152",
     "bic": "REVOFR22",
     "depart": "Paris",

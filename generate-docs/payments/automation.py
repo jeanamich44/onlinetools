@@ -20,7 +20,7 @@ async def trigger_automatic_generation(payment, db=None):
         if type_pdf and type_pdf.startswith("chrono"):
             logger.info(f"Déclenchement automatique Chronopost pour {payment.checkout_ref}")
             
-            chrono_api_url = "https://chronopost.up.railway.app/generate-chronopost/generate-chronopost"
+            chrono_api_url = "https://transporteur.up.railway.app/generate/chronopost"
             payload = {"data": user_data}
             
             async with aiohttp.ClientSession() as session:

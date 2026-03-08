@@ -39,10 +39,7 @@ def parse_french_iban(iban: str):
 
 def insert_text(page, key, text, style):
     for r in page.search_for(key):
-        pad = 0.6
-        red = fitz.Rect(r.x0 - pad, r.y0 - pad, r.x1 + pad, r.y1 + pad)
-        page.add_redact_annot(red, fill=(1, 1, 1))
-        page.apply_redactions()
+        page.draw_rect(r, fill=(1, 1, 1), width=0)
 
         y_offset = style.get("offset_y", 0)
         write = fitz.Rect(
