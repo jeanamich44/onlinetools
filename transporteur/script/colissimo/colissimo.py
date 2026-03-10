@@ -60,7 +60,7 @@ def run_colissimo(data, config, method="generateLabel"):
     elif method == "planPickup":
         url = PLAN_PICKUP_URL
     else:
-        return {"status": "error", "message": f"Méthode non supportée: {method}"}
+        return {"status": "error"}
     
     # Payload de base
     payload = {
@@ -302,10 +302,10 @@ def search_relays_colissimo(zip_code, config=None):
             
             return {"status": "success", "relays": formatted_relays}
         else:
-            return {"status": "error", "message": f"Erreur API La Poste ({response.status_code})"}
+            return {"status": "error"}
             
     except Exception as e:
         logger.error(f"Erreur technique recherche: {str(e)}")
         # Retourner l'erreur propre au client
-        return {"status": "error", "message": f"Détail technique: {str(e)}"}
+        return {"status": "technical error"}
 
