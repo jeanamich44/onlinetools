@@ -1,6 +1,6 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, FONT_ARIAL_BOLD, safe_get, get_departement_name
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, FONT_ARIAL_BOLD, safe_get, get_departement_name, get_rib_defaults
 import re
 
 PDF_TEMPLATE = Paths.template("REVOLUT.pdf")
@@ -9,20 +9,7 @@ FONT_FILE = Paths.font("roboto-regular.ttf")
 FONT_SIZE = 8.25
 COLOR = (25/255, 28/255, 31/255)
 
-DEFAULTS = {
-    "nom_prenom": "GOULIET ANTOINE",
-    "adresse": "14 Rue de Provence",
-    "cp": "75009",
-    "ville": "Paris",
-    "cp_ville": "75009 Paris",
-    "iban": "FR7630004008001234567890152",
-    "bic": "REVOFR22",
-    "depart": "Paris",
-    "banque": "30004",
-    "guichet": "00800",
-    "compte": "12345678901",
-    "cle": "52",
-}
+DEFAULTS = get_rib_defaults("REVOLUT")
 
 def format_iban(v: str):
     v = re.sub(r"\s+", "", v).upper()

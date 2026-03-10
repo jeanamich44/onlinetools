@@ -1,6 +1,6 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get, get_rib_defaults
 import re
 
 PDF_TEMPLATE = Paths.template("CA.pdf")
@@ -11,17 +11,7 @@ FONT_SIZE = 9.6
 COLOR = (0, 0, 0)
 RIGHT_LIMIT_X = 538.87
 
-DEFAULTS = {
-    "nom_prenom": "JEAN MICHEL BERNARD",
-    "adresse": "8 PLACE DE LA CONCORDE",
-    "cp_ville": "75006 PARIS",
-    "iban": "FR7613106005003002159831007",
-    "banque": "13106",
-    "guichet": "00500",
-    "compte": "30021598310",
-    "cle": "07",
-    "agence": "TOULOUSE 31",
-}
+DEFAULTS = get_rib_defaults("CA")
 
 
 def format_iban(iban: str):

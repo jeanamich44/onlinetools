@@ -1,6 +1,6 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, FONT_ARIAL_BOLD, safe_get
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, FONT_ARIAL_BOLD, safe_get, get_rib_defaults
 
 PDF_TEMPLATE = Paths.template("LBP.pdf")
 FONT_FILE = Paths.font("arialbd.ttf")
@@ -9,19 +9,7 @@ FONT_NAME = "ArialBold"
 FONT_SIZE = 9
 COLOR = (0, 0, 0)
 
-DEFAULTS = {
-    "banque": "20041",
-    "guichet": "01007",
-    "compte": "1852185T038",
-    "cle": "52",
-    "iban": "FR6720041010071852185T03852",
-    "bic": "PSSTFRPPLYO",
-    "nom_prenom": "GOULIET ANTOINE",
-    "adresse": "14 RUE DE PROVENCE",
-    "cp_ville": "75009 PARIS",
-    "domiciliation": "LA BANQUE POSTALE LYON CENTRE FINANCIER",
-    "sexe": "m",
-}
+DEFAULTS = get_rib_defaults("LBP")
 
 
 def generate_lbp(data, output_path, is_preview=False):

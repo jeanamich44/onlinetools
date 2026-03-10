@@ -1,7 +1,7 @@
 import fitz
 import os
 import re
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get, get_rib_defaults
 
 # =========================
 # CHEMINS (EN LIGNE)
@@ -21,21 +21,7 @@ COLOR = (0, 0, 0)
 # VALEURS PAR DEFAUT
 # =========================
 
-DEFAULTS = {
-    "banque": "10278",
-    "guichet": "02100",
-    "compte": "00012345678",
-    "cle": "45",
-    "iban": "FR761027802100001234567845",
-    "agence1": "AGENCE CRÉDIT MUTUEL",
-    "agence2": "AGENCE CRÉDIT MUTUEL",
-    "agenceadresse": "14 RUE DES LILAS",
-    "agencecpville": "31000 TOULOUSE",
-    "telephone": "01 23 45 67 89",
-    "nom_prenom": "JEAN MICHEL BERNARD",
-    "adresse": "8 PLACE DE LA CONCORDE",
-    "cp_ville": "75006 PARIS",
-}
+DEFAULTS = get_rib_defaults("CM")
 
 BOLD_KEYS = {
     "*banque",

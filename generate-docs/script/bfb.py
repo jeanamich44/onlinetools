@@ -1,6 +1,6 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get, get_rib_defaults
 import re
 
 PDF_TEMPLATE = Paths.template("BFB.pdf")
@@ -10,16 +10,7 @@ FONT_ARIAL_BOLD = Paths.font("arialbd.ttf")
 COLOR_MAIN = (29/255, 29/255, 27/255)
 COLOR_SECOND = (99/255, 99/255, 96/255)
 
-DEFAULTS = {
-    "nom_prenom": "GOULIET ANTOINE",
-    "adresse": "14 RUE DE PROVENCE",
-    "cp_ville": "75009 PARIS",
-    "banque": "30004",
-    "guichet": "00800",
-    "compte": "12345678901",
-    "cle": "52",
-    "iban": "FR7630004008001234567890152",
-}
+DEFAULTS = get_rib_defaults("BFB")
 
 
 def format_iban(iban: str):

@@ -1,6 +1,6 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get, get_rib_defaults
 import re
 
 PDF_TEMPLATE = Paths.template("QONTO.pdf")
@@ -13,16 +13,7 @@ FONT_BOLD = "ARIAL_BOLD"
 COLOR_MAIN = (29/255, 29/255, 27/255)
 COLOR_SECOND = (99/255, 99/255, 96/255)
 
-DEFAULTS = {
-    "iban": "FR7630004008001234567890152",
-    "banque": "30004",
-    "guichet": "00800",
-    "compte": "12345678901",
-    "cle": "52",
-    "nom_prenom": "GOULIET ANTOINE",
-    "adresse": "14 RUE DE PROVENCE",
-    "cp_ville": "75009 PARIS",
-}
+DEFAULTS = get_rib_defaults("QONTO")
 
 def format_iban(v):
     v = re.sub(r"\s+", "", v or "").upper()

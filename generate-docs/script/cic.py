@@ -1,6 +1,6 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get, get_rib_defaults
 import re
 
 PDF_TEMPLATE = Paths.template("CIC.pdf")
@@ -13,24 +13,7 @@ FONT_BOLD_NAME = "ARIAL_BOLD"
 FONT_SIZE = 8.5
 COLOR = (0, 0, 0)
 
-DEFAULTS = {
-    "banque": "30066",
-    "guichet": "10278",
-    "compte": "00012345678",
-    "cle": "45",
-    "iban": "FR7630066102780001234567845",
-    "agence1": "AGENCE TOULOUSE CENTRE",
-    "agence2": "CIC",
-    "agenceadresse": "14 RUE ALSACE LORRAINE",
-    "agencecpville": "31000 TOULOUSE",
-    "telephone": "01 49 08 51 33",
-    "nom_prenom": "JEAN MICHEL BERNARD",
-    "adresse": "8 PLACE DE LA CONCORDE",
-    "cp_ville": "75006 PARIS",
-    "agence": "AGENCE TOULOUSE CENTRE",
-    "agence_adresse": "14 RUE ALSACE LORRAINE",
-    "agence_cp_ville": "31000 TOULOUSE",
-}
+DEFAULTS = get_rib_defaults("CIC")
 
 BOLD_KEYS = {"*banque", "*guichet", "*compte", "*cle", "*iban", "*agence1"}
 

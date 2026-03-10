@@ -27,6 +27,100 @@ class Paths:
 FONT_ARIAL = Paths.font("arial.ttf")
 FONT_ARIAL_BOLD = Paths.font("arialbd.ttf")
 
+RIB_BASE = {
+    "nom_prenom": "JEAN MICHEL BERNARD",
+    "adresse": "8 PLACE DE LA CONCORDE",
+    "cp_ville": "75006 PARIS",
+    "cp": "75006",
+    "ville": "PARIS",
+    "telephone": "0635251420",
+    "sexe": "m",
+}
+
+RIB_BANKS = {
+    "CA": {
+        "iban": "FR7613106005003002159831007",
+        "banque": "13106",
+        "guichet": "00500",
+        "compte": "30021598310",
+        "cle": "07",
+        "agence": "TOULOUSE 31",
+    },
+    "REVOLUT": {
+        "iban": "FR7630004008001234567890152",
+        "bic": "REVOFR22",
+        "depart": "Paris",
+        "banque": "30004",
+        "guichet": "00800",
+        "compte": "12345678901",
+        "cle": "52",
+    },
+    "CM": {
+        "banque": "10278",
+        "guichet": "02100",
+        "compte": "00012345678",
+        "cle": "45",
+        "iban": "FR761027802100001234567845",
+        "agence1": "AGENCE CRÉDIT MUTUEL",
+        "agence2": "AGENCE CRÉDIT MUTUEL",
+        "agenceadresse": "14 RUE DES LILAS",
+        "agencecpville": "31000 TOULOUSE",
+    },
+    "BFB": {
+        "banque": "30004",
+        "guichet": "00800",
+        "compte": "12345678901",
+        "cle": "52",
+        "iban": "FR7630004008001234567890152",
+    },
+    "CIC": {
+        "banque": "30066",
+        "guichet": "10278",
+        "compte": "00012345678",
+        "cle": "45",
+        "iban": "FR7630066102780001234567845",
+        "agence1": "AGENCE TOULOUSE CENTRE",
+        "agence2": "CIC",
+        "agenceadresse": "14 RUE ALSACE LORRAINE",
+        "agencecpville": "31000 TOULOUSE",
+        "agence": "AGENCE TOULOUSE CENTRE",
+        "agence_adresse": "14 RUE ALSACE LORRAINE",
+        "agence_cp_ville": "31000 TOULOUSE",
+    },
+    "SG": {
+        "agence": "AULNAY SOUS BOIS CENTRE",
+        "agence_adresse": "29 BOULEVARD HAUSSMANN",
+        "agence_cp_ville": "75009 PARIS",
+        "banque": "30003",
+        "guichet": "01894",
+        "compte": "12345678901",
+        "cle": "52",
+        "iban": "FR7630003018941234567890152",
+        "bic": "SOGEFRPP",
+    },
+    "LBP": {
+        "banque": "20041",
+        "guichet": "01007",
+        "compte": "1852185T038",
+        "cle": "52",
+        "iban": "FR6720041010071852185T03852",
+        "bic": "PSSTFRPPLYO",
+        "domiciliation": "LA BANQUE POSTALE LYON CENTRE FINANCIER",
+    },
+    "QONTO": {
+        "iban": "FR7630004008001234567890152",
+        "banque": "30004",
+        "guichet": "00800",
+        "compte": "12345678901",
+        "cle": "52",
+    }
+}
+
+def get_rib_defaults(bank_name):
+    defaults = RIB_BASE.copy()
+    defaults.update(RIB_BANKS.get(bank_name, {}))
+    return defaults
+
 def safe_get(data, key, defaults=None, default_val=""):
     """
     Récupère une valeur de manière sécurisée depuis un objet data.

@@ -1,6 +1,6 @@
 import fitz
 import os
-from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get
+from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get, get_rib_defaults
 
 PDF_TEMPLATE = Paths.template("SG.pdf")
 FONT_FILE = Paths.font("arial.ttf")
@@ -9,21 +9,7 @@ FONT_ARIAL_BOLD = Paths.font("arialbd.ttf")
 FONT_NAME = "Arial"
 COLOR = (0, 0, 0)
 
-DEFAULTS = {
-    "nom_prenom": "GOULIET ANTOINE",
-    "adresse": "14 RUE DE PROVENCE",
-    "cp_ville": "75009 PARIS",
-    "agence": "AULNAY SOUS BOIS CENTRE",
-    "agence_adresse": "29 BOULEVARD HAUSSMANN",
-    "agence_cp_ville": "75009 PARIS",
-    "banque": "30003",
-    "guichet": "01894",
-    "compte": "12345678901",
-    "cle": "52",
-    "iban": "FR7630003018941234567890152",
-    "bic": "SOGEFRPP",
-    "sexe": "m",
-}
+DEFAULTS = get_rib_defaults("SG")
 
 FONT_SIZES = {
     "nom prenom": 10.5,
