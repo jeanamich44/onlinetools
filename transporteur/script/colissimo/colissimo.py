@@ -121,9 +121,10 @@ def run_colissimo(data, config, method="generateLabel"):
 
         # Gestion spécifique du Point Relais (Product Code COL)
         if data.get("productCode") == "COL" and data.get("pickupLocationId"):
+            pickup_type = data.get("pickupLocationType", "A2P")
+            payload["letter"]["service"]["productCode"] = pickup_type
             payload["letter"]["addressee"]["pickupLocationId"] = data["pickupLocationId"]
-            # Par défaut pour Relais Pickup si non précisé
-            payload["letter"]["addressee"]["pickupLocationType"] = data.get("pickupLocationType", "A2P")
+            payload["letter"]["addressee"]["pickupLocationType"] = pickup_type
         if data.get("customs"):
             payload["letter"]["customsDeclarations"] = data["customs"]
             
@@ -158,32 +159,18 @@ def run_colissimo(data, config, method="generateLabel"):
         errors = [m for m in messages if m.get("type") == "ERROR"]
         
         if response.status_code == 200 and not errors:
-            result = {
-                "status": "success",
-                "message": "Opération réussie",
-                "json": json_infos
-            }
             if method in ["generateLabel", "checkGenerateLabel"]:
-                result["parcelNumber"] = json_infos.get("labelV2Response", {}).get("parcelNumber")
-                
-                # Conversion des binaires en Base64 pour le client
                 if "label" in files:
                     try:
                         # Masquage du numéro de contrat à la volée
                         pdf_doc = fitz.open(stream=files["label"], filetype="pdf")
                         page = pdf_doc[0]
-                        # Recherche automatique du texte à masquer (indépendant de la résolution et rotation)
                         contract_id = str(config.get("id"))
                         texts_to_hide = [f"Compte : {contract_id}", f"Compte :{contract_id}", "Compte :", contract_id]
                         
                         for text in texts_to_hide:
                             rects = page.search_for(text)
                             for rect in rects:
-                                # Petite marge de sécurité pour bien couvrir le texte
-                                rect.x0 -= 0
-                                rect.y0 -= 0
-                                rect.x1 += 0
-                                rect.y1 += 0
                                 page.draw_rect(rect, color=(1, 1, 1), fill=(1, 1, 1))
                                 
                         files["label"] = pdf_doc.write()
@@ -191,18 +178,17 @@ def run_colissimo(data, config, method="generateLabel"):
                     except Exception as pdf_err:
                         logger.warning(f"Impossible de masquer le contrat sur le PDF: {str(pdf_err)}")
                         
-                    result["label"] = base64.b64encode(files["label"]).decode('utf-8')
-                if "cn23" in files:
-                    result["cn23"] = base64.b64encode(files["cn23"]).decode('utf-8')
-                    
-            return result
+                    return {
+                        "status": "success",
+                        "label": base64.b64encode(files["label"]).decode('utf-8')
+                    }
+            return {"status": "success"}
         else:
-            error_msg = errors[0].get("messageContent") if errors else f"Erreur {response.status_code}"
-            return {"status": "error", "message": error_msg, "details": json_infos}
+            return {"status": "failed"}
 
     except Exception as e:
         logger.error(f"Erreur technique Colissimo: {str(e)}")
-        return {"status": "error", "message": str(e)}
+        return {"status": "failed"}
 
 def geocode_zip(zip_code):
     """
