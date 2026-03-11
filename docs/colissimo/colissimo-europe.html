@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Colissimo Europe</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+    <div id="overlay" style="flex-direction: column; gap: 20px;">
+        <div class="spinner"></div>
+        <div id="timerContainer" style="display:none; text-align: center; color: #fff;">
+            <span style="font-size: 1.2rem; font-weight: bold;" id="timer">00:00</span>
+            <span class="info-icon" style="margin-left: 10px; vertical-align: middle;"
+                data-tooltip="La génération est en cours. Veuillez patienter quelques instants.">i</span>
+        </div>
+    </div>
+
+    <div id="statusMessage" style="position:fixed; top:80px; width:100%; text-align:center; z-index:900;"></div>
+
+    <header class="header">
+        <div class="header-inner">
+            <a href="../index.html" class="logo">ChezRheyy</a>
+            <nav class="nav">
+                <a href="../index.html">Home</a>
+                <a href="../contact.html">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="content form-container">
+
+        <h1 class="page-title">Colissimo Europe - Union Européenne</h1>
+
+        <form id="colissimoForm" onsubmit="handleSubmit(event)" novalidate>
+            <input type="hidden" name="productCode" value="COLI">
+
+            <div class="sections-grid">
+
+                <div class="form-section">
+                    <div class="section-header">
+                        <span>
+                            <span class="section-number">1</span> Expéditeur
+                        </span>
+                        <span>FRANCE</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="radio-group" style="margin-bottom: 20px;">
+                            <label>Type *</label>
+                            <label><input type="radio" name="senderType" value="0"> Professionnel</label>
+                            <label><input type="radio" name="senderType" value="1" checked> Particulier</label>
+                        </div>
+
+                        <div class="form-group" id="senderCompanyDiv" style="display:none;">
+                            <label>Nom de société</label>
+                            <input type="text" name="senderCompanyName" placeholder="Optionnel" maxlength="60">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nom</label>
+                                <input type="text" name="senderLastname" placeholder="Nom" maxlength="60">
+                            </div>
+                            <div class="form-group">
+                                <label>Prénom</label>
+                                <input type="text" name="senderFirstname" placeholder="Prénom" maxlength="60">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>E-mail</label>
+                                <input type="email" name="senderEmail" placeholder="votre@email.com" maxlength="60">
+                            </div>
+                            <div class="form-group">
+                                <label>Téléphone</label>
+                                <input type="tel" name="senderPhone" placeholder="06..." maxlength="14">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Code Postal</label>
+                                <input type="text" name="senderCP" required pattern="\d+" maxlength="10">
+                            </div>
+                            <div class="form-group">
+                                <label>Ville</label>
+                                <input type="text" name="senderCity" required maxlength="60">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Adresse</label>
+                            <input type="text" name="senderAddress" required maxlength="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Complément adresse</label>
+                            <input type="text" name="senderAddress2" placeholder="Bâtiment, étage..." maxlength="60">
+                        </div>
+
+                        <input type="hidden" name="senderCountry" value="FR">
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="section-header">
+                        <span><span class="section-number">2</span> Destinataire</span>
+                        <span>EUROPE</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="radio-group" style="margin-bottom: 20px;">
+                            <label>Type *</label>
+                            <label><input type="radio" name="receiverType" value="0"> Professionnel</label>
+                            <label><input type="radio" name="receiverType" value="1" checked> Particulier</label>
+                        </div>
+
+                        <div class="form-group" id="receiverCompanyDiv" style="display:none;">
+                            <label>Nom de société</label>
+                            <input type="text" name="receiverCompanyName" placeholder="Optionnel" maxlength="60">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nom *</label>
+                                <input type="text" name="receiverLastname" required maxlength="60">
+                            </div>
+                            <div class="form-group">
+                                <label>Prénom *</label>
+                                <input type="text" name="receiverFirstname" required maxlength="60">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>E-mail *</label>
+                                <input type="email" name="receiverEmail" required placeholder="client@email.com"
+                                    maxlength="60">
+                            </div>
+                            <div class="form-group">
+                                <label>Téléphone *</label>
+                                <input type="tel" name="receiverPhone" required placeholder="06..." maxlength="14">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Code Postal *</label>
+                                <input type="text" name="receiverCP" required pattern="\d+" maxlength="10">
+                            </div>
+                            <div class="form-group">
+                                <label>Ville *</label>
+                                <input type="text" name="receiverCity" required maxlength="60">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Adresse *</label>
+                            <input type="text" name="receiverAddress" required maxlength="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Complément adresse</label>
+                            <input type="text" name="receiverAddress2" placeholder="Bâtiment, étage..." maxlength="60">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Pays de destination *</label>
+                            <select name="receiverCountry" required>
+                                <option value="DE">Allemagne</option>
+                                <option value="AT">Autriche</option>
+                                <option value="BE">Belgique</option>
+                                <option value="ES">Espagne</option>
+                                <option value="IE">Irlande</option>
+                                <option value="IT">Italie</option>
+                                <option value="LU">Luxembourg</option>
+                                <option value="NL">Pays-Bas</option>
+                                <option value="PT">Portugal</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sections-grid">
+
+                <div class="form-section">
+                    <div class="section-header">
+                        <span><span class="section-number">3</span> Colis & Référence</span>
+                    </div>
+                    <div class="section-content">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Poids (kg) *</label>
+                                <input type="number" name="packageWeight" required step="0.1" placeholder="Ex: 1.5"
+                                    min="0.1" max="30">
+                            </div>
+                            <div class="form-group">
+                                <label>Date d'envoi</label>
+                                <input type="date" name="shippingDate" id="shippingDate">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Référence Interne (Optionnel)</label>
+                            <input type="text" name="orderNumber" placeholder="Ex: CMD-1234" maxlength="30">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="action-bar">
+                <button type="submit" class="btn-validate" id="btn-validate"
+                    style="background-color: #28a745; width: 100%; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-size: 1.2rem; font-weight: bold;">Générer l'étiquette Europe</button>
+            </div>
+
+            <div id="message"></div>
+
+        </form>
+
+        <script src="../js/chronopost-autocomplete.js"></script>
+        <a class="back" href="./colissimo-liste.html">Retour</a>
+    </main>
+
+    <script>
+        const DEFAULT_SENDER = {
+            lastname: "Dupont",
+            firstname: "Jean",
+            cp: "75001",
+            city: "Paris",
+            address: "10 rue de la Paix"
+        };
+
+        function fillDefaultSender() {
+            document.querySelector('input[name="senderLastname"]').value = DEFAULT_SENDER.lastname;
+            document.querySelector('input[name="senderFirstname"]').value = DEFAULT_SENDER.firstname;
+            document.querySelector('input[name="senderCP"]').value = DEFAULT_SENDER.cp;
+            document.querySelector('input[name="senderCity"]').value = DEFAULT_SENDER.city;
+            document.querySelector('input[name="senderAddress"]').value = DEFAULT_SENDER.address;
+        }
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            const statusDiv = document.getElementById('message');
+            const overlay = document.getElementById('overlay');
+            const btn = document.getElementById('btn-validate');
+
+            statusDiv.innerHTML = "";
+            statusDiv.className = "";
+
+            let firstInvalid = null;
+            form.querySelectorAll('input, select, textarea').forEach(input => {
+                if (input.hasAttribute('required') || input.hasAttribute('pattern')) {
+                    const isValid = input.checkValidity();
+                    let errorSpan = input.parentNode.querySelector('.validation-error-msg');
+
+                    if (!isValid) {
+                        input.classList.add('input-invalid');
+                        if (!errorSpan) {
+                            errorSpan = document.createElement('span');
+                            errorSpan.className = 'validation-error-msg';
+                            input.parentNode.appendChild(errorSpan);
+                        }
+                        errorSpan.textContent = input.validationMessage;
+                        if (!firstInvalid) firstInvalid = input;
+                    } else {
+                        input.classList.remove('input-invalid');
+                        if (errorSpan) errorSpan.remove();
+                    }
+                }
+            });
+
+            if (firstInvalid) {
+                firstInvalid.focus();
+                return;
+            }
+
+            statusDiv.textContent = "Traitement en cours...";
+            btn.disabled = true;
+            overlay.style.visibility = 'visible';
+
+            try {
+                const response = await fetch('https://transporteur.up.railway.app/generate/colissimo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data: data })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.status === 'success') {
+                    statusDiv.innerHTML = "<span class='success-message'>✅ Génération réussie !</span>";
+                    if (result.label) {
+                        const link = document.createElement("a");
+                        link.href = `data:application/pdf;base64,${result.label}`;
+                        link.download = `etiquette_expert_${result.parcelNumber || 'test'}.pdf`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+                } else {
+                    statusDiv.innerHTML = "<span class='error-message'>❌ Erreur: " + (result.message || "Erreur serveur") + "</span>";
+                }
+            } catch (error) {
+                statusDiv.innerHTML = "<span class='error-message'>❌ Erreur réseau ou serveur.</span>";
+            } finally {
+                overlay.style.visibility = 'hidden';
+                btn.disabled = false;
+            }
+        }
+
+        function setupVisibilityToggle(radioName, divId) {
+            const radios = document.getElementsByName(radioName);
+            const targetDiv = document.getElementById(divId);
+
+            if (!targetDiv) return;
+
+            function update() {
+                const checked = document.querySelector(`input[name="${radioName}"]:checked`);
+                if (checked) {
+                    targetDiv.style.display = (checked.value === "0") ? "block" : "none";
+                }
+            }
+
+            radios.forEach(r => r.addEventListener('change', update));
+            update();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('shippingDate').value = today;
+
+            setupVisibilityToggle('senderType', 'senderCompanyDiv');
+            setupVisibilityToggle('receiverType', 'receiverCompanyDiv');
+
+            fillDefaultSender();
+        });
+    </script>
+</body>
+
+</html>
