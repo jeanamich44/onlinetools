@@ -116,6 +116,20 @@
                             <label><input type="radio" name="receiverType" value="1" checked> Particulier</label>
                         </div>
 
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label>Territoire *</label>
+                            <select name="receiverCountry" required>
+                                <option value="GP">Guadeloupe</option>
+                                <option value="MQ">Martinique</option>
+                                <option value="GF">Guyane</option>
+                                <option value="RE">La Réunion</option>
+                                <option value="YT">Mayotte</option>
+                                <option value="PM">St Pierre & Miquelon</option>
+                                <option value="NC">Nouvelle-Calédonie</option>
+                                <option value="PF">Polynésie Française</option>
+                            </select>
+                        </div>
+
                         <div class="form-group" id="receiverCompanyDiv" style="display:none;">
                             <label>Nom de société</label>
                             <input type="text" name="receiverCompanyName" placeholder="Optionnel" maxlength="60">
@@ -163,19 +177,6 @@
                             <input type="text" name="receiverAddress2" placeholder="Bâtiment, étage..." maxlength="60">
                         </div>
 
-                        <div class="form-group">
-                            <label>Territoire *</label>
-                            <select name="receiverCountry" required>
-                                <option value="GP">Guadeloupe</option>
-                                <option value="MQ">Martinique</option>
-                                <option value="GF">Guyane</option>
-                                <option value="RE">La Réunion</option>
-                                <option value="YT">Mayotte</option>
-                                <option value="PM">St Pierre & Miquelon</option>
-                                <option value="NC">Nouvelle-Calédonie</option>
-                                <option value="PF">Polynésie Française</option>
-                            </select>
-                        </div>
                     </div>
                 </div>
             </div>
