@@ -4,7 +4,77 @@
 <head>
   <meta charset="UTF-8" />
   <title>RIB – La Banque Postale</title>
-  <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .btn-premium-bank {
+            position: relative;
+            background: linear-gradient(135deg, #1e40af 0%, #111827 100%);
+            width: 100%;
+            color: #f3f4f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            /* --- TAILLE DU BOUTON ICI (Padding: haut/bas gauche/droite) --- */
+            padding: 14px; 
+            border-radius: 12px;
+            cursor: pointer;
+            /* --- TAILLE DU TEXTE ICI --- */
+            font-size: 1.1rem; 
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn-premium-bank:hover {
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+            background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-premium-bank:active {
+            transform: translateY(1px);
+        }
+
+        .btn-premium-bank::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0) 40%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0) 60%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: rotate(45deg);
+            transition: all 0.5s;
+            animation: shine-bank 4s infinite linear;
+        }
+
+        @keyframes shine-bank {
+            0% { transform: translateX(-150%) rotate(45deg); }
+            100% { transform: translateX(150%) rotate(45deg); }
+        }
+
+        .btn-premium-bank:disabled {
+            background: #1f2937;
+            border-color: #374151;
+            color: #6b7280;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+    </style>
 </head>
 
 <body>
@@ -51,7 +121,7 @@
       <input name="iban" placeholder="IBAN">
       <input name="bic" placeholder="BIC">
 
-      <button type="submit">Générer Preview (Gratuit)</button>
+      <button type="submit" class="btn-premium-bank">Générer Preview (Gratuit)</button>
     </form>
 
     <script src="../js/chronopost-autocomplete.js"></script>
@@ -59,9 +129,7 @@
     <div id="message"></div>
     <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">
       <p style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">Le PDF final sans filigrane est payant (1€).</p>
-      <button id="btnPay" type="button"
-        style="background-color: #28a745; width: 100%; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Acheter
-        le PDF Final (1€)</button>
+      <button id="btn-pay-submit" type="button" class="btn-premium-bank">Acheter le PDF Final (1€)</button>
     </div>
     <a class="back" href="./rib-generator.html">Retour</a>
   </div>
@@ -89,7 +157,7 @@
     const API_BASE = "https://generate-docs-production.up.railway.app";
     const ribForm = document.getElementById("ribForm");
     const message = document.getElementById("message");
-    const btnPay = document.getElementById("btnPay");
+    const btnPay = document.getElementById("btn-pay-submit");
     const errorNom = document.getElementById("error-nom");
     const inputNom = document.getElementsByName("nom_prenom")[0];
 
