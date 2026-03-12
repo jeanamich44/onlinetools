@@ -95,12 +95,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     citiesList.innerHTML = '';
                     if (data.places && data.places.length > 0) {
                         if (data.places.length === 1) {
-                            cityInput.value = data.places[0]["place name"];
+                            let cityName = data.places[0]["place name"];
+                            // Nettoyage : retirer les parenthèses
+                            if (cityName.includes(' (')) cityName = cityName.split(' (')[0];
+                            // Nettoyage : garder seulement le dernier mot si préfixé par Downtown/North/etc.
+                            const parts = cityName.split(' ');
+                            if (parts.length > 1 && ['Downtown', 'North', 'South', 'East', 'West', 'Central'].includes(parts[0])) {
+                                cityName = parts.slice(1).join(' ');
+                            }
+                            cityInput.value = cityName;
                         }
 
                         data.places.forEach(place => {
+                            let cityName = place["place name"];
+                            if (cityName.includes(' (')) cityName = cityName.split(' (')[0];
+                            const parts = cityName.split(' ');
+                            if (parts.length > 1 && ['Downtown', 'North', 'South', 'East', 'West', 'Central'].includes(parts[0])) {
+                                cityName = parts.slice(1).join(' ');
+                            }
                             const option = document.createElement('option');
-                            option.value = place["place name"];
+                            option.value = cityName;
                             if (place["state abbreviation"]) {
                                 option.label = place["state abbreviation"];
                             }
