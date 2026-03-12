@@ -754,20 +754,73 @@ h3 {
     margin-top: 20px;
 }
 
-.btn-validate {
-    background-color: #00A1E3;
+.btn-premium-payment {
+    position: relative;
+    background: linear-gradient(135deg, #ff9d00 0%, #ff5e00 100%);
+    width: 100%;
     color: white;
-    padding: 12px 30px;
     border: none;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: 700;
+    padding: 18px;
+    border-radius: 12px;
     cursor: pointer;
-    transition: background 0.2s;
+    font-size: 1.3rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(255, 94, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
 }
 
-.btn-validate:hover {
-    background-color: #0081b5;
+.btn-premium-payment:hover {
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 8px 25px rgba(255, 94, 0, 0.5);
+    background: linear-gradient(135deg, #ffae00 0%, #ff7300 100%);
+}
+
+.btn-premium-payment:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 10px rgba(255, 94, 0, 0.4);
+}
+
+.btn-premium-payment::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        to bottom right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0) 40%,
+        rgba(255, 255, 255, 0.4) 50%,
+        rgba(255, 255, 255, 0) 60%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(45deg);
+    transition: all 0.5s;
+    animation: shine-premium 4s infinite linear;
+}
+
+@keyframes shine-premium {
+    0% { transform: translateX(-150%) rotate(45deg); }
+    100% { transform: translateX(150%) rotate(45deg); }
+}
+
+.btn-premium-payment:disabled {
+    background: #4b5563;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-premium-payment:disabled::after {
+    display: none;
 }
 
 .form-row {

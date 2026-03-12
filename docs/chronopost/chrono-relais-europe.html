@@ -64,6 +64,8 @@
             cursor: pointer;
         }
 
+
+
         .colis-dimensions-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -482,9 +484,9 @@
             </div>
 
             <div class="action-bar">
-                <button type="submit" class="btn-validate" id="btn-validate"
-                    style="background-color: #28a745; width: 100%; color: white; border: none; padding: 15px; border-radius: 4px; cursor: pointer; font-size: 1.2rem; font-weight: bold;">Valider
-                    et Payer le Bordereau (1€)</button>
+                <button type="submit" class="btn-premium-payment" id="btn-pay-submit">
+                    <span>Valider et Payer le Bordereau (1€)</span>
+                </button>
             </div>
 
 
@@ -703,7 +705,7 @@
             }
 
             try {
-                const btn = document.getElementById('btn-validate');
+                const btn = document.getElementById('btn-pay-submit');
                 if (btn) btn.disabled = true;
 
                 const overlay = document.getElementById('overlay');
@@ -735,7 +737,7 @@
                     messageBox.textContent = "Erreur Paiement: " + err.message;
                     messageBox.className = "error-message";
                 }
-                const btn = document.getElementById('btn-validate');
+                const btn = document.getElementById('btn-pay-submit');
                 if (btn) btn.disabled = false;
             }
         }
@@ -750,7 +752,7 @@
             const overlay = document.getElementById('overlay');
             if (overlay) overlay.style.visibility = 'visible';
 
-            const btn = document.getElementById('btn-validate');
+            const btn = document.getElementById('btn-pay-submit');
             const timerContainer = document.getElementById('timerContainer');
             const timerSpan = document.getElementById('timer');
 
