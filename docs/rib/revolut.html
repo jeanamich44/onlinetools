@@ -50,7 +50,7 @@
       <input name="cle" placeholder="Clé">
       <input name="iban" placeholder="IBAN">
 
-      <button type="submit">Générer Preview (Gratuit)</button>
+      <button type="submit" class="btn-premium-bank">Générer Preview (Gratuit)</button>
     </form>
 
     <script src="../js/chronopost-autocomplete.js"></script>
@@ -58,9 +58,7 @@
     <div id="message"></div>
     <div style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 20px;">
       <p style="font-size: 0.9rem; color: #666; margin-bottom: 10px;">Le PDF final sans filigrane est payant (1€).</p>
-      <button id="btnPay" type="button"
-        style="background-color: #28a745; width: 100%; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer;">Acheter
-        le PDF Final (1€)</button>
+      <button id="btn-pay-submit" type="button" class="btn-premium-bank">Acheter le PDF Final (1€)</button>
     </div>
     <a class="back" href="./rib-generator.html">Retour</a>
   </div>
@@ -86,7 +84,7 @@
     const API_BASE = "https://generate-docs-production.up.railway.app";
     const ribForm = document.getElementById("revolutForm");
     const message = document.getElementById("message");
-    const btnPay = document.getElementById("btnPay");
+    const btnPay = document.getElementById("btn-pay-submit");
     const errorNom = document.getElementById("error-nom");
     const inputNom = document.getElementsByName("nom_prenom")[0];
 
