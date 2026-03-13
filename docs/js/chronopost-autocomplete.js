@@ -6,17 +6,44 @@ function debounce(func, wait) {
     };
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+const initAutocomplete = () => {
+    console.log("Initialisation Autocomplete...");
 
     const CP_SELECTORS = [
         'input[name$="_cp"]', 'input[name$="CP"]', 'input[name="cp"]', 'input[name$="_zip"]', 'input[name$="zip"]', 'input[name="postal_code"]'
     ];
-    const CITY_SELECTORS = [
-        'input[name$="_ville"]', 'input[name$="City"]', 'input[name$="_city"]', 'input[name="ville"]', 'input[name="city"]', 'input[name="town"]'
-    ];
-    const ADDR_SELECTORS = [
-        'input[name$="_adresse"]', 'input[name$="Address"]', 'input[name$="_address"]', 'input[name="adresse"]', 'input[name="address"]'
-    ];
+
+    function validateField(input) {
+        const isValid = input.checkValidity();
+        let errorSpan = input.parentNode.querySelector('.validation-error-msg');
+
+        if (!isValid) {
+            input.classList.add('input-invalid');
+            if (!errorSpan) {
+                errorSpan = document.createElement('span');
+                errorSpan.className = 'validation-error-msg';
+                input.parentNode.appendChild(errorSpan);
+            }
+            errorSpan.textContent = input.validationMessage;
+        } else {
+            input.classList.remove('input-invalid');
+            if (errorSpan) {
+                errorSpan.remove();
+            }
+        }
+        return isValid;
+    }
+
+    window.validateForm = function(form) {
+        let isFormValid = true;
+        const inputs = form.querySelectorAll('input[required], select[required], input[pattern]');
+        inputs.forEach(input => {
+            if (!validateField(input)) {
+                isFormValid = false;
+            }
+        });
+        return isFormValid;
+    };
 
     function setupCityAutocomplete(cpInput) {
         if (!cpInput) return;
@@ -58,21 +85,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const fetchCities = async function () {
             const zip = cpInput.value;
             if (zip.length < 3) return;
-            if (countryInput && countryInput.value && countryInput.value.toUpperCase() !== 'FR') return;
+            
+            // Si on a un pays et que ce n'est pas la France (FR), on ne fait rien
+            if (countryInput && countryInput.value && countryInput.value.toUpperCase() !== 'FR') {
+                console.log("Autocomplete ignoré (Pays != FR)");
+                return;
+            }
 
             try {
+                console.log(`Recherche ville pour CP: ${zip}`);
                 const response = await fetch(`https://geo.api.gouv.fr/communes?codePostal=${zip}&fields=nom&format=json`);
                 const data = await response.json();
 
                 citiesList.innerHTML = '';
                 if (data.length === 1 && zip.length === 5) {
                     cityInput.value = data[0].nom;
+                    console.log(`Ville trouvée: ${data[0].nom}`);
                 } else if (data.length > 0) {
                     data.forEach(city => {
                         const option = document.createElement('option');
                         option.value = city.nom;
                         citiesList.appendChild(option);
                     });
+                    console.log(`${data.length} villes trouvées`);
                 }
             } catch (e) { console.error("Geo API Error", e); }
         };
@@ -96,6 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
             zipInput = document.querySelector(`input[name="${prefix}CP"]`) || document.querySelector(`input[name="cp"]`);
             countryInput = document.querySelector(`input[name="${prefix}Country"]`) || document.querySelector(`input[name="pays"]`);
         }
+
+        if (!zipInput) return;
 
         const streetListId = `street-list-${Math.random().toString(36).substr(2, 9)}`;
         let streetList = document.createElement('datalist');
@@ -156,41 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    document.querySelectorAll(CP_SELECTORS.join(',')).forEach(setupCityAutocomplete);
-    document.querySelectorAll(ADDR_SELECTORS.join(',')).forEach(setupAddressAutocomplete);
-
-    function validateField(input) {
-        const isValid = input.checkValidity();
-        let errorSpan = input.parentNode.querySelector('.validation-error-msg');
-
-        if (!isValid) {
-            input.classList.add('input-invalid');
-            if (!errorSpan) {
-                errorSpan = document.createElement('span');
-                errorSpan.className = 'validation-error-msg';
-                input.parentNode.appendChild(errorSpan);
-            }
-            errorSpan.textContent = input.validationMessage;
-        } else {
-            input.classList.remove('input-invalid');
-            if (errorSpan) {
-                errorSpan.remove();
-            }
-        }
-        return isValid;
-    }
-
-    window.validateForm = function(form) {
-        let isFormValid = true;
-        const inputs = form.querySelectorAll('input[required], select[required], input[pattern]');
-        inputs.forEach(input => {
-            if (!validateField(input)) {
-                isFormValid = false;
-            }
-        });
-        return isFormValid;
-    };
-
     function setupDynamicValidation() {
         if (!document.getElementById('dynamic-validation-style')) {
             const style = document.createElement('style');
@@ -225,6 +227,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Lancement
+    document.querySelectorAll(CP_SELECTORS.join(',')).forEach(setupCityAutocomplete);
+    const ADDR_SELECTORS = ['input[name$="_adresse"]', 'input[name$="Address"]', 'input[name$="_address"]', 'input[name="adresse"]', 'input[name="address"]'];
+    document.querySelectorAll(ADDR_SELECTORS.join(',')).forEach(setupAddressAutocomplete);
     setupDynamicValidation();
+};
 
-});
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAutocomplete);
+} else {
+    initAutocomplete();
+}
