@@ -175,12 +175,12 @@
                     <input type="text" name="recipient_zip" placeholder="Code Postal" required>
                     <input type="text" name="recipient_city" placeholder="Ville" required>
                     <div class="section-title"><i class="fas fa-box"></i> Le Colis</div>
-                    <input type="number" name="weight" step="0.1" placeholder="Poids (kg)" required>
+                    <input type="number" name="weight" step="0.1" placeholder="Poids (kg)" required max="30">
                     <div style="grid-column: span 2; display: none;" id="dimFields">
                         <div style="display: flex; gap: 10px;">
-                            <input type="number" name="length" placeholder="Long (cm)">
-                            <input type="number" name="width" placeholder="Larg (cm)">
-                            <input type="number" name="height" placeholder="Haut (cm)">
+                            <input type="number" name="length" placeholder="Long (cm)" max="150">
+                            <input type="number" name="width" placeholder="Larg (cm)" max="150">
+                            <input type="number" name="height" placeholder="Haut (cm)" max="150">
                         </div>
                     </div>
                 </div>

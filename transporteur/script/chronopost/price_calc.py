@@ -51,6 +51,21 @@ def get_chronopost_price(data):
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
     }
 
+    # Validation locale avant envoi
+    weight = float(data.get("weight", 0))
+    length = float(data.get("length", 0)) if data.get("length") else 0
+    width = float(data.get("width", 0)) if data.get("width") else 0
+    height = float(data.get("height", 0)) if data.get("height") else 0
+
+    if weight > 30:
+        return {"status": "error", "message": "Le poids ne peut pas excéder 30kg."}
+    
+    if length > 150 or width > 150 or height > 150:
+        return {"status": "error", "message": "Aucune dimension ne peut excéder 150cm."}
+
+    if (length + 2 * (width + height)) > 300:
+        return {"status": "error", "message": "Le développé (L + 2l + 2h) ne peut pas excéder 300cm."}
+
     try:
         r = requests.post(
             f"{url}?lang=fr_FR",
