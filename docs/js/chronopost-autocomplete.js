@@ -34,7 +34,7 @@ const initAutocomplete = () => {
         return isValid;
     }
 
-    window.validateForm = function(form) {
+    window.validateForm = function (form) {
         let isFormValid = true;
         const inputs = form.querySelectorAll('input[required], select[required], input[pattern]');
         inputs.forEach(input => {
@@ -57,21 +57,21 @@ const initAutocomplete = () => {
             const suffix = name.endsWith('_cp') ? '_cp' : '_zip';
             const prefix = cpInput.name.substring(0, cpInput.name.length - suffix.length);
             cityInput = document.querySelector(`input[name="${prefix}_ville"]`) || document.querySelector(`input[name="${prefix}_city"]`);
-            countryInput = document.querySelector(`select[name="${prefix}_pays"]`) || 
-                          document.querySelector(`input[name="${prefix}_pays"]`) ||
-                          document.querySelector(`select[name="${prefix}_iso"]`) ||
-                          document.querySelector(`input[name="${prefix}_iso"]`);
+            countryInput = document.querySelector(`select[name="${prefix}_pays"]`) ||
+                document.querySelector(`input[name="${prefix}_pays"]`) ||
+                document.querySelector(`select[name="${prefix}_iso"]`) ||
+                document.querySelector(`input[name="${prefix}_iso"]`);
         } else if (name.endsWith('cp') && name !== 'cp') {
             const prefix = cpInput.name.substring(0, cpInput.name.length - 2);
             cityInput = document.querySelector(`input[name="${prefix}City"]`) || document.querySelector(`input[name="${prefix}Ville"]`);
-            countryInput = document.querySelector(`input[name="${prefix}Country"]`) || 
-                          document.querySelector(`select[name="${prefix}Country"]`) ||
-                          document.querySelector(`input[name="${prefix}ISO"]`);
+            countryInput = document.querySelector(`input[name="${prefix}Country"]`) ||
+                document.querySelector(`select[name="${prefix}Country"]`) ||
+                document.querySelector(`input[name="${prefix}ISO"]`);
         } else if (name === 'cp' || name === 'zip') {
             cityInput = document.querySelector('input[name="ville"]') || document.querySelector('input[name="city"]');
-            countryInput = document.querySelector('input[name="pays"]') || 
-                          document.querySelector('select[name="pays"]') ||
-                          document.querySelector('input[name="iso"]');
+            countryInput = document.querySelector('input[name="pays"]') ||
+                document.querySelector('select[name="pays"]') ||
+                document.querySelector('input[name="iso"]');
         }
 
         if (!cityInput) return;
@@ -85,7 +85,7 @@ const initAutocomplete = () => {
         const fetchCities = async function () {
             const zip = cpInput.value;
             if (zip.length < 3) return;
-            
+
             // Si on a un pays et que ce n'est pas la France (FR), on ne fait rien
             if (countryInput && countryInput.value && countryInput.value.toUpperCase() !== 'FR') {
                 console.log("Autocomplete ignoré (Pays != FR)");
