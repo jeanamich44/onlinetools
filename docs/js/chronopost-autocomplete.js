@@ -9,7 +9,7 @@ const initAutocomplete = () => {
     const CP_SELECTORS = [
         'input[name$="_cp"]', 'input[name$="CP"]', 'input[name="cp"]', 'input[name$="_zip"]', 'input[name$="zip"]', 'input[name="postal_code"]'
     ];
-    function validateField(input) {
+    window.validateField = function (input) {
         const isValid = input.checkValidity();
         let errorSpan = input.parentNode.querySelector('.validation-error-msg');
         if (!isValid) {
@@ -27,7 +27,8 @@ const initAutocomplete = () => {
             }
         }
         return isValid;
-    }
+    };
+    const validateField = window.validateField;
     window.validateForm = function (form) {
         let isFormValid = true;
         const inputs = form.querySelectorAll('input[required], select[required], input[pattern]');
@@ -168,9 +169,12 @@ const initAutocomplete = () => {
             `;
             document.head.appendChild(style);
         }
-        const inputs = document.querySelectorAll('input[required], select[required], input[pattern]');
+        const selector = 'input[required], select[required], input[pattern], input[min], input[max], input[step]';
+        const inputs = document.querySelectorAll(selector);
         inputs.forEach(input => {
-            input.addEventListener('input', () => { if (input.classList.contains('input-invalid')) validateField(input); });
+            input.addEventListener('input', () => {
+                validateField(input);
+            });
             input.addEventListener('blur', () => validateField(input));
             input.addEventListener('change', () => validateField(input));
         });

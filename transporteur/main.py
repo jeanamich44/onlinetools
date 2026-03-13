@@ -38,6 +38,18 @@ app.add_middleware(
 class ChronopostRequest(BaseModel):
     data: dict
 
+class ChronopostSimulateRequest(BaseModel):
+    sender_iso: str = "FR"
+    sender_zip: str
+    sender_city: str
+    recipient_iso: str = "FR"
+    recipient_zip: str
+    recipient_city: str
+    weight: float
+    length: float = 0
+    width: float = 0
+    height: float = 0
+
 @app.post("/generate/chronopost")
 def generate_chronopost_endpoint(req: ChronopostRequest):
     """Génération de l'étiquette Chronopost"""
@@ -49,10 +61,11 @@ def generate_chronopost_endpoint(req: ChronopostRequest):
         raise HTTPException(status_code=500, detail="error")
 
 @app.post("/api/chronopost/simulate")
-def simulate_chronopost_endpoint(data: dict):
+def simulate_chronopost_endpoint(req: ChronopostSimulateRequest):
     """Simulation des tarifs Chronopost avec réduction"""
     try:
-        return get_chronopost_price(data)
+        # Conversion du modèle Pydantic en dictionnaire pour la fonction de calcul
+        return get_chronopost_price(req.dict())
     except Exception as e:
         logger.error(f"Erreur Simulation Chronopost: {str(e)}")
         raise HTTPException(status_code=500, detail="error")

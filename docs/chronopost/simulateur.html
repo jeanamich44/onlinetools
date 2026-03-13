@@ -164,7 +164,7 @@
                         <option value="BL">SAINT-BARTHÉLEMY</option>
                         <option value="MF">SAINT-MARTIN - PARTIE FRANÇAISE</option>
                     </select>
-                    <input type="text" name="sender_zip" placeholder="Code Postal" required>
+                    <input type="text" name="sender_zip" placeholder="Code Postal" required pattern="[a-zA-Z0-9\s-]{1,10}" maxlength="10">
                     <input type="text" name="sender_city" placeholder="Ville" required>
                     <div class="section-title"><i class="fas fa-map-marker-alt"></i> Destinataire</div>
                     <div class="searchable-select" style="grid-column: span 2;">
@@ -172,7 +172,7 @@
                         <input type="hidden" name="recipient_iso" id="recipientCountryHidden">
                         <div id="destinationResults" class="search-results"></div>
                     </div>
-                    <input type="text" name="recipient_zip" placeholder="Code Postal" required>
+                    <input type="text" name="recipient_zip" placeholder="Code Postal" required pattern="[a-zA-Z0-9\s-]{1,10}" maxlength="10">
                     <input type="text" name="recipient_city" placeholder="Ville" required>
                     <div class="section-title"><i class="fas fa-box"></i> Le Colis</div>
                     <input type="number" name="weight" step="0.1" placeholder="Poids (kg)" required min="0.5" max="30">
@@ -257,42 +257,102 @@
                 destResults.style.display = 'none';
             }
         });
+        const validateField = (input) => {
+            const isValid = input.checkValidity();
+            let errorSpan = input.parentNode.querySelector('.validation-error-msg');
+            if (!isValid) {
+                input.classList.add('input-invalid');
+                if (!errorSpan) {
+                    errorSpan = document.createElement('span');
+                    errorSpan.className = 'validation-error-msg';
+                    input.parentNode.appendChild(errorSpan);
+                }
+                errorSpan.textContent = input.validationMessage;
+            } else {
+                input.classList.remove('input-invalid');
+                if (errorSpan) errorSpan.remove();
+            }
+            return isValid;
+        };
+
+        const updateDynamicValidation = () => {
+            const d = Object.fromEntries(new FormData(form));
+            const weightInput = form.querySelector('input[name="weight"]');
+            const lInput = form.querySelector('input[name="length"]');
+            const wInput = form.querySelector('input[name="width"]');
+            const hInput = form.querySelector('input[name="height"]');
+            
+            const weight = parseFloat(d.weight) || 0;
+            const l = parseFloat(d.length) || 0;
+            const w = parseFloat(d.width) || 0;
+            const h = parseFloat(d.height) || 0;
+
+            [weightInput, lInput, wInput, hInput].forEach(inp => inp.setCustomValidity(''));
+
+            if (d.weight) {
+                if (weight < 0.5) weightInput.setCustomValidity('Le poids minimum est de 0.5kg.');
+                else if (weight > 30) weightInput.setCustomValidity('Le poids ne peut pas excéder 30kg.');
+            }
+
+            if (d.length) {
+                if (l < 30) lInput.setCustomValidity('Longueur min: 30cm.');
+                else if (l > 150) lInput.setCustomValidity('Longueur max: 150cm.');
+            }
+            if (d.width) {
+                if (w < 21) wInput.setCustomValidity('Largeur min: 21cm.');
+                else if (w > 150) wInput.setCustomValidity('Largeur max: 150cm.');
+            }
+            if (d.height) {
+                if (h < 1) hInput.setCustomValidity('Hauteur min: 1cm.');
+                else if (h > 150) hInput.setCustomValidity('Hauteur max: 150cm.');
+            }
+
+            if (d.recipient_iso !== 'FR' && (l > 0 || w > 0 || h > 0)) {
+                if ((l + 2 * (w + h)) > 300) {
+                    lInput.setCustomValidity('Le développé (L + 2W + 2H) ne peut pas excéder 300cm.');
+                }
+            }
+            
+            [weightInput, lInput, wInput, hInput].forEach(validateField);
+        };
+
+        form.querySelectorAll('input').forEach(inp => {
+            inp.addEventListener('input', () => {
+                if (['weight', 'length', 'width', 'height'].includes(inp.name)) updateDynamicValidation();
+                else validateField(inp);
+            });
+            inp.addEventListener('blur', () => validateField(inp));
+        });
+
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .validation-error-msg { color: #ff4444; font-size: 0.75rem; margin-top: 4px; display: block; font-weight: 500; }
+            input.input-invalid { border-color: #ff4444 !important; }
+        `;
+        document.head.appendChild(style);
+
         form.onsubmit = async (e) => {
             e.preventDefault();
-            if (window.validateForm && !window.validateForm(form)) {
-                return;
-            }
+            updateDynamicValidation();
+            
+            const inputs = form.querySelectorAll('input[required]');
+            let isFormValid = true;
+            inputs.forEach(inp => { if (!validateField(inp)) isFormValid = false; });
+            if (!isFormValid || form.querySelector('.input-invalid')) return;
+
             const formData = new FormData(form);
             const data = Object.fromEntries(formData);
-            const weight = parseFloat(data.weight) || 0;
-            const l = parseFloat(data.length) || 0;
-            const w = parseFloat(data.width) || 0;
-            const h = parseFloat(data.height) || 0;
-            if (weight < 0.5) {
-                alert('Le poids minimum est de 0.5kg.');
-                return;
-            }
-            if (weight > 30) {
-                alert('Le poids ne peut pas excéder 30kg.');
-                return;
-            }
-            if (l > 150 || w > 150 || h > 150) {
-                alert('Aucune dimension ne peut excéder 150cm.');
-                return;
-            }
-            if (data.recipient_iso !== 'FR' && (l + 2 * (w + h)) > 300) {
-                alert('Le développé (L + 2W + 2H) ne peut pas excéder 300cm.');
-                return;
-            }
+            
             if (!destHidden.value) {
                 const val = destSearch.value.toUpperCase();
-                if (COUNTRY_LIST[val]) {
-                    destHidden.value = COUNTRY_LIST[val];
-                } else {
-                    alert('Veuillez sélectionner un pays de destination valide.');
+                if (COUNTRY_LIST[val]) destHidden.value = COUNTRY_LIST[val];
+                else {
+                    destSearch.setCustomValidity('Pays invalide.');
+                    validateField(destSearch);
                     return;
                 }
             }
+
             results.style.display = 'none';
             loader.style.display = 'block';
             offersList.innerHTML = '';
@@ -312,6 +372,9 @@
                             <div class="offer-info">
                                 <h3>${offer.label}</h3>
                                 <p><i class="fas fa-truck"></i> ${offer.is_relay ? 'Point Relais' : 'Domicile'}</p>
+                                <p style="font-size: 0.8rem; color: #3498db; margin-top: 5px;">
+                                    <i class="fas fa-calendar-alt"></i> Livraison prévue : ${offer.delivery_date}
+                                </p>
                             </div>
                             <div class="offer-price">
                                 <span class="price-official">${offer.official_price}€</span>
