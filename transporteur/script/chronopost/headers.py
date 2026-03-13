@@ -72,3 +72,21 @@ HEADERS_4 = {
         "__cf_bm=gKxC3aVI3mMDix7nM9iX9xEGKVt6YCL8JAfG2mENHAM-1769546325.996029-1.0.1.1-mDiCJv7V9wIAaD.lPGK7HQNgyLxwnodWn2GNksXQJc04lxX9XmD7V6HQyYcWANKUum5b2ticThPvGH34VmoIlrSx3b0ZdFN9NRzPfHEw7Ew.rpDYT2tRhwq7jF5ekkY5"
     ),
 } # 15 valeurs payload
+
+SIMULATEUR_HEADERS = {
+    "accept": "application/json, text/plain, */*",
+    "accept-encoding": "gzip, deflate, br, zstd",
+    "accept-language": "fr-FR,fr;q=0.9",
+    "content-type": "application/json",
+    "cookie": "lang=fr_FR; JSESSIONID_WSREST=.tc-mchronoweb-NODE7; parcours=Particulier; parcoursId=2;",
+    "origin": "https://www.chronopost.fr",
+    "priority": "u=1, i",
+    "referer": "https://www.chronopost.fr/small-webapp/",
+    "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "user-agent": USER_AGENT
+}

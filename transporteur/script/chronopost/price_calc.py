@@ -1,10 +1,15 @@
 from curl_cffi import requests
 import json
 
+from script.chronopost.headers import SIMULATEUR_HEADERS
+
+# Taux de réduction appliqué aux tarifs officiels (0.5 = -50%)
+CHRONOPOST_DISCOUNT_RATE = 0.5
+
 def get_chronopost_price(data):
     """
     Calcule le prix TTC d'un envoi Chronopost.
-    Applique une réduction de 50% sur le tarif officiel.
+    Applique une réduction basée sur CHRONOPOST_DISCOUNT_RATE.
     """
     url = "https://www.chronopost.fr/wsmchronoweb-rest/offre/list"
     
@@ -33,23 +38,7 @@ def get_chronopost_price(data):
         ]
     }
 
-    headers = {
-        "accept": "application/json, text/plain, */*",
-        "accept-encoding": "gzip, deflate, br, zstd",
-        "accept-language": "fr-FR,fr;q=0.9",
-        "content-type": "application/json",
-        "cookie": "lang=fr_FR; JSESSIONID_WSREST=.tc-mchronoweb-NODE7; parcours=Particulier; parcoursId=2;",
-        "origin": "https://www.chronopost.fr",
-        "priority": "u=1, i",
-        "referer": "https://www.chronopost.fr/small-webapp/",
-        "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
-        "sec-ch-ua-mobile": "?0",
-        "sec-ch-ua-platform": "\"Windows\"",
-        "sec-fetch-dest": "empty",
-        "sec-fetch-mode": "cors",
-        "sec-fetch-site": "same-origin",
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
-    }
+    headers = SIMULATEUR_HEADERS
 
     # Validation locale avant envoi
     weight = float(data.get("weight", 0))
@@ -57,14 +46,17 @@ def get_chronopost_price(data):
     width = float(data.get("width", 0)) if data.get("width") else 0
     height = float(data.get("height", 0)) if data.get("height") else 0
 
+    if weight < 0.5:
+        return {"status": "error"}
+    
     if weight > 30:
-        return {"status": "error", "message": "Le poids ne peut pas excéder 30kg."}
+        return {"status": "error"}
     
     if length > 150 or width > 150 or height > 150:
-        return {"status": "error", "message": "Aucune dimension ne peut excéder 150cm."}
+        return {"status": "error"}
 
     if (length + 2 * (width + height)) > 300:
-        return {"status": "error", "message": "Le développé (L + 2l + 2h) ne peut pas excéder 300cm."}
+        return {"status": "error"}
 
     try:
         r = requests.post(
@@ -76,7 +68,7 @@ def get_chronopost_price(data):
         )
         
         if r.status_code != 200:
-            return {"status": "error", "message": f"Erreur API Chronopost: {r.status_code}"}
+            return {"status": "error"}
             
         choices = r.json()
         results = []
@@ -84,8 +76,8 @@ def get_chronopost_price(data):
         for service in choices:
             # Prix officiel TTC
             official_price = float(service.get("unitPriceTTC", 0))
-            # Notre prix à -50%
-            our_price = round(official_price / 2, 2)
+            # Calcul du prix réduit
+            our_price = round(official_price * CHRONOPOST_DISCOUNT_RATE, 2)
             
             results.append({
                 "label": service.get("label"),
@@ -99,4 +91,4 @@ def get_chronopost_price(data):
         return {"status": "success", "offers": results}
 
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        return {"status": "error"}
