@@ -9,13 +9,13 @@ function debounce(func, wait) {
 document.addEventListener('DOMContentLoaded', () => {
 
     const CP_SELECTORS = [
-        'input[name$="_cp"]', 'input[name$="CP"]', 'input[name="cp"]', 'input[name="zip"]', 'input[name="postal_code"]'
+        'input[name$="_cp"]', 'input[name$="CP"]', 'input[name="cp"]', 'input[name$="_zip"]', 'input[name$="zip"]', 'input[name="postal_code"]'
     ];
     const CITY_SELECTORS = [
-        'input[name$="_ville"]', 'input[name$="City"]', 'input[name="ville"]', 'input[name="city"]', 'input[name="town"]'
+        'input[name$="_ville"]', 'input[name$="City"]', 'input[name$="_city"]', 'input[name="ville"]', 'input[name="city"]', 'input[name="town"]'
     ];
     const ADDR_SELECTORS = [
-        'input[name$="_adresse"]', 'input[name$="Address"]', 'input[name="adresse"]', 'input[name="address"]'
+        'input[name$="_adresse"]', 'input[name$="Address"]', 'input[name$="_address"]', 'input[name="adresse"]', 'input[name="address"]'
     ];
 
     function setupCityAutocomplete(cpInput) {
@@ -25,17 +25,26 @@ document.addEventListener('DOMContentLoaded', () => {
         let countryInput = null;
         const name = cpInput.name.toLowerCase();
 
-        if (name.endsWith('_cp')) {
-            const prefix = cpInput.name.split('_')[0];
-            cityInput = document.querySelector(`input[name="${prefix}_ville"]`);
-            countryInput = document.querySelector(`select[name="${prefix}_pays"]`) || document.querySelector(`input[name="${prefix}_pays"]`);
+        // Support de _cp ou _zip
+        if (name.endsWith('_cp') || name.endsWith('_zip')) {
+            const suffix = name.endsWith('_cp') ? '_cp' : '_zip';
+            const prefix = cpInput.name.substring(0, cpInput.name.length - suffix.length);
+            cityInput = document.querySelector(`input[name="${prefix}_ville"]`) || document.querySelector(`input[name="${prefix}_city"]`);
+            countryInput = document.querySelector(`select[name="${prefix}_pays"]`) || 
+                          document.querySelector(`input[name="${prefix}_pays"]`) ||
+                          document.querySelector(`select[name="${prefix}_iso"]`) ||
+                          document.querySelector(`input[name="${prefix}_iso"]`);
         } else if (name.endsWith('cp') && name !== 'cp') {
             const prefix = cpInput.name.substring(0, cpInput.name.length - 2);
             cityInput = document.querySelector(`input[name="${prefix}City"]`) || document.querySelector(`input[name="${prefix}Ville"]`);
-            countryInput = document.querySelector(`input[name="${prefix}Country"]`) || document.querySelector(`select[name="${prefix}Country"]`);
+            countryInput = document.querySelector(`input[name="${prefix}Country"]`) || 
+                          document.querySelector(`select[name="${prefix}Country"]`) ||
+                          document.querySelector(`input[name="${prefix}ISO"]`);
         } else if (name === 'cp' || name === 'zip') {
             cityInput = document.querySelector('input[name="ville"]') || document.querySelector('input[name="city"]');
-            countryInput = document.querySelector('input[name="pays"]') || document.querySelector('select[name="pays"]');
+            countryInput = document.querySelector('input[name="pays"]') || 
+                          document.querySelector('select[name="pays"]') ||
+                          document.querySelector('input[name="iso"]');
         }
 
         if (!cityInput) return;
@@ -150,6 +159,38 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll(CP_SELECTORS.join(',')).forEach(setupCityAutocomplete);
     document.querySelectorAll(ADDR_SELECTORS.join(',')).forEach(setupAddressAutocomplete);
 
+    function validateField(input) {
+        const isValid = input.checkValidity();
+        let errorSpan = input.parentNode.querySelector('.validation-error-msg');
+
+        if (!isValid) {
+            input.classList.add('input-invalid');
+            if (!errorSpan) {
+                errorSpan = document.createElement('span');
+                errorSpan.className = 'validation-error-msg';
+                input.parentNode.appendChild(errorSpan);
+            }
+            errorSpan.textContent = input.validationMessage;
+        } else {
+            input.classList.remove('input-invalid');
+            if (errorSpan) {
+                errorSpan.remove();
+            }
+        }
+        return isValid;
+    }
+
+    window.validateForm = function(form) {
+        let isFormValid = true;
+        const inputs = form.querySelectorAll('input[required], select[required], input[pattern]');
+        inputs.forEach(input => {
+            if (!validateField(input)) {
+                isFormValid = false;
+            }
+        });
+        return isFormValid;
+    };
+
     function setupDynamicValidation() {
         if (!document.getElementById('dynamic-validation-style')) {
             const style = document.createElement('style');
@@ -157,49 +198,30 @@ document.addEventListener('DOMContentLoaded', () => {
             style.innerHTML = `
                 .validation-error-msg {
                     color: #ff4444;
-                    font-size: 0.8rem;
+                    font-size: 0.75rem;
                     margin-top: 4px;
                     display: block;
+                    font-weight: 500;
                 }
-                input.input-invalid {
+                input.input-invalid, select.input-invalid {
                     border-color: #ff4444 !important;
+                    box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.1) !important;
                 }
             `;
             document.head.appendChild(style);
         }
 
-        const inputs = document.querySelectorAll('input[required], input[pattern], input[type="email"], input[type="tel"]');
+        const inputs = document.querySelectorAll('input[required], select[required], input[pattern], input[type="email"], input[type="tel"]');
 
         inputs.forEach(input => {
-            function validateField() {
-                const isValid = input.checkValidity();
-
-                let errorSpan = input.parentNode.querySelector('.validation-error-msg');
-
-                if (!isValid) {
-                    input.classList.add('input-invalid');
-                    if (!errorSpan) {
-                        errorSpan = document.createElement('span');
-                        errorSpan.className = 'validation-error-msg';
-                        input.parentNode.appendChild(errorSpan);
-                    }
-                    errorSpan.textContent = input.validationMessage;
-                } else {
-                    input.classList.remove('input-invalid');
-                    if (errorSpan) {
-                        errorSpan.remove();
-                    }
-                }
-            }
-
             input.addEventListener('input', () => {
                 if (input.classList.contains('input-invalid')) {
-                    validateField();
+                    validateField(input);
                 }
             });
 
-            input.addEventListener('blur', validateField);
-            input.addEventListener('change', validateField);
+            input.addEventListener('blur', () => validateField(input));
+            input.addEventListener('change', () => validateField(input));
         });
     }
 

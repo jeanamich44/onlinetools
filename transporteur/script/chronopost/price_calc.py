@@ -85,14 +85,3 @@ def get_chronopost_price(data):
 
     except Exception as e:
         return {"status": "error", "message": str(e)}
-
-if __name__ == "__main__":
-    # Test rapide si lancé en direct
-    test_data = {
-        "sender_zip": "75001",
-        "sender_city": "PARIS",
-        "recipient_zip": "31000",
-        "recipient_city": "TOULOUSE",
-        "weight": 2.0
-    }
-    print(json.dumps(get_chronopost_price(test_data), indent=2, ensure_ascii=False))

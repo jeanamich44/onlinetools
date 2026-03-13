@@ -160,7 +160,7 @@
         </section>
 
         <div class="simulator-container">
-            <form id="simulatorForm">
+            <form id="simulatorForm" novalidate>
                 <div class="form-grid">
                     <div class="section-title"><i class="fas fa-paper-plane"></i> Expéditeur</div>
                     
@@ -297,6 +297,11 @@
 
         form.onsubmit = async (e) => {
             e.preventDefault();
+            
+            // Validation personnalisée (rouge en dessous des champs)
+            if (window.validateForm && !window.validateForm(form)) {
+                return;
+            }
             
             if (!destHidden.value) {
                 const val = destSearch.value.toUpperCase();
