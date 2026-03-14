@@ -1017,11 +1017,9 @@ h3 {
     width: 100%;
     color: #f3f4f6;
     border: 1px solid rgba(59, 130, 246, 0.3);
-    /* --- TAILLE DU BOUTON ICI (Padding: haut/bas gauche/droite) --- */
     padding: 14px; 
     border-radius: 12px;
     cursor: pointer;
-    /* --- TAILLE DU TEXTE ICI --- */
     font-size: 1.1rem; 
     font-weight: 800;
     text-transform: uppercase;

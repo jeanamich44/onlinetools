@@ -5,8 +5,8 @@ from .p_utils import USER_AGENT
 # Configuration du logging
 logger = logging.getLogger(__name__)
 
-# URL de l'API de tarification Colissimo (Endpoint Checkout plus robuste)
-TARIFS_URL = "https://ws.colissimo.fr/tarification-ws/rest/tarifsCheckout"
+# URL de l'API de tarification Colissimo (Endpoint standard)
+TARIFS_URL = "https://ws.colissimo.fr/tarification-ws/rest/tarifs"
 
 def get_colissimo_price(data, config):
     """
@@ -19,7 +19,7 @@ def get_colissimo_price(data, config):
         from datetime import datetime
         shipping_date = datetime.now().strftime("%Y-%m-%d")
 
-    # Préparation du payload pour l'API Tarification Checkout
+    # Préparation du payload pour l'API Tarification
     payload = {
         "identifiants": {
             "contractNumber": config.get("id"),
@@ -38,11 +38,12 @@ def get_colissimo_price(data, config):
 
     headers = {
         "Content-Type": "application/json",
+        "Accept": "application/json",
         "User-Agent": USER_AGENT
     }
 
     try:
-        logger.info(f"Appel API Tarification Checkout Colissimo pour le contrat {config['id']}")
+        logger.info(f"Appel API Tarification Colissimo pour le contrat {config['id']}")
         # Log du payload sans le mot de passe pour le debug
         debug_payload = payload.copy()
         debug_payload["identifiants"]["password"] = "****"
@@ -52,21 +53,38 @@ def get_colissimo_price(data, config):
         
         if response.status_code == 200:
             result = response.json()
-            # Dans l'API Checkout, le prix est souvent dans "montant" ou "tarif"
-            # On vérifie les deux cas
+            
+            # Gestion du cas où la réponse est une liste (rare sur cet endpoint mais possible)
+            if isinstance(result, list) and len(result) > 0:
+                result = result[0]
+            
+            # Recherche du prix (montant en centimes généralement)
             price_raw = result.get("tarif") or result.get("montant")
+            if not price_raw and "service" in result:
+                price_raw = result["service"].get("prix") or result["service"].get("prixCalculé") or result["service"].get("montant")
             
             if price_raw is not None:
+                # L'API renvoie souvent le prix en centimes (entier ou float)
                 official_price = float(price_raw) / 100
                 
                 if data.get("package_format") == "VOL":
                     official_price += 6.0
                     
+                delivery_date = result.get("dateLivraison")
+                if not delivery_date and "service" in result:
+                    delivery_date = result["service"].get("dateLivraison")
+                
+                label = result.get("libelleProduit")
+                if not label and "service" in result:
+                    label = result["service"].get("libelleProduit", "Colissimo")
+                elif not label:
+                    label = "Colissimo"
+
                 return {
                     "status": "success",
                     "price": official_price,
-                    "delivery_date": result.get("dateLivraison"),
-                    "label": result.get("libelleProduit", "Colissimo")
+                    "delivery_date": delivery_date,
+                    "label": label
                 }
             else:
                 logger.error(f"Réponse API sans tarif: {result}")
@@ -80,7 +98,7 @@ def get_colissimo_price(data, config):
         except:
             pass
 
-        logger.error(f"Erreur API Tarification Colissimo: {error_detail}")
+        logger.error(f"Erreur API Tarification Colissimo ({response.status_code}): {error_detail}")
         return {"status": "error", "message": error_detail}
 
     except Exception as e:
