@@ -1,6 +1,3 @@
-/**
- * CountrySearch - Gestionnaire universel de recherche de pays
- */
 class CountrySearch {
     constructor(selectId, inputId, resultsId, options = {}) {
         this.select = document.getElementById(selectId) || document.querySelector(`select[name="${selectId}"]`);

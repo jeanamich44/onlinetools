@@ -6,7 +6,6 @@
     <title>Simulateur de Tarifs – Colissimo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/colissimo.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/font-awesome.min.css">
     <style>
         :root {
@@ -110,7 +109,7 @@
             transition: border-color 0.2s, box-shadow 0.2s;
             outline: none;
             box-sizing: border-box;
-            height: 48px; /* Force height consistency */
+            height: 48px;
         }
 
         input:focus,
@@ -278,7 +277,6 @@
                         pattern="[a-zA-Z0-9\s-]{1,10}" maxlength="10">
                     <input type="text" name="recipient_city" placeholder="Ville" required>
                     <select name="product_code" id="productCodeSelector" required style="grid-column: span 2;">
-                        <!-- Options générées dynamiquement par JS -->
                     </select>
 
                     <div class="section-title"><i class="fas fa-cog"></i> Options d'envoi</div>
@@ -342,7 +340,6 @@
             let options = [];
 
             if (iso === 'FR' || iso === 'MC' || iso === 'AD') {
-                // FRANCE, MONACO, ANDORRE
                 options = [
                     { val: 'DOM', label: 'Colissimo France - Domicile (sans signature)' },
                     { val: 'DOS', label: 'Colissimo France - Domicile (avec signature)' },
@@ -350,13 +347,11 @@
                     { val: 'BPR', label: 'Colissimo France - Bureau de Poste' }
                 ];
             } else if (OM_COUNTRIES.includes(iso)) {
-                // OUTRE-MER
                 options = [
                     { val: 'COM', label: 'Colissimo Outre-Mer - Domicile (sans signature)' },
                     { val: 'CDS', label: 'Colissimo Outre-Mer - Domicile (avec signature)' }
                 ];
             } else {
-                // INTERNATIONAL
                 options = [
                     { val: 'COLI', label: 'Colissimo International (Domicile)' },
                     { val: 'CORI', label: 'Colissimo International (Relais)' }
@@ -385,19 +380,6 @@
             weightGrams.textContent = `soit ${(kg * 1000).toLocaleString()} grammes`;
         });
 
-        // Chargement des pays
-        async function loadCountries() {
-            try {
-                const response = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,translations');
-                const data = await response.json();
-                data.forEach(country => {
-                    const nameFR = country.translations.fra ? country.translations.fra.common.toUpperCase() : country.name.common.toUpperCase();
-                    COUNTRY_LIST[nameFR] = country.cca2;
-                });
-            } catch (err) {
-                COUNTRY_LIST = { "FRANCE": "FR", "BELGIQUE": "BE", "SUISSE": "CH", "ALLEMAGNE": "DE", "ESPAGNE": "ES", "ITALIE": "IT" };
-            }
-        }
         loadCountries();
 
         // Autocomplete pays
@@ -472,10 +454,8 @@
             const formData = new FormData(form);
             const data = Object.fromEntries(formData);
             
-            // Nettoyage et conversion pour l'API
             if (data.weight) data.weight = parseFloat(data.weight);
             
-            // Si c'est de l'international, certains champs "France" peuvent bloquer l'API
             if (data.recipient_iso !== 'FR') {
                 delete data.shipping_mode; 
                 delete data.package_format;

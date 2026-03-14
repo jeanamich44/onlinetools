@@ -6,7 +6,6 @@
     <title>Colissimo Outre-Mer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/colissimo.css">
 </head>
 
 <body>
@@ -290,7 +289,6 @@
             const formData = new FormData(form);
             const data = Object.fromEntries(formData.entries());
 
-            // Build customs
             if (data.customsDesc) {
                 data.customs = {
                     includeCustomsDeclarations: 1,
@@ -345,7 +343,6 @@
                 return;
             }
 
-            // Sauvegarde pour après paiement
             localStorage.setItem('colissimoData', JSON.stringify(data));
 
             statusDiv.textContent = "Préparation du paiement...";

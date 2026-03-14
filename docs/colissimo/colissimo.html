@@ -6,7 +6,6 @@
     <title>Colissimo - Générer Étiquette</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/colissimo.css">
 </head>
 
 <body>
@@ -266,7 +265,6 @@
                 return;
             }
 
-            // Sauvegarde pour après paiement
             localStorage.setItem('colissimoData', JSON.stringify(data));
 
             statusDiv.textContent = "Préparation du paiement...";

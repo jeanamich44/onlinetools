@@ -5,17 +5,21 @@ from .p_utils import USER_AGENT
 # Configuration du logging
 logger = logging.getLogger(__name__)
 
-# URL de l'API de tarification Colissimo
-TARIFS_URL = "https://ws.colissimo.fr/tarification-ws/rest/tarifs"
+# URL de l'API de tarification Colissimo (Endpoint Checkout plus robuste)
+TARIFS_URL = "https://ws.colissimo.fr/tarification-ws/rest/tarifsCheckout"
 
 def get_colissimo_price(data, config):
     """
     Calcule le prix d'un envoi Colissimo via l'API de tarification.
-    data contient: sender_zip, recipient_zip, recipient_iso, weight, etc.
-    config contient: id, key
     """
     
-    # Préparation du payload pour l'API Tarification
+    # Nettoyage de la date (format attendu: YYYY-MM-DD)
+    shipping_date = data.get("shipping_date")
+    if not shipping_date:
+        from datetime import datetime
+        shipping_date = datetime.now().strftime("%Y-%m-%d")
+
+    # Préparation du payload pour l'API Tarification Checkout
     payload = {
         "identifiants": {
             "contractNumber": config.get("id"),
@@ -23,7 +27,7 @@ def get_colissimo_price(data, config):
         },
         "envoi": {
             "poids": data.get("weight"),
-            "dateEnvoi": data.get("shipping_date"),
+            "dateEnvoi": shipping_date,
             "paysExpediteur": data.get("sender_iso", "FR"),
             "codePostalExpediteur": data.get("sender_zip"),
             "paysDestinataire": data.get("recipient_iso", "FR"),
@@ -38,18 +42,23 @@ def get_colissimo_price(data, config):
     }
 
     try:
-        logger.info(f"Appel API Tarification Colissimo pour le contrat {config['id']}")
+        logger.info(f"Appel API Tarification Checkout Colissimo pour le contrat {config['id']}")
+        # Log du payload sans le mot de passe pour le debug
+        debug_payload = payload.copy()
+        debug_payload["identifiants"]["password"] = "****"
+        logger.info(f"Payload simulation: {debug_payload}")
+
         response = requests.post(TARIFS_URL, json=payload, headers=headers, timeout=15)
         
         if response.status_code == 200:
             result = response.json()
-            # Traitement de la réponse pour extraire le prix
-            if result.get("tarif") is not None:
-                official_price = float(result["tarif"]) / 100 # Le prix est souvent en centièmes
+            # Dans l'API Checkout, le prix est souvent dans "montant" ou "tarif"
+            # On vérifie les deux cas
+            price_raw = result.get("tarif") or result.get("montant")
+            
+            if price_raw is not None:
+                official_price = float(price_raw) / 100
                 
-                # Ajout du supplément Format Volumineux si sélectionné
-                # Note: Dans une intégration réelle, l'API Tarification peut déjà l'inclure si l'attribut est passé,
-                # mais ici nous l'ajoutons explicitement pour coller au simulateur public si l'API ne le gère pas en direct.
                 if data.get("package_format") == "VOL":
                     official_price += 6.0
                     
@@ -59,10 +68,21 @@ def get_colissimo_price(data, config):
                     "delivery_date": result.get("dateLivraison"),
                     "label": result.get("libelleProduit", "Colissimo")
                 }
+            else:
+                logger.error(f"Réponse API sans tarif: {result}")
         
-        logger.error(f"Erreur API Tarification Colissimo: {response.text}")
-        return {"status": "error"}
+        # En cas d'erreur, on capture le message si c'est du JSON
+        error_detail = response.text
+        try:
+            err_json = response.json()
+            if "messages" in err_json:
+                error_detail = " | ".join([m.get("messageContent", "") for m in err_json["messages"]])
+        except:
+            pass
+
+        logger.error(f"Erreur API Tarification Colissimo: {error_detail}")
+        return {"status": "error", "message": error_detail}
 
     except Exception as e:
         logger.error(f"Erreur technique Tarification Colissimo: {str(e)}")
-        return {"status": "error"}
+        return {"status": "error", "message": "Erreur technique serveur"}
