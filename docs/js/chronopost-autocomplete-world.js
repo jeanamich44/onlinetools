@@ -96,9 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (data.places && data.places.length > 0) {
                         if (data.places.length === 1) {
                             let cityName = data.places[0]["place name"];
-                            // Nettoyage : retirer les parenthèses
+
                             if (cityName.includes(' (')) cityName = cityName.split(' (')[0];
-                            // Nettoyage : garder seulement le dernier mot si préfixé par Downtown/North/etc.
+
                             const parts = cityName.split(' ');
                             if (parts.length > 1 && ['Downtown', 'North', 'South', 'East', 'West', 'Central'].includes(parts[0])) {
                                 cityName = parts.slice(1).join(' ');

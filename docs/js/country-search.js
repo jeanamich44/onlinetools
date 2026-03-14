@@ -5,7 +5,7 @@ class CountrySearch {
         this.results = document.getElementById(resultsId);
         this.countries = [];
         this.onSelect = options.onSelect || null;
-        this.themeColor = options.themeColor || '#F37021'; // Par défaut orange Colissimo
+        this.themeColor = options.themeColor || '#F37021';
 
         if (this.select && this.input && this.results) {
             this.init();
@@ -13,7 +13,7 @@ class CountrySearch {
     }
 
     async init() {
-        // Extraction des pays depuis le select existant pour garantir les codes ISO corrects
+
         Array.from(this.select.options).forEach(opt => {
             if (opt.value && opt.value !== "") {
                 this.countries.push({
@@ -23,23 +23,23 @@ class CountrySearch {
             }
         });
 
-        // Masquer le select original
+
         this.select.style.display = 'none';
 
-        // Événements
+
         this.input.addEventListener('input', () => this.filter());
         this.input.addEventListener('focus', () => {
             if (this.input.value.length > 0) this.filter();
         });
 
-        // Fermeture au clic extérieur
+
         document.addEventListener('click', (e) => {
             if (!this.input.contains(e.target) && !this.results.contains(e.target)) {
                 this.results.style.display = 'none';
             }
         });
 
-        // Style dynamique pour le survol (basé sur la couleur du thème)
+
         if (!document.getElementById('country-search-styles')) {
             const style = document.createElement('style');
             style.id = 'country-search-styles';
@@ -100,7 +100,7 @@ class CountrySearch {
                     this.select.value = country.code;
                     this.results.style.display = 'none';
                     
-                    // Déclenche l'événement change sur le select original
+
                     const event = new Event('change', { bubbles: true });
                     this.select.dispatchEvent(event);
 

@@ -366,13 +366,13 @@
             });
         }
 
-        // Initialisation par défaut (France)
+
         updateProductChoices('FR');
 
-        // Configuration de la date par défaut
+
         document.getElementById('shippingDate').value = new Date().toISOString().split('T')[0];
 
-        // Mise à jour du poids en grammes
+
         const weightInput = document.getElementById('weightInput');
         const weightGrams = document.getElementById('weightGrams');
         weightInput.addEventListener('input', () => {
@@ -382,7 +382,7 @@
 
         loadCountries();
 
-        // Autocomplete pays
+
         destSearch.addEventListener('input', (e) => {
             const val = e.target.value.toUpperCase();
             destResults.innerHTML = '';
@@ -417,7 +417,7 @@
             }
         });
 
-        // Validation dynamique
+
         const validateField = (input) => {
             const isValid = input.checkValidity();
             let errorSpan = input.parentNode.querySelector('.validation-error-msg');
@@ -442,7 +442,7 @@
             inp.addEventListener('blur', () => validateField(inp));
         });
 
-        // Soumission
+
         form.onsubmit = async (e) => {
             e.preventDefault();
 

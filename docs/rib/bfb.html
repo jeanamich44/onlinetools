@@ -158,14 +158,14 @@
                 window.location.href = `${API_BASE}/api/download-pdf/${ref}`;
                 break;
               } else if (waitData.status === "TIMEOUT") {
-                continue; // Relance après le timeout du serveur/proxy
+                continue;
               } else {
                 throw new Error("Le paiement a échoué ou a été annulé.");
               }
             } catch (pollErr) {
               console.error("Polling error:", pollErr);
               await new Promise(r => setTimeout(r, 2000));
-              continue; // On insiste
+                continue;
             }
           }
         } else {
