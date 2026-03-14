@@ -119,6 +119,36 @@
             border-color: #3498db;
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
+        .btn-chronopost {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+            margin-top: 10px;
+        }
+
+        .btn-chronopost:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(52, 152, 219, 0.5);
+            background: linear-gradient(135deg, #2980b9, #3498db);
+        }
+
+        .btn-chronopost:active {
+            transform: scale(0.95);
+        }
         select {
             cursor: pointer;
             appearance: none;
@@ -184,7 +214,9 @@
                         </div>
                     </div>
                 </div>
-                <button type="submit" class="btn-premium-bank" style="width: 100%;">Calculer les Tarifs</button>
+                <button type="submit" class="btn-chronopost">
+                    <i class="fas fa-calculator"></i> Calculer les Tarifs
+                </button>
             </form>
             <div id="loader">
                 <i class="fas fa-spinner fa-spin fa-2x" style="color: #3498db;"></i>

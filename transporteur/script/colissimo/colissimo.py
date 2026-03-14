@@ -1,11 +1,11 @@
 import requests
-import logging
 import json
 import email
 import base64
 from email.policy import default
 from datetime import datetime
 import fitz  # PyMuPDF pour le traitement PDF ultra-rapide en mémoire
+from .p_utils import geocode_zip, USER_AGENT
 
 # Configuration du logging
 logger = logging.getLogger(__name__)
@@ -190,35 +190,6 @@ def run_colissimo(data, config, method="generateLabel"):
         logger.error(f"Erreur technique Colissimo: {str(e)}")
         return {"status": "failed"}
 
-def geocode_zip(zip_code):
-    """
-    Géocode un code postal en coordonnées lat/lng via Nominatim (OSM).
-    """
-    logger.info(f"Géocodage du CP: {zip_code}")
-    url = "https://nominatim.openstreetmap.org/search"
-    params = {
-        "postalcode": zip_code,
-        "country": "France",
-        "format": "json",
-        "limit": 1
-    }
-    headers = {
-        "User-Agent": "ChezRheyy-Transporteur-App/1.0"
-    }
-    try:
-        response = requests.get(url, params=params, headers=headers, timeout=15)
-        if response.status_code == 200:
-            data = response.json()
-            if data and isinstance(data, list) and len(data) > 0:
-                lat = data[0].get("lat")
-                lon = data[0].get("lon")
-                logger.info(f"Géocodage réussi pour {zip_code}: {lat}, {lon}")
-                return lat, lon
-            else:
-                logger.warning(f"Aucun résultat de géocodage pour le CP {zip_code}")
-    except Exception as e:
-        logger.error(f"Erreur durant le géocodage de {zip_code}: {str(e)}")
-    return None, None
 
 def search_relays_colissimo(zip_code, config=None):
     """
@@ -248,7 +219,7 @@ def search_relays_colissimo(zip_code, config=None):
 
     headers = {
         "Accept": "application/json",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        "User-Agent": USER_AGENT
     }
     
     try:

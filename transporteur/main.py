@@ -9,6 +9,7 @@ import logging
 from script.chronopost.chr import run_chronopost, get_relay_detail
 from script.chronopost.price_calc import get_chronopost_price
 from script.colissimo.colissimo import run_colissimo, search_relays_colissimo
+from script.colissimo.price_calc_colissimo import get_colissimo_price
 
 app = FastAPI()
 
@@ -68,6 +69,24 @@ def simulate_chronopost_endpoint(req: ChronopostSimulateRequest):
         return get_chronopost_price(req.dict())
     except Exception as e:
         logger.error(f"Erreur Simulation Chronopost: {str(e)}")
+        raise HTTPException(status_code=500, detail="error")
+
+class ColissimoSimulateRequest(BaseModel):
+    weight: float
+    sender_zip: str
+    sender_iso: str = "FR"
+    recipient_zip: str
+    recipient_iso: str = "FR"
+    product_code: str = "DOM"
+    shipping_date: str = None
+
+@app.post("/api/colissimo/simulate")
+def simulate_colissimo_endpoint(req: ColissimoSimulateRequest):
+    """Simulation des tarifs Colissimo"""
+    try:
+        return get_colissimo_price(req.dict(), COLISSIMO_CONFIG)
+    except Exception as e:
+        logger.error(f"Erreur Simulation Colissimo: {str(e)}")
         raise HTTPException(status_code=500, detail="error")
 
 class RelayRequest(BaseModel):
