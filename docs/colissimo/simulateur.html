@@ -358,8 +358,8 @@
             } else {
                 // INTERNATIONAL
                 options = [
-                    { val: 'COLI', label: 'Colissimo International - Domicile' },
-                    { val: 'CORI', label: 'Colissimo International - Point Retrait' }
+                    { val: 'COLI', label: 'Colissimo International (Domicile)' },
+                    { val: 'CORI', label: 'Colissimo International (Relais)' }
                 ];
             }
 
@@ -472,8 +472,14 @@
             const formData = new FormData(form);
             const data = Object.fromEntries(formData);
             
-            // Conversion forcée pour l'API
+            // Nettoyage et conversion pour l'API
             if (data.weight) data.weight = parseFloat(data.weight);
+            
+            // Si c'est de l'international, certains champs "France" peuvent bloquer l'API
+            if (data.recipient_iso !== 'FR') {
+                delete data.shipping_mode; 
+                delete data.package_format;
+            }
 
             const showError = (msg) => {
                 const errorDiv = document.getElementById('simulatorError');
@@ -507,7 +513,7 @@
                     card.className = 'offer-card';
                     card.innerHTML = `
                         <div class="offer-info">
-                            <h3>${json.label}</h3>
+                            <h3>${json.label || 'Offre Colissimo'}</h3>
                             <p><i class="fas fa-calendar-alt"></i> Livraison estimée : ${json.delivery_date || 'N/C'}</p>
                             <p><i class="fas fa-info-circle"></i> Service officiel Colissimo</p>
                         </div>
@@ -518,7 +524,8 @@
                     offersList.appendChild(card);
                     results.style.display = 'block';
                 } else {
-                    showError('Impossible de calculer le tarif pour cette destination ou ce poids. Veuillez vérifier vos informations.');
+                    const errorMsg = json.message || 'Impossible de calculer le tarif pour cette destination ou ce poids.';
+                    showError(errorMsg);
                 }
             } catch (err) {
                 console.error(err);
