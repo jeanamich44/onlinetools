@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <title>Simulateur de Tarifs – Colissimo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/colissimo.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/font-awesome.min.css">
     <style>
         :root {
@@ -23,14 +25,16 @@
             background: var(--bg-dark);
             padding: 30px;
             border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
+
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
             margin-bottom: 20px;
         }
+
         .section-title {
             color: var(--colissimo-orange);
             font-size: 1.2rem;
@@ -42,10 +46,12 @@
             align-items: center;
             gap: 10px;
         }
+
         .results-container {
             margin-top: 30px;
             display: none;
         }
+
         .offer-card {
             background: var(--bg-card);
             border-radius: 8px;
@@ -57,35 +63,43 @@
             border-left: 4px solid var(--colissimo-orange);
             transition: transform 0.2s, box-shadow 0.2s;
         }
+
         .offer-card:hover {
             transform: translateX(5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
+
         .offer-info h3 {
             margin: 0;
             font-size: 1.1rem;
             color: #fff;
         }
+
         .offer-info p {
             margin: 5px 0 0;
             font-size: 0.9rem;
             color: var(--text-muted);
         }
+
         .offer-price {
             text-align: right;
         }
+
         .price-value {
             font-size: 1.6rem;
             font-weight: bold;
             color: var(--colissimo-orange);
             display: block;
         }
+
         #loader {
             display: none;
             text-align: center;
             padding: 30px;
         }
-        input, select {
+
+        input,
+        select {
             background: #11141b;
             border: 1px solid #2a2f3a;
             color: #fff;
@@ -97,10 +111,13 @@
             outline: none;
             box-sizing: border-box;
         }
-        input:focus, select:focus {
+
+        input:focus,
+        select:focus {
             border-color: var(--colissimo-orange);
             box-shadow: 0 0 0 2px rgba(243, 112, 33, 0.2);
         }
+
         .btn-colissimo {
             background: linear-gradient(135deg, var(--colissimo-orange), #ff9d6c);
             color: white;
@@ -130,6 +147,7 @@
         .btn-colissimo:active {
             transform: scale(0.95);
         }
+
         .validation-error-msg {
             color: var(--error-red);
             font-size: 0.75rem;
@@ -137,12 +155,15 @@
             display: block;
             font-weight: 500;
         }
+
         input.input-invalid {
             border-color: var(--error-red) !important;
         }
+
         .searchable-select {
             position: relative;
         }
+
         .search-results {
             position: absolute;
             top: 100%;
@@ -158,23 +179,36 @@
             border-bottom-right-radius: 8px;
             display: none;
         }
+
         .search-item {
             padding: 10px 15px;
             cursor: pointer;
             color: #fff;
             transition: background 0.2s;
         }
+
         .search-item:hover {
             background: var(--colissimo-orange);
         }
-        
+
         @media (max-width: 600px) {
-            .form-grid { grid-template-columns: 1fr; }
-            .section-title { grid-column: span 1; }
-            .offer-card { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                grid-column: span 1;
+            }
+
+            .offer-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
         }
     </style>
 </head>
+
 <body>
     <header class="header">
         <div class="header-inner">
@@ -211,16 +245,19 @@
                         <option value="BL">SAINT BARTHÉLEMY</option>
                         <option value="MF">SAINT MARTIN (FR)</option>
                     </select>
-                    <input type="text" name="sender_zip" placeholder="Code Postal Expéditeur" required pattern="[a-zA-Z0-9\s-]{1,10}" maxlength="10">
+                    <input type="text" name="sender_zip" placeholder="Code Postal Expéditeur" required
+                        pattern="[a-zA-Z0-9\s-]{1,10}" maxlength="10">
                     <input type="text" name="sender_city" placeholder="Ville Expéditeur" required colspan="2">
 
                     <div class="section-title"><i class="fas fa-map-marker-alt"></i> Destination</div>
                     <div class="searchable-select" style="grid-column: span 2;">
-                        <input type="text" id="destinationSearch" placeholder="Rechercher un pays..." required autocomplete="off">
+                        <input type="text" id="destinationSearch" placeholder="Rechercher un pays..." required
+                            autocomplete="off">
                         <input type="hidden" name="recipient_iso" id="recipientCountryHidden" value="FR">
                         <div id="destinationResults" class="search-results"></div>
                     </div>
-                    <input type="text" name="recipient_zip" placeholder="Code Postal Destinataire" required pattern="[a-zA-Z0-9\s-]{1,10}" maxlength="10">
+                    <input type="text" name="recipient_zip" placeholder="Code Postal Destinataire" required
+                        pattern="[a-zA-Z0-9\s-]{1,10}" maxlength="10">
                     <input type="text" name="recipient_city" placeholder="Ville Destinataire" required>
                     <select name="product_code" id="productCodeSelector" required style="grid-column: span 2;">
                         <!-- Options générées dynamiquement par JS -->
@@ -238,8 +275,11 @@
 
                     <div class="section-title"><i class="fas fa-box"></i> Caractéristiques</div>
                     <div style="position: relative;">
-                        <input type="number" name="weight" id="weightInput" step="0.01" placeholder="Poids (kg)" required min="0.1" max="30">
-                        <small id="weightGrams" style="display: block; margin-top: 5px; color: var(--text-muted); font-size: 0.8rem;">soit 0 grammes</small>
+                        <input type="number" name="weight" id="weightInput" step="0.01" placeholder="Poids (kg)"
+                            required min="0.1" max="30">
+                        <small id="weightGrams"
+                            style="display: block; margin-top: 5px; color: var(--text-muted); font-size: 0.8rem;">soit 0
+                            grammes</small>
                     </div>
                     <input type="date" name="shipping_date" id="shippingDate">
                 </div>
@@ -379,7 +419,7 @@
         const validateField = (input) => {
             const isValid = input.checkValidity();
             let errorSpan = input.parentNode.querySelector('.validation-error-msg');
-            
+
             if (!isValid) {
                 input.classList.add('input-invalid');
                 if (!errorSpan) {
@@ -403,7 +443,7 @@
         // Soumission
         form.onsubmit = async (e) => {
             e.preventDefault();
-            
+
             const inputs = form.querySelectorAll('input[required]');
             let isFormValid = true;
             inputs.forEach(inp => { if (!validateField(inp)) isFormValid = false; });
@@ -411,7 +451,7 @@
 
             const formData = new FormData(form);
             const data = Object.fromEntries(formData);
-            
+
             results.style.display = 'none';
             loader.style.display = 'block';
             offersList.innerHTML = '';
@@ -424,9 +464,9 @@
                 });
 
                 if (!response.ok) throw new Error('API Error');
-                
+
                 const json = await response.json();
-                
+
                 if (json.status === 'success') {
                     const card = document.createElement('div');
                     card.className = 'offer-card';
@@ -454,4 +494,5 @@
         };
     </script>
 </body>
+
 </html>

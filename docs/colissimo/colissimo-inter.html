@@ -6,7 +6,7 @@
     <title>Colissimo International</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/style.css">
-
+    <link rel="stylesheet" href="../css/colissimo.css">
 </head>
 
 <body>
@@ -117,9 +117,12 @@
                             <label><input type="radio" name="receiverType" value="1" checked> Particulier</label>
                         </div>
 
-                        <div class="form-group" style="margin-bottom: 20px;">
+                        <div class="form-group" style="position: relative;">
                             <label>Pays de destination *</label>
-                            <select name="receiverCountry" required>
+                            <input type="text" id="countrySearchInput"
+                                placeholder="Rechercher un pays (ex: Canada, Japon...)" required autocomplete="off">
+                            <div id="countrySearchResults" class="search-results-container"></div>
+                            <select name="receiverCountry" id="receiverCountrySelect" required style="display:none;">
                                 <option value="" disabled selected>-- Sélectionnez un pays --</option>
                                 <option value="ZA">Afrique du Sud</option>
                                 <option value="AL">Albanie</option>
@@ -356,7 +359,8 @@
                     <div class="section-content">
                         <div class="form-group">
                             <label>Description du contenu *</label>
-                            <input type="text" name="customsDesc" required maxlength="50" placeholder="Ex: Cadeaux, Vêtements...">
+                            <input type="text" name="customsDesc" required maxlength="50"
+                                placeholder="Ex: Cadeaux, Vêtements...">
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -402,6 +406,14 @@
 
         </form>
 
+        <script src="../js/country-search.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                new CountrySearch('receiverCountrySelect', 'countrySearchInput', 'countrySearchResults', {
+                    themeColor: '#F37021'
+                });
+            });
+        </script>
         <script src="../js/chronopost-autocomplete-world.js"></script>
         <a class="back" href="./colissimo-liste.html">Retour</a>
     </main>
@@ -434,7 +446,7 @@
             const btn = document.getElementById('btn-validate');
 
             // Build customs
-            if(data.customsDesc) {
+            if (data.customsDesc) {
                 data.customs = {
                     includeCustomsDeclarations: 1,
                     contents: {

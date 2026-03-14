@@ -6,7 +6,7 @@
     <title>Colissimo Outre-Mer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/style.css">
-
+    <link rel="stylesheet" href="../css/colissimo.css">
 </head>
 
 <body>
@@ -216,7 +216,8 @@
                     <div class="section-content">
                         <div class="form-group">
                             <label>Description du contenu *</label>
-                            <input type="text" name="customsDesc" required maxlength="50" placeholder="Ex: Cadeaux, Vêtements...">
+                            <input type="text" name="customsDesc" required maxlength="50"
+                                placeholder="Ex: Cadeaux, Vêtements...">
                         </div>
                         <div class="form-row">
                             <div class="form-group">
@@ -290,7 +291,7 @@
             const data = Object.fromEntries(formData.entries());
 
             // Build customs
-            if(data.customsDesc) {
+            if (data.customsDesc) {
                 data.customs = {
                     includeCustomsDeclarations: 1,
                     contents: {
