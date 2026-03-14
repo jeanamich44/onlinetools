@@ -1086,48 +1086,48 @@ h3 {
     --colissimo-border: #2a2f3a;
 }
 
-.section-header.colissimo-header {
+.colissimo-page .section-header.colissimo-header {
     background: linear-gradient(135deg, var(--colissimo-orange) 0%, #ff9d6c 100%) !important;
     border-bottom: 2px solid rgba(0, 0, 0, 0.1) !important;
     color: #fff !important;
 }
 
-.offer-link,
-.btn-premium-bank,
-.btn-colissimo {
+.colissimo-page .offer-link,
+.colissimo-page .btn-premium-bank,
+.colissimo-page .btn-colissimo {
     background: linear-gradient(135deg, var(--colissimo-orange) 0%, var(--colissimo-orange-light) 100%) !important;
     color: white !important;
     border: none !important;
     box-shadow: 0 4px 15px rgba(243, 112, 33, 0.2) !important;
 }
 
-.offer-link:hover,
-.btn-premium-bank:hover,
-.btn-colissimo:hover {
+.colissimo-page .offer-link:hover,
+.colissimo-page .btn-premium-bank:hover,
+.colissimo-page .btn-colissimo:hover {
     background: var(--colissimo-orange-hover) !important;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(243, 112, 33, 0.4) !important;
 }
 
-.delai {
+.colissimo-page .delai {
     background-color: var(--colissimo-orange) !important;
     color: #fff !important;
     font-weight: 700 !important;
 }
 
-textarea:focus,
-input:focus,
-select:focus {
+.colissimo-page textarea:focus,
+.colissimo-page input:focus,
+.colissimo-page select:focus {
     border-color: var(--colissimo-orange) !important;
     box-shadow: 0 0 0 2px rgba(243, 112, 33, 0.2) !important;
 }
 
-.offre-wrapper:hover,
-.contact-card:hover {
+.colissimo-page .offre-wrapper:hover,
+.colissimo-page .contact-card:hover {
     border-color: var(--colissimo-orange) !important;
 }
 
-.section-number {
+.colissimo-page .section-number {
     background-color: rgba(255, 255, 255, 0.3) !important;
     color: #fff !important;
 }
