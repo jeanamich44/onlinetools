@@ -137,6 +137,18 @@
             .section-title { grid-column: span 1; }
             .offer-card { flex-direction: column; align-items: flex-start; gap: 15px; }
         }
+        .error-container {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.95rem;
+        }
     </style>
 </head>
 <body>
@@ -155,6 +167,10 @@
             <p>Estimez le coût de vos envois avec nos tarifs préférentiels (-50%).</p>
         </section>
         <div class="simulator-container">
+            <div id="simulatorError" class="error-container">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="error-text"></span>
+            </div>
             <form id="simulatorForm" novalidate>
                 <div class="form-grid">
                     <div class="section-title"><i class="fas fa-paper-plane"></i> Expéditeur</div>
@@ -213,10 +229,22 @@
                     COUNTRY_LIST[nameFR] = country.cca2;
                 });
             } catch (err) {
-                COUNTRY_LIST = { "FRANCE": "FR", "BELGIQUE": "BE", "SUISSE": "CH", "LUXEMBOURG": "LU" };
+                COUNTRY_LIST = { "FRANCE": "FR", "BELGIQUE": "BE", "SUISSE": "CH", "LUXEMBOURG": "LU", "ALLEMAGNE": "DE", "ESPAGNE": "ES", "ITALIE": "IT", "PORTUGAL": "PT", "PAYS-BAS": "NL", "AUTRICHE": "AT" };
             }
         }
         loadCountries();
+
+        const showError = (msg) => {
+            const errDiv = document.getElementById('simulatorError');
+            errDiv.querySelector('.error-text').textContent = msg;
+            errDiv.style.display = 'flex';
+            window.scrollTo({ top: errDiv.offsetTop - 100, behavior: 'smooth' });
+        };
+
+        const hideError = () => {
+            document.getElementById('simulatorError').style.display = 'none';
+        };
+
         const form = document.getElementById('simulatorForm');
         const results = document.getElementById('results');
         const offersList = document.getElementById('offersList');
@@ -225,6 +253,7 @@
         const destSearch = document.getElementById('destinationSearch');
         const destResults = document.getElementById('destinationResults');
         const destHidden = document.getElementById('recipientCountryHidden');
+
         destSearch.addEventListener('input', (e) => {
             const val = e.target.value.toUpperCase();
             destResults.innerHTML = '';
@@ -256,11 +285,13 @@
                 destResults.style.display = 'none';
             }
         });
+
         document.addEventListener('click', (e) => {
             if (!destSearch.contains(e.target) && !destResults.contains(e.target)) {
                 destResults.style.display = 'none';
             }
         });
+
         const validateField = (input) => {
             const isValid = input.checkValidity();
             let errorSpan = input.parentNode.querySelector('.validation-error-msg');
@@ -280,7 +311,8 @@
         };
 
         const updateDynamicValidation = () => {
-            const d = Object.fromEntries(new FormData(form));
+            const fd = new FormData(form);
+            const d = Object.fromEntries(fd);
             const weightInput = form.querySelector('input[name="weight"]');
             const lInput = form.querySelector('input[name="length"]');
             const wInput = form.querySelector('input[name="width"]');
@@ -291,7 +323,7 @@
             const w = parseFloat(d.width) || 0;
             const h = parseFloat(d.height) || 0;
 
-            [weightInput, lInput, wInput, hInput].forEach(inp => inp.setCustomValidity(''));
+            [weightInput, lInput, wInput, hInput].forEach(inp => { if(inp) inp.setCustomValidity(''); });
 
             if (d.weight) {
                 if (weight < 0.5) weightInput.setCustomValidity('Le poids minimum est de 0.5kg.');
@@ -317,7 +349,7 @@
                 }
             }
             
-            [weightInput, lInput, wInput, hInput].forEach(validateField);
+            [weightInput, lInput, wInput, hInput].forEach(inp => { if(inp) validateField(inp); });
         };
 
         form.querySelectorAll('input').forEach(inp => {
@@ -328,15 +360,16 @@
             inp.addEventListener('blur', () => validateField(inp));
         });
 
-        const style = document.createElement('style');
-        style.innerHTML = `
+        const vStyle = document.createElement('style');
+        vStyle.innerHTML = `
             .validation-error-msg { color: #ff4444; font-size: 0.75rem; margin-top: 4px; display: block; font-weight: 500; }
             input.input-invalid { border-color: #ff4444 !important; }
         `;
-        document.head.appendChild(style);
+        document.head.appendChild(vStyle);
 
         form.onsubmit = async (e) => {
             e.preventDefault();
+            hideError();
             updateDynamicValidation();
             
             const inputs = form.querySelectorAll('input[required]');
@@ -357,6 +390,11 @@
                 }
             }
 
+            if (data.weight) data.weight = parseFloat(data.weight);
+            if (data.length) data.length = parseFloat(data.length);
+            if (data.width) data.width = parseFloat(data.width);
+            if (data.height) data.height = parseFloat(data.height);
+
             results.style.display = 'none';
             loader.style.display = 'block';
             offersList.innerHTML = '';
@@ -366,12 +404,18 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
+                
                 if (!response.ok) {
-                    console.error('API Error:', response.status);
-                    throw new Error('error');
+                    const errJson = await response.json().catch(() => ({}));
+                    throw new Error(errJson.detail || 'Erreur lors de la simulation. Vérifiez les paramètres.');
                 }
+                
                 const json = await response.json();
                 if (json.status === 'success') {
+                    if (!json.offers || json.offers.length === 0) {
+                        showError('Aucune offre disponible pour ce trajet avec ces dimensions.');
+                        return;
+                    }
                     json.offers.forEach(offer => {
                         const card = document.createElement('div');
                         card.className = 'offer-card';
@@ -380,7 +424,7 @@
                                 <h3>${offer.label}</h3>
                                 <p><i class="fas fa-truck"></i> ${offer.is_relay ? 'Point Relais' : 'Domicile'}</p>
                                 <p style="font-size: 0.8rem; color: #3498db; margin-top: 5px;">
-                                    <i class="fas fa-calendar-alt"></i> Livraison prévue : ${offer.delivery_date}
+                                    <i class="fas fa-calendar-alt"></i> Livraison prévue : ${offer.delivery_date || 'N/C'}
                                 </p>
                             </div>
                             <div class="offer-price">
@@ -392,10 +436,10 @@
                     });
                     results.style.display = 'block';
                 } else {
-                    alert('Une erreur est survenue.');
+                    showError('Une erreur est survenue lors de la simulation.');
                 }
             } catch (err) {
-                alert('Une erreur est survenue.');
+                showError(err.message === 'error' ? 'Erreur technique. Veuillez réessayer plus tard.' : err.message);
             } finally {
                 loader.style.display = 'none';
             }
