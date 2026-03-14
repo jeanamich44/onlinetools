@@ -100,8 +100,8 @@
 
         input,
         select {
-            background: #11141b;
-            border: 1px solid #2a2f3a;
+            background: #2a2f3a;
+            border: 1px solid #3d4451;
             color: #fff;
             padding: 12px 15px;
             border-radius: 8px;
@@ -233,7 +233,7 @@
             <form id="colissimoSimulator" novalidate>
                 <div class="form-grid">
                     <div class="section-title"><i class="fas fa-paper-plane"></i> Départ</div>
-                    <select name="sender_iso" required>
+                    <select name="sender_iso" required style="grid-column: span 2;">
                         <option value="FR">FRANCE</option>
                         <option value="AD">ANDORRE</option>
                         <option value="GP">GUADELOUPE</option>
@@ -245,9 +245,9 @@
                         <option value="BL">SAINT BARTHÉLEMY</option>
                         <option value="MF">SAINT MARTIN (FR)</option>
                     </select>
-                    <input type="text" name="sender_zip" placeholder="Code Postal Expéditeur" required
+                    <input type="text" name="sender_zip" placeholder="Code Postal" required
                         pattern="[a-zA-Z0-9\s-]{1,10}" maxlength="10">
-                    <input type="text" name="sender_city" placeholder="Ville Expéditeur" required colspan="2">
+                    <input type="text" name="sender_city" placeholder="Ville" required>
 
                     <div class="section-title"><i class="fas fa-map-marker-alt"></i> Destination</div>
                     <div class="searchable-select" style="grid-column: span 2;">
@@ -256,9 +256,9 @@
                         <input type="hidden" name="recipient_iso" id="recipientCountryHidden" value="FR">
                         <div id="destinationResults" class="search-results"></div>
                     </div>
-                    <input type="text" name="recipient_zip" placeholder="Code Postal Destinataire" required
+                    <input type="text" name="recipient_zip" placeholder="Code Postal" required
                         pattern="[a-zA-Z0-9\s-]{1,10}" maxlength="10">
-                    <input type="text" name="recipient_city" placeholder="Ville Destinataire" required>
+                    <input type="text" name="recipient_city" placeholder="Ville" required>
                     <select name="product_code" id="productCodeSelector" required style="grid-column: span 2;">
                         <!-- Options générées dynamiquement par JS -->
                     </select>
@@ -281,7 +281,9 @@
                             style="display: block; margin-top: 5px; color: var(--text-muted); font-size: 0.8rem;">soit 0
                             grammes</small>
                     </div>
-                    <input type="date" name="shipping_date" id="shippingDate">
+                    <div style="position: relative;">
+                        <input type="date" name="shipping_date" id="shippingDate">
+                    </div>
                 </div>
 
                 <button type="submit" class="btn-colissimo">

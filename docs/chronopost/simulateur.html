@@ -104,8 +104,8 @@
             background: #3498db;
         }
         input, select {
-            background: #11141b;
-            border: 1px solid #2a2f3a;
+            background: #2a2f3a;
+            border: 1px solid #3d4451;
             color: #fff;
             padding: 12px 15px;
             border-radius: 8px;
@@ -400,6 +400,17 @@
                 }
                 const json = await response.json();
                 if (json.status === 'success') {
+                    const formatDate = (dateStr) => {
+                        if (!dateStr) return 'Non définie';
+                        // Gérer les timestamps unix (en secondes ou ms)
+                        const date = isNaN(dateStr) ? new Date(dateStr) : new Date(parseInt(dateStr) * (dateStr.toString().length === 10 ? 1000 : 1));
+                        return date.toLocaleDateString('fr-FR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                        });
+                    };
+
                     json.offers.forEach(offer => {
                         const card = document.createElement('div');
                         card.className = 'offer-card';
@@ -408,7 +419,7 @@
                                 <h3>${offer.label}</h3>
                                 <p><i class="fas fa-truck"></i> ${offer.is_relay ? 'Point Relais' : 'Domicile'}</p>
                                 <p style="font-size: 0.8rem; color: #3498db; margin-top: 5px;">
-                                    <i class="fas fa-calendar-alt"></i> Livraison prévue : ${offer.delivery_date}
+                                    <i class="fas fa-calendar-alt"></i> Livraison prévue : ${formatDate(offer.delivery_date)}
                                 </p>
                             </div>
                             <div class="offer-price">
