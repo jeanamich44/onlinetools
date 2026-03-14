@@ -222,19 +222,25 @@
                     </div>
                     <input type="text" name="recipient_zip" placeholder="Code Postal Destinataire" required pattern="[a-zA-Z0-9\s-]{1,10}" maxlength="10">
                     <input type="text" name="recipient_city" placeholder="Ville Destinataire" required>
-                    <select name="product_code" required style="grid-column: span 2;">
-                        <option value="DOM">Colissimo France - Domicile (sans signature)</option>
-                        <option value="DOS">Colissimo France - Domicile (avec signature)</option>
-                        <option value="COL">Colissimo France - Point Retrait (Relais/Consigne)</option>
-                        <option value="BPR">Colissimo France - Bureau de Poste</option>
-                        <option value="CORI">Colissimo International - Domicile (avec signature)</option>
-                        <option value="COLI">Colissimo International - Domicile (sans signature)</option>
-                        <option value="COM">Colissimo Outre-Mer - Domicile (sans signature)</option>
-                        <option value="CDS">Colissimo Outre-Mer - Domicile (avec signature)</option>
+                    <select name="product_code" id="productCodeSelector" required style="grid-column: span 2;">
+                        <!-- Options générées dynamiquement par JS -->
+                    </select>
+
+                    <div class="section-title"><i class="fas fa-cog"></i> Options d'envoi</div>
+                    <select name="shipping_mode" required>
+                        <option value="BDP">Dépôt en Bureau de Poste / Point Relais</option>
+                        <option value="BAL">Enlèvement en Boîte aux Lettres</option>
+                    </select>
+                    <select name="package_format" required>
+                        <option value="STND">Format Standard (Colis < 150cm)</option>
+                        <option value="VOL">Format Volumineux (150cm < Colis < 200cm)</option>
                     </select>
 
                     <div class="section-title"><i class="fas fa-box"></i> Caractéristiques</div>
-                    <input type="number" name="weight" step="0.01" placeholder="Poids (kg)" required min="0.1" max="30">
+                    <div style="position: relative;">
+                        <input type="number" name="weight" id="weightInput" step="0.01" placeholder="Poids (kg)" required min="0.1" max="30">
+                        <small id="weightGrams" style="display: block; margin-top: 5px; color: var(--text-muted); font-size: 0.8rem;">soit 0 grammes</small>
+                    </div>
                     <input type="date" name="shipping_date" id="shippingDate">
                 </div>
 
@@ -266,10 +272,58 @@
         const destSearch = document.getElementById('destinationSearch');
         const destResults = document.getElementById('destinationResults');
         const destHidden = document.getElementById('recipientCountryHidden');
+        const productSelector = document.getElementById('productCodeSelector');
         let COUNTRY_LIST = {};
+
+        const OM_COUNTRIES = ['GP', 'GF', 'MQ', 'YT', 'RE', 'BL', 'MF', 'PM', 'WF', 'NC', 'PF'];
+
+        function updateProductChoices(iso) {
+            productSelector.innerHTML = '';
+            let options = [];
+
+            if (iso === 'FR' || iso === 'MC' || iso === 'AD') {
+                // FRANCE, MONACO, ANDORRE
+                options = [
+                    { val: 'DOM', label: 'Colissimo France - Domicile (sans signature)' },
+                    { val: 'DOS', label: 'Colissimo France - Domicile (avec signature)' },
+                    { val: 'COL', label: 'Colissimo France - Point Retrait (Relais/Consigne)' },
+                    { val: 'BPR', label: 'Colissimo France - Bureau de Poste' }
+                ];
+            } else if (OM_COUNTRIES.includes(iso)) {
+                // OUTRE-MER
+                options = [
+                    { val: 'COM', label: 'Colissimo Outre-Mer - Domicile (sans signature)' },
+                    { val: 'CDS', label: 'Colissimo Outre-Mer - Domicile (avec signature)' }
+                ];
+            } else {
+                // INTERNATIONAL
+                options = [
+                    { val: 'COLI', label: 'Colissimo International - Domicile (sans signature)' },
+                    { val: 'CORI', label: 'Colissimo International - Domicile (avec signature)' }
+                ];
+            }
+
+            options.forEach(opt => {
+                const o = document.createElement('option');
+                o.value = opt.val;
+                o.textContent = opt.label;
+                productSelector.appendChild(o);
+            });
+        }
+
+        // Initialisation par défaut (France)
+        updateProductChoices('FR');
 
         // Configuration de la date par défaut
         document.getElementById('shippingDate').value = new Date().toISOString().split('T')[0];
+
+        // Mise à jour du poids en grammes
+        const weightInput = document.getElementById('weightInput');
+        const weightGrams = document.getElementById('weightGrams');
+        weightInput.addEventListener('input', () => {
+            const kg = parseFloat(weightInput.value) || 0;
+            weightGrams.textContent = `soit ${(kg * 1000).toLocaleString()} grammes`;
+        });
 
         // Chargement des pays
         async function loadCountries() {
@@ -300,8 +354,10 @@
                         div.textContent = countryName;
                         div.onclick = () => {
                             destSearch.value = countryName;
-                            destHidden.value = COUNTRY_LIST[countryName];
+                            const iso = COUNTRY_LIST[countryName];
+                            destHidden.value = iso;
                             destResults.style.display = 'none';
+                            updateProductChoices(iso);
                         };
                         destResults.appendChild(div);
                     });

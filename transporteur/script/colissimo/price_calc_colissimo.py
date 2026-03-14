@@ -46,6 +46,13 @@ def get_colissimo_price(data, config):
             # Traitement de la réponse pour extraire le prix
             if result.get("tarif") is not None:
                 official_price = float(result["tarif"]) / 100 # Le prix est souvent en centièmes
+                
+                # Ajout du supplément Format Volumineux si sélectionné
+                # Note: Dans une intégration réelle, l'API Tarification peut déjà l'inclure si l'attribut est passé,
+                # mais ici nous l'ajoutons explicitement pour coller au simulateur public si l'API ne le gère pas en direct.
+                if data.get("package_format") == "VOL":
+                    official_price += 6.0
+                    
                 return {
                     "status": "success",
                     "price": official_price,
