@@ -110,6 +110,7 @@
             transition: border-color 0.2s, box-shadow 0.2s;
             outline: none;
             box-sizing: border-box;
+            height: 48px; /* Force height consistency */
         }
 
         input:focus,
@@ -191,6 +192,19 @@
             background: var(--colissimo-orange);
         }
 
+        .error-container {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid var(--error-red);
+            color: var(--error-red);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 0.9rem;
+            align-items: center;
+            gap: 10px;
+        }
+
         @media (max-width: 600px) {
             .form-grid {
                 grid-template-columns: 1fr;
@@ -230,6 +244,10 @@
         </section>
 
         <div class="simulator-container">
+            <div id="simulatorError" class="error-container">
+                <i class="fas fa-exclamation-circle"></i>
+                <span class="error-text">Une erreur est survenue.</span>
+            </div>
             <form id="colissimoSimulator" novalidate>
                 <div class="form-grid">
                     <div class="section-title"><i class="fas fa-paper-plane"></i> Départ</div>
@@ -340,8 +358,8 @@
             } else {
                 // INTERNATIONAL
                 options = [
-                    { val: 'COLI', label: 'Colissimo International - Domicile (sans signature)' },
-                    { val: 'CORI', label: 'Colissimo International - Domicile (avec signature)' }
+                    { val: 'COLI', label: 'Colissimo International - Domicile' },
+                    { val: 'CORI', label: 'Colissimo International - Point Retrait' }
                 ];
             }
 
@@ -453,8 +471,23 @@
 
             const formData = new FormData(form);
             const data = Object.fromEntries(formData);
+            
+            // Conversion forcée pour l'API
+            if (data.weight) data.weight = parseFloat(data.weight);
+
+            const showError = (msg) => {
+                const errorDiv = document.getElementById('simulatorError');
+                errorDiv.querySelector('.error-text').textContent = msg;
+                errorDiv.style.display = 'flex';
+                window.scrollTo({ top: errorDiv.offsetTop - 100, behavior: 'smooth' });
+            };
+
+            const hideError = () => {
+                document.getElementById('simulatorError').style.display = 'none';
+            };
 
             results.style.display = 'none';
+            hideError();
             loader.style.display = 'block';
             offersList.innerHTML = '';
 
@@ -465,7 +498,7 @@
                     body: JSON.stringify(data)
                 });
 
-                if (!response.ok) throw new Error('API Error');
+                if (!response.ok) throw new Error('Erreur serveur API');
 
                 const json = await response.json();
 
@@ -485,11 +518,11 @@
                     offersList.appendChild(card);
                     results.style.display = 'block';
                 } else {
-                    alert('Impossible de calculer le tarif. Vérifiez les informations.');
+                    showError('Impossible de calculer le tarif pour cette destination ou ce poids. Veuillez vérifier vos informations.');
                 }
             } catch (err) {
                 console.error(err);
-                alert('Une erreur technique est survenue.');
+                showError('Une erreur technique est survenue lors de la connexion au serveur.');
             } finally {
                 loader.style.display = 'none';
             }
