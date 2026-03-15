@@ -71,7 +71,7 @@
             display: block;
         }
         .price-official {
-            font-size: 0.8rem;
+            font-size: 1.1rem;
             color: #e74c3c;
             text-decoration: line-through;
         }
@@ -417,6 +417,20 @@
                         return;
                     }
                     json.offers.forEach(offer => {
+                        let formattedDate = 'N/C';
+                        if (offer.delivery_date) {
+                            try {
+                                const d = new Date(offer.delivery_date);
+                                if (!isNaN(d.getTime())) {
+                                    formattedDate = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                                } else {
+                                    formattedDate = offer.delivery_date;
+                                }
+                            } catch (e) {
+                                formattedDate = offer.delivery_date;
+                            }
+                        }
+
                         const card = document.createElement('div');
                         card.className = 'offer-card';
                         card.innerHTML = `
@@ -424,7 +438,7 @@
                                 <h3>${offer.label}</h3>
                                 <p><i class="fas fa-truck"></i> ${offer.is_relay ? 'Point Relais' : 'Domicile'}</p>
                                 <p style="font-size: 0.8rem; color: #3498db; margin-top: 5px;">
-                                    <i class="fas fa-calendar-alt"></i> Livraison prévue : ${offer.delivery_date || 'N/C'}
+                                    <i class="fas fa-calendar-alt"></i> Livraison prévue : ${formattedDate}
                                 </p>
                             </div>
                             <div class="offer-price">

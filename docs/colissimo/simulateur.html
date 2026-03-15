@@ -333,6 +333,23 @@
         const productSelector = document.getElementById('productCodeSelector');
         let COUNTRY_LIST = {};
 
+        async function loadCountries() {
+            try {
+                const response = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,translations');
+                const data = await response.json();
+                data.forEach(country => {
+                    const nameFR = country.translations.fra ? country.translations.fra.common.toUpperCase() : country.name.common.toUpperCase();
+                    COUNTRY_LIST[nameFR] = country.cca2;
+                });
+            } catch (err) {
+                COUNTRY_LIST = { 
+                    "FRANCE": "FR", "BELGIQUE": "BE", "SUISSE": "CH", "LUXEMBOURG": "LU", 
+                    "ALLEMAGNE": "DE", "ESPAGNE": "ES", "ITALIE": "IT", "PORTUGAL": "PT", 
+                    "PAYS-BAS": "NL", "AUTRICHE": "AT" 
+                };
+            }
+        }
+
         const OM_COUNTRIES = ['GP', 'GF', 'MQ', 'YT', 'RE', 'BL', 'MF', 'PM', 'WF', 'NC', 'PF'];
 
         function updateProductChoices(iso) {
