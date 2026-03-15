@@ -235,7 +235,7 @@
 
     <main class="content">
         <section class="intro">
-                <h1>Simulateur Colissimo</h1>
+            <h1>Simulateur Colissimo</h1>
             <p style="text-align: center;">Estimez instantanément le prix de vos envois Colissimo.</p>
         </section>
 
@@ -273,10 +273,12 @@
                             <option value="L_BAL">Sans signature (Boîte aux lettres)</option>
                             <option value="L_DOM">Avec signature (Remise en main propre)</option>
                         </select>
-                        <div id="intlShippingNote" style="display: none; color: var(--colissimo-orange); font-size: 0.9rem; padding: 12px; background: rgba(243, 112, 33, 0.1); border-radius: 8px;">
+                        <div id="intlShippingNote"
+                            style="display: none; color: var(--colissimo-orange); font-size: 0.9rem; padding: 12px; background: rgba(243, 112, 33, 0.1); border-radius: 8px;">
                             Signature obligatoire pour cette destination.
                         </div>
-                        <div id="weightShippingNote" style="display: none; color: var(--colissimo-orange); font-size: 0.9rem; padding: 12px; background: rgba(243, 112, 33, 0.1); border-radius: 8px;">
+                        <div id="weightShippingNote"
+                            style="display: none; color: var(--colissimo-orange); font-size: 0.9rem; padding: 12px; background: rgba(243, 112, 33, 0.1); border-radius: 8px;">
                             Signature obligatoire pour les colis de plus de 5kg.
                         </div>
                     </div>
@@ -335,10 +337,10 @@
                     COUNTRY_LIST[nameFR] = country.cca2;
                 });
             } catch (err) {
-                COUNTRY_LIST = { 
-                    "FRANCE": "FR", "BELGIQUE": "BE", "SUISSE": "CH", "LUXEMBOURG": "LU", 
-                    "ALLEMAGNE": "DE", "ESPAGNE": "ES", "ITALIE": "IT", "PORTUGAL": "PT", 
-                    "PAYS-BAS": "NL", "AUTRICHE": "AT" 
+                COUNTRY_LIST = {
+                    "FRANCE": "FR", "BELGIQUE": "BE", "SUISSE": "CH", "LUXEMBOURG": "LU",
+                    "ALLEMAGNE": "DE", "ESPAGNE": "ES", "ITALIE": "IT", "PORTUGAL": "PT",
+                    "PAYS-BAS": "NL", "AUTRICHE": "AT"
                 };
             }
         }
@@ -362,13 +364,12 @@
                     intlNote.style.display = 'none';
                     weightNote.style.display = 'block';
                     shippingMode.value = 'L_DOM';
-                    shippingMode.disabled = false; 
                 } else {
                     shippingMode.style.display = 'block';
                     intlNote.style.display = 'none';
                     weightNote.style.display = 'none';
-                    shippingMode.disabled = false;
                 }
+                shippingMode.disabled = false;
             } else {
                 shippingMode.style.display = 'none';
                 intlNote.style.display = 'block';
@@ -455,7 +456,7 @@
 
             const formData = new FormData(form);
             const data = Object.fromEntries(formData);
-            
+
             if (data.weight) data.weight = parseFloat(data.weight);
 
             const showError = (msg) => {

@@ -29,9 +29,8 @@ def get_colissimo_price(data, config=None):
         
         user_mode = data.get("shipping_mode", "L_BAL")
         if zone_dest == "FRANCE":
-            # Signature obligatoire si > 5kg pour la France
             if weight > 5000:
-                delivery_mode = "L_DOM"
+                delivery_mode = None
             else:
                 delivery_mode = user_mode
         else:
@@ -77,6 +76,7 @@ def get_colissimo_price(data, config=None):
             "bundleUniqueId": None
         }
 
+        logger.info(f"Payload envoyé à La Poste: {json.dumps(payload)}")
         response = requests.post(URL, json=payload, headers=headers, timeout=15)
         
         if response.status_code == 200:
