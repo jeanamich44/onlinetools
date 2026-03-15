@@ -27,7 +27,13 @@ def get_colissimo_price(data, config=None):
         weight = int(float(data.get("weight", 0.5)) * 1000)
         
         zone_dest = get_zone(dest)
-        delivery_mode = "L_DOM" if zone_dest != "FRANCE" else "L_BAL"
+        
+        # Choix utilisateur pour la France, sinon null (automatique avec signature international)
+        user_mode = data.get("shipping_mode", "BAL")
+        if zone_dest == "FRANCE":
+            delivery_mode = "L_BAL" if user_mode == "BAL" else "L_DOM"
+        else:
+            delivery_mode = None
 
         headers = {
             "accept": "application/json, text/plain, */*",
