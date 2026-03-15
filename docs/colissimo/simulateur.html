@@ -6,7 +6,7 @@
     <title>Simulateur de Tarifs – Colissimo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/font-awesome.min.css">
+
     <style>
         :root {
             --colissimo-orange: #F37021;
@@ -235,21 +235,17 @@
 
     <main class="content">
         <section class="intro">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 20px; margin-bottom: 20px;">
-                <i class="fas fa-box-open" style="font-size: 50px; color: var(--colissimo-orange);"></i>
                 <h1>Simulateur Colissimo</h1>
-            </div>
             <p style="text-align: center;">Estimez instantanément le prix de vos envois Colissimo.</p>
         </section>
 
         <div class="simulator-container">
             <div id="simulatorError" class="error-container">
-                <i class="fas fa-exclamation-circle"></i>
                 <span class="error-text">Une erreur est survenue.</span>
             </div>
             <form id="colissimoSimulator" novalidate>
                 <div class="form-grid">
-                    <div class="section-title"><i class="fas fa-paper-plane"></i> Départ</div>
+                    <div class="section-title">Départ</div>
                     <select name="sender_iso" required style="grid-column: span 2;">
                         <option value="FR">FRANCE</option>
                         <option value="AD">ANDORRE</option>
@@ -266,7 +262,7 @@
                         pattern="[a-zA-Z0-9\s-]{1,10}" maxlength="10">
                     <input type="text" name="sender_city" placeholder="Ville" required>
 
-                    <div class="section-title"><i class="fas fa-map-marker-alt"></i> Destination</div>
+                    <div class="section-title">Destination</div>
                     <div class="searchable-select" style="grid-column: span 2;">
                         <input type="text" id="destinationSearch" placeholder="Rechercher un pays..." required
                             autocomplete="off">
@@ -276,39 +272,28 @@
                     <input type="text" name="recipient_zip" placeholder="Code Postal" required
                         pattern="[a-zA-Z0-9\s-]{1,10}" maxlength="10">
                     <input type="text" name="recipient_city" placeholder="Ville" required>
-                    <select name="product_code" id="productCodeSelector" required style="grid-column: span 2;">
-                    </select>
 
-                    <div class="section-title"><i class="fas fa-cog"></i> Options d'envoi</div>
-                    <select name="shipping_mode" required>
-                        <option value="BDP">Dépôt en Bureau de Poste / Point Relais</option>
-                        <option value="BAL">Enlèvement en Boîte aux Lettres</option>
-                    </select>
-                    <select name="package_format" required>
+                    <div class="section-title">Caractéristiques</div>
+                    <select name="package_format" required style="grid-column: span 2; margin-bottom: 15px;">
                         <option value="STND">Format Standard (Colis < 150cm)</option>
                         <option value="VOL">Format Volumineux (150cm < Colis < 200cm)</option>
                     </select>
-
-                    <div class="section-title"><i class="fas fa-box"></i> Caractéristiques</div>
-                    <div style="position: relative;">
+                    <div style="position: relative; grid-column: span 2;">
                         <input type="number" name="weight" id="weightInput" step="0.01" placeholder="Poids (kg)"
-                            required min="0.1" max="30">
+                            required min="0.25" max="30">
                         <small id="weightGrams"
                             style="display: block; margin-top: 5px; color: var(--text-muted); font-size: 0.8rem;">soit 0
                             grammes</small>
                     </div>
-                    <div style="position: relative;">
-                        <input type="date" name="shipping_date" id="shippingDate">
-                    </div>
                 </div>
 
                 <button type="submit" class="btn-colissimo">
-                    <i class="fas fa-calculator"></i> Simuler le prix
+                    Simuler le prix
                 </button>
             </form>
 
             <div id="loader">
-                <i class="fas fa-circle-notch fa-spin fa-3x" style="color: var(--colissimo-orange);"></i>
+                <div class="spinner-simple"></div>
                 <p style="margin-top: 15px; color: var(--text-muted);">Consultation des tarifs Colissimo...</p>
             </div>
 
@@ -352,44 +337,6 @@
 
         const OM_COUNTRIES = ['GP', 'GF', 'MQ', 'YT', 'RE', 'BL', 'MF', 'PM', 'WF', 'NC', 'PF'];
 
-        function updateProductChoices(iso) {
-            productSelector.innerHTML = '';
-            let options = [];
-
-            if (iso === 'FR' || iso === 'MC' || iso === 'AD') {
-                options = [
-                    { val: 'DOM', label: 'Colissimo France - Domicile (sans signature)' },
-                    { val: 'DOS', label: 'Colissimo France - Domicile (avec signature)' },
-                    { val: 'COL', label: 'Colissimo France - Point Retrait (Relais/Consigne)' },
-                    { val: 'BPR', label: 'Colissimo France - Bureau de Poste' }
-                ];
-            } else if (OM_COUNTRIES.includes(iso)) {
-                options = [
-                    { val: 'COM', label: 'Colissimo Outre-Mer - Domicile (sans signature)' },
-                    { val: 'CDS', label: 'Colissimo Outre-Mer - Domicile (avec signature)' }
-                ];
-            } else {
-                options = [
-                    { val: 'COLI', label: 'Colissimo International (Domicile)' },
-                    { val: 'CORI', label: 'Colissimo International (Relais)' }
-                ];
-            }
-
-            options.forEach(opt => {
-                const o = document.createElement('option');
-                o.value = opt.val;
-                o.textContent = opt.label;
-                productSelector.appendChild(o);
-            });
-        }
-
-
-        updateProductChoices('FR');
-
-
-        document.getElementById('shippingDate').value = new Date().toISOString().split('T')[0];
-
-
         const weightInput = document.getElementById('weightInput');
         const weightGrams = document.getElementById('weightGrams');
         weightInput.addEventListener('input', () => {
@@ -398,7 +345,6 @@
         });
 
         loadCountries();
-
 
         destSearch.addEventListener('input', (e) => {
             const val = e.target.value.toUpperCase();
@@ -416,7 +362,6 @@
                             const iso = COUNTRY_LIST[countryName];
                             destHidden.value = iso;
                             destResults.style.display = 'none';
-                            updateProductChoices(iso);
                         };
                         destResults.appendChild(div);
                     });
@@ -472,11 +417,6 @@
             const data = Object.fromEntries(formData);
             
             if (data.weight) data.weight = parseFloat(data.weight);
-            
-            if (data.recipient_iso !== 'FR') {
-                delete data.shipping_mode; 
-                delete data.package_format;
-            }
 
             const showError = (msg) => {
                 const errorDiv = document.getElementById('simulatorError');

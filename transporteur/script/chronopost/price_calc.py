@@ -7,10 +7,7 @@ from script.chronopost.headers import SIMULATEUR_HEADERS
 CHRONOPOST_DISCOUNT_RATE = 0.5
 
 def get_chronopost_price(data):
-    """
-    Calcule le prix TTC d'un envoi Chronopost.
-    Applique une réduction basée sur CHRONOPOST_DISCOUNT_RATE.
-    """
+
     url = "https://www.chronopost.fr/wsmchronoweb-rest/offre/list"
     
     # Préparation du payload pour l'API Chronopost
