@@ -79,6 +79,8 @@ class ColissimoSimulateRequest(BaseModel):
     recipient_iso: str = "FR"
     product_code: str = "DOM"
     shipping_date: str = None
+    shipping_mode: str = "BDP"
+    package_format: str = "STND"
 
 @app.post("/api/colissimo/simulate")
 def simulate_colissimo_endpoint(req: ColissimoSimulateRequest):

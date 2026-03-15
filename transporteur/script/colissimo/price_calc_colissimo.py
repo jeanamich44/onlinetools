@@ -5,36 +5,51 @@ from .p_utils import USER_AGENT
 # Configuration du logging
 logger = logging.getLogger(__name__)
 
-# URL de l'API de tarification Colissimo (Endpoint standard)
-TARIFS_URL = "https://ws.colissimo.fr/tarification-ws/rest/service/v1/tarifs"
+# URL de l'API de tarification Colissimo (Endpoint identifié via le site web)
+TARIFS_URL = "https://www.laposte.fr/colis/occ/ecommerce/occ/v2/lpelPart/e-service/colis/price"
 
 def get_colissimo_price(data, config):
     """
-    Calcule le prix d'un envoi Colissimo via l'API de tarification.
+    Calcule le prix d'un envoi Colissimo via l'API de tarification web.
     """
     
-    # Nettoyage de la date (format attendu: YYYY-MM-DD)
-    shipping_date = data.get("shipping_date")
-    if not shipping_date:
-        from datetime import datetime
-        shipping_date = datetime.now().strftime("%Y-%m-%d")
+    # Mapping des modes de dépôt et formats pour l'API Web
+    shipping_mode = data.get("shipping_mode", "BDP")
+    deposit_mode = "D_BAL" if shipping_mode == "BAL" else "D_BP"
+    
+    package_format = data.get("package_format", "STND")
+    fmt = "F_VOL" if package_format == "VOL" else "F_STD"
 
-    # Préparation du payload pour l'API Tarification
+    # Préparation du payload pour l'API Tarification (nouveau format)
     payload = {
-        "identifiants": {
-            "contractNumber": config.get("id"),
-            "password": config.get("key")
-        },
-        "envoi": {
-            "poids": data.get("weight"),
-            "dateEnvoi": shipping_date,
-            "paysExpediteur": data.get("sender_iso", "FR"),
-            "codePostalExpediteur": data.get("sender_zip"),
-            "paysDestinataire": data.get("recipient_iso", "FR"),
-            "codePostalDestinataire": data.get("recipient_zip"),
-            "typeProduit": data.get("product_code", "DOM")
-        }
+        "depositMode": deposit_mode,
+        "departureAddress": None,
+        "pickingDate": None,
+        "deliveryMode": "L_BAL", 
+        "insurance": None,
+        "insuredValue": None,
+        "insuredMaxValue": None,
+        "pickUpReturnedPackage": None,
+        "eco": False,
+        "destinationAddress": None,
+        "cn23": None,
+        "departureCountry": data.get("sender_iso", "FR"),
+        "arrivalCountry": data.get("recipient_iso", "FR"),
+        "weight": int(float(data.get("weight", 0.1)) * 1000), # Poids en grammes
+        "format": fmt,
+        "arrivalAddress": None,
+        "id": None,
+        "bundleUniqueId": None
     }
+
+    # Adaptation spécifique du deliveryMode selon le product_code
+    pc = data.get("product_code", "DOM")
+    if pc in ["COL", "CORI"]:
+        payload["deliveryMode"] = "L_A2P"
+    elif pc == "BPR":
+        payload["deliveryMode"] = "L_BPR"
+    else:
+        payload["deliveryMode"] = "L_BAL"
 
     headers = {
         "Content-Type": "application/json",
@@ -43,64 +58,30 @@ def get_colissimo_price(data, config):
     }
 
     try:
-        logger.info(f"Appel API Tarification Colissimo pour le contrat {config['id']}")
-        # Log du payload sans le mot de passe pour le debug
-        debug_payload = payload.copy()
-        debug_payload["identifiants"]["password"] = "****"
-        logger.info(f"Payload simulation: {debug_payload}")
-
+        logger.info(f"Appel API Tarification Colissimo Web (OCC)")
         response = requests.post(TARIFS_URL, json=payload, headers=headers, timeout=15)
         
         if response.status_code == 200:
             result = response.json()
             
-            # Gestion du cas où la réponse est une liste (rare sur cet endpoint mais possible)
-            if isinstance(result, list) and len(result) > 0:
-                result = result[0]
-            
-            # Recherche du prix (montant en centimes généralement)
-            price_raw = result.get("tarif") or result.get("montant")
-            if not price_raw and "service" in result:
-                price_raw = result["service"].get("prix") or result["service"].get("prixCalculé") or result["service"].get("montant")
-            
-            if price_raw is not None:
-                # L'API renvoie souvent le prix en centimes (entier ou float)
-                official_price = float(price_raw) / 100
+            # Recherche du prix dans le format OCC
+            price_obj = result.get("totalPrice") or result.get("postagePrice")
+            if price_obj:
+                official_price = float(price_obj.get("value", 0))
                 
-                if data.get("package_format") == "VOL":
-                    official_price += 6.0
-                    
-                delivery_date = result.get("dateLivraison")
-                if not delivery_date and "service" in result:
-                    delivery_date = result["service"].get("dateLivraison")
-                
-                label = result.get("libelleProduit")
-                if not label and "service" in result:
-                    label = result["service"].get("libelleProduit", "Colissimo")
-                elif not label:
-                    label = "Colissimo"
-
                 return {
                     "status": "success",
                     "price": official_price,
-                    "delivery_date": delivery_date,
-                    "label": label
+                    "delivery_date": None, # Non fourni directement par ce point de terminaison spécifique
+                    "label": "Colissimo Standard"
                 }
             else:
-                logger.error(f"Réponse API sans tarif: {result}")
+                logger.error(f"Réponse API OCC sans tarif: {result}")
         
-        # En cas d'erreur, on capture le message si c'est du JSON
         error_detail = response.text
-        try:
-            err_json = response.json()
-            if "messages" in err_json:
-                error_detail = " | ".join([m.get("messageContent", "") for m in err_json["messages"]])
-        except:
-            pass
-
-        logger.error(f"Erreur API Tarification Colissimo ({response.status_code}): {error_detail}")
-        return {"status": "error", "message": error_detail}
+        logger.error(f"Erreur API Tarification Colissimo Web ({response.status_code}): {error_detail}")
+        return {"status": "error", "message": "Impossible de récupérer le tarif actuel auprès de La Poste."}
 
     except Exception as e:
-        logger.error(f"Erreur technique Tarification Colissimo: {str(e)}")
+        logger.error(f"Erreur technique Tarification Colissimo Web: {str(e)}")
         return {"status": "error", "message": "Erreur technique serveur"}
