@@ -28,7 +28,14 @@ def get_colissimo_price(data, config=None):
         zone_dest = get_zone(dest)
         
         user_mode = data.get("shipping_mode", "L_BAL")
-        delivery_mode = user_mode if zone_dest == "FRANCE" else None
+        if zone_dest == "FRANCE":
+            # Signature obligatoire si > 5kg pour la France
+            if weight > 5000:
+                delivery_mode = "L_DOM"
+            else:
+                delivery_mode = user_mode
+        else:
+            delivery_mode = None
 
         headers = {
             "accept": "application/json, text/plain, */*",

@@ -276,6 +276,9 @@
                         <div id="intlShippingNote" style="display: none; color: var(--colissimo-orange); font-size: 0.9rem; padding: 12px; background: rgba(243, 112, 33, 0.1); border-radius: 8px;">
                             Signature obligatoire pour cette destination.
                         </div>
+                        <div id="weightShippingNote" style="display: none; color: var(--colissimo-orange); font-size: 0.9rem; padding: 12px; background: rgba(243, 112, 33, 0.1); border-radius: 8px;">
+                            Signature obligatoire pour les colis de plus de 5kg.
+                        </div>
                     </div>
 
                     <div class="section-title">Caractéristiques</div>
@@ -347,23 +350,38 @@
         const weightGrams = document.getElementById('weightGrams');
         const shippingMode = document.getElementById('shippingMode');
         const intlNote = document.getElementById('intlShippingNote');
+        const weightNote = document.getElementById('weightShippingNote');
+
+        function updateShippingOptions() {
+            const iso = destHidden.value;
+            const weight = parseFloat(weightInput.value) || 0;
+
+            if (FR_COUNTRIES.includes(iso)) {
+                if (weight > 5) {
+                    shippingMode.style.display = 'none';
+                    intlNote.style.display = 'none';
+                    weightNote.style.display = 'block';
+                    shippingMode.value = 'L_DOM';
+                    shippingMode.disabled = false; 
+                } else {
+                    shippingMode.style.display = 'block';
+                    intlNote.style.display = 'none';
+                    weightNote.style.display = 'none';
+                    shippingMode.disabled = false;
+                }
+            } else {
+                shippingMode.style.display = 'none';
+                intlNote.style.display = 'block';
+                weightNote.style.display = 'none';
+                shippingMode.disabled = true;
+            }
+        }
 
         weightInput.addEventListener('input', () => {
             const kg = parseFloat(weightInput.value) || 0;
             weightGrams.textContent = `soit ${(kg * 1000).toLocaleString()} grammes`;
+            updateShippingOptions();
         });
-
-        function updateShippingOptions(iso) {
-            if (FR_COUNTRIES.includes(iso)) {
-                shippingMode.style.display = 'block';
-                intlNote.style.display = 'none';
-                shippingMode.disabled = false;
-            } else {
-                shippingMode.style.display = 'none';
-                intlNote.style.display = 'block';
-                shippingMode.disabled = true;
-            }
-        }
 
         loadCountries();
 
