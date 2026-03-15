@@ -270,8 +270,8 @@
                     <div class="section-title">Options de Livraison</div>
                     <div id="shippingModeContainer" style="grid-column: span 2;">
                         <select name="shipping_mode" id="shippingMode">
-                            <option value="BAL">Sans signature (Boîte aux lettres)</option>
-                            <option value="DOM">Avec signature (Remise en main propre)</option>
+                            <option value="L_BAL">Sans signature (Boîte aux lettres)</option>
+                            <option value="L_DOM">Avec signature (Remise en main propre)</option>
                         </select>
                         <div id="intlShippingNote" style="display: none; color: var(--colissimo-orange); font-size: 0.9rem; padding: 12px; background: rgba(243, 112, 33, 0.1); border-radius: 8px;">
                             Signature obligatoire pour cette destination.
@@ -280,8 +280,8 @@
 
                     <div class="section-title">Caractéristiques</div>
                     <select name="package_format" required style="grid-column: span 2; margin-bottom: 15px;">
-                        <option value="STND">Format Standard (Colis < 150cm)</option>
-                        <option value="VOL">Format Volumineux (150cm < Colis < 200cm)</option>
+                        <option value="F_STD">Format Standard (Colis < 150cm)</option>
+                        <option value="F_VOL">Format Volumineux (150cm < Colis < 200cm)</option>
                     </select>
                     <div style="position: relative; grid-column: span 2;">
                         <input type="number" name="weight" id="weightInput" step="0.01" placeholder="Poids (kg)"
@@ -473,8 +473,8 @@
                     card.innerHTML = `
                         <div class="offer-info">
                             <h3>${json.label || 'Offre Colissimo'}</h3>
-                            <p><i class="fas fa-calendar-alt"></i> Livraison estimée : ${json.delivery_date || 'N/C'}</p>
-                            <p><i class="fas fa-info-circle"></i> Service officiel Colissimo</p>
+                            <p>Livraison estimée : ${json.delivery_date || 'N/C'}</p>
+                            <p>Service officiel Colissimo</p>
                         </div>
                         <div class="offer-price">
                             <span class="price-value">${json.price.toFixed(2)} €</span>
@@ -487,8 +487,7 @@
                     showError(errorMsg);
                 }
             } catch (err) {
-                console.error(err);
-                showError('Une erreur technique est survenue lors de la connexion au serveur.');
+                showError('Une erreur technique est survenue.');
             } finally {
                 loader.style.display = 'none';
             }

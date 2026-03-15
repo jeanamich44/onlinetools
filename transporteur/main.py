@@ -73,14 +73,12 @@ def simulate_chronopost_endpoint(req: ChronopostSimulateRequest):
 
 class ColissimoSimulateRequest(BaseModel):
     weight: float
-    sender_zip: str
     sender_iso: str = "FR"
-    recipient_zip: str
     recipient_iso: str = "FR"
     product_code: str = "DOM"
     shipping_date: str = None
-    shipping_mode: str = "BDP"
-    package_format: str = "STND"
+    shipping_mode: str = "L_BAL"
+    package_format: str = "F_STD"
 
 @app.post("/api/colissimo/simulate")
 def simulate_colissimo_endpoint(req: ColissimoSimulateRequest):

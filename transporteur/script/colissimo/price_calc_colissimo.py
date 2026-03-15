@@ -1,14 +1,13 @@
 import requests
 import json
 import logging
-from .p_utils import USER_AGENT
+import logging
 
 logger = logging.getLogger(__name__)
 
 URL = "https://www.laposte.fr/colis/occ/ecommerce/occ/v2/lpelPart/e-service/colis/price"
 DOM = ["GP", "MQ", "RE", "GF", "YT", "PM", "WF", "TF", "NC", "PF", "BL", "MF"]
 FR = ["FR", "MC", "AD"]
-
 def get_zone(iso):
     if iso in FR: return "FRANCE"
     if iso in DOM: return "DOM"
@@ -28,12 +27,8 @@ def get_colissimo_price(data, config=None):
         
         zone_dest = get_zone(dest)
         
-        # Choix utilisateur pour la France, sinon null (automatique avec signature international)
-        user_mode = data.get("shipping_mode", "BAL")
-        if zone_dest == "FRANCE":
-            delivery_mode = "L_BAL" if user_mode == "BAL" else "L_DOM"
-        else:
-            delivery_mode = None
+        user_mode = data.get("shipping_mode", "L_BAL")
+        delivery_mode = user_mode if zone_dest == "FRANCE" else None
 
         headers = {
             "accept": "application/json, text/plain, */*",
@@ -52,10 +47,8 @@ def get_colissimo_price(data, config=None):
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
         }
 
-        package_format = data.get("package_format", "STND")
-        fmt = "F_VOL" if package_format == "VOL" else "F_STD"
+        package_format = data.get("package_format", "F_STD")
 
-        # ORDRE EXACT DU PAYLOAD FONCTIONNEL
         payload = {
             "depositMode": "D_BP",
             "departureAddress": None,
@@ -71,7 +64,7 @@ def get_colissimo_price(data, config=None):
             "departureCountry": sender,
             "arrivalCountry": dest,
             "weight": weight,
-            "format": fmt,
+            "format": package_format,
             "arrivalAddress": None,
             "id": None,
             "bundleUniqueId": None
@@ -83,7 +76,6 @@ def get_colissimo_price(data, config=None):
             result = response.json()
             price_obj = result.get("totalPrice") or result.get("postagePrice")
             if price_obj:
-                print(f"DEBUG: Prix trouvé pour {dest}: {price_obj.get('value')}")
                 return {
                     "status": "success",
                     "price": float(price_obj.get("value", 0)),
@@ -91,11 +83,9 @@ def get_colissimo_price(data, config=None):
                     "zone": zone_dest
                 }
         
-        logger.error(f"Erreur Tarification ({response.status_code}): {response.text}")
-        return {"status": "error", "message": "Tarif non disponible"}
-        
+        logger.error(f"Erreur Colissimo {dest} ({response.status_code}): {response.text}")
         return {"status": "error", "message": "Tarif non disponible"}
 
     except Exception as e:
-        logger.error(f"Erreur Colissimo: {str(e)}")
+        logger.error(f"Exception Colissimo: {str(e)}")
         return {"status": "error", "message": str(e)}
