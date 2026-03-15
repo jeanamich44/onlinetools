@@ -49,23 +49,24 @@ def get_colissimo_price(data, config=None):
         package_format = data.get("package_format", "STND")
         fmt = "F_VOL" if package_format == "VOL" else "F_STD"
 
+        # ORDRE EXACT DU PAYLOAD FONCTIONNEL
         payload = {
-            "weight": weight,
-            "departureCountry": sender,
-            "arrivalCountry": dest,
             "depositMode": "D_BP",
+            "departureAddress": None,
+            "pickingDate": None,
             "deliveryMode": delivery_mode,
-            "format": fmt,
-            "eco": None,
             "insurance": None,
             "insuredValue": None,
             "insuredMaxValue": None,
-            "cn23": None,
-            "pickingDate": None,
-            "departureAddress": None,
-            "destinationAddress": None,
-            "arrivalAddress": None,
             "pickUpReturnedPackage": None,
+            "eco": None,
+            "destinationAddress": None,
+            "cn23": None,
+            "departureCountry": sender,
+            "arrivalCountry": dest,
+            "weight": weight,
+            "format": fmt,
+            "arrivalAddress": None,
             "id": None,
             "bundleUniqueId": None
         }
@@ -76,12 +77,16 @@ def get_colissimo_price(data, config=None):
             result = response.json()
             price_obj = result.get("totalPrice") or result.get("postagePrice")
             if price_obj:
+                print(f"DEBUG: Prix trouvé pour {dest}: {price_obj.get('value')}")
                 return {
                     "status": "success",
                     "price": float(price_obj.get("value", 0)),
                     "label": "Colissimo Standard",
                     "zone": zone_dest
                 }
+        
+        logger.error(f"Erreur Tarification ({response.status_code}): {response.text}")
+        return {"status": "error", "message": "Tarif non disponible"}
         
         return {"status": "error", "message": "Tarif non disponible"}
 
