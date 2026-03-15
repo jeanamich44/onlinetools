@@ -6,7 +6,7 @@ from .p_utils import USER_AGENT
 logger = logging.getLogger(__name__)
 
 # URL de l'API de tarification Colissimo (Endpoint standard)
-TARIFS_URL = "https://ws.colissimo.fr/tarification-ws/rest/service/tarifs"
+TARIFS_URL = "https://ws.colissimo.fr/tarification-ws/rest/service/v1/tarifs"
 
 def get_colissimo_price(data, config):
     """
