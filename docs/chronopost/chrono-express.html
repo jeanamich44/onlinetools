@@ -1193,35 +1193,15 @@
         }
     </style>
     <script>
-        function openCountryModal() {
-            document.getElementById('countryModal').style.display = 'flex';
-            document.getElementById('modalSearch').focus();
-        }
-        function closeCountryModalList() {
-            document.getElementById('countryModal').style.display = 'none';
-        }
-
-        document.getElementById('countryModal').addEventListener('click', function (e) {
-            if (e.target === this) {
-                closeCountryModalList();
-            }
-        });
-
-        function filterCountryList() {
-            const input = document.getElementById('modalSearch');
-            const filter = input.value.toUpperCase();
-            const ul = document.getElementById('countryZoneList');
-            const li = ul.getElementsByTagName('li');
-
-            for (let i = 0; i < li.length; i++) {
-                const txtValue = li[i].textContent || li[i].innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    li[i].style.display = "";
-                } else {
-                    li[i].style.display = "none";
-                }
-            }
-        }
+        window.PRICE_CONFIG = {
+            carrier: 'chronopost',
+            offerLabel: 'Chrono Express'
+        };
+    </script>
+    <script src="../js/price-dynamic.js"></script>
+    <script src="../js/country-search.js"></script>
+    <script src="../js/chronopost-autocomplete-world.js"></script>
+    <script>
     </script>
 </body>
 

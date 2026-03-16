@@ -335,7 +335,7 @@
             </div>
 
             <div class="action-bar">
-                <button type="submit" class="btn-premium-payment colissimo-pay" id="btn-validate">
+                <button type="submit" class="btn-premium-payment colissimo-pay" id="btn-pay-submit">
                     <span>Valider et Payer le Bordereau (1€)</span>
                 </button>
             </div>
@@ -343,6 +343,13 @@
             <div id="message"></div>
         </form>
 
+        <script>
+            window.PRICE_CONFIG = {
+                carrier: 'colissimo',
+                offerLabel: 'Colissimo Relais'
+            };
+        </script>
+        <script src="../js/price-dynamic.js"></script>
         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
         <script src="../js/chronopost-autocomplete.js"></script>

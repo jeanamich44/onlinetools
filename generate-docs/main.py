@@ -217,6 +217,67 @@ class PDFRequest(BaseModel):
 
 
 
+SIMULATION_API_URL = "https://transporteur.up.railway.app"
+
+async def get_price_from_simulator(data: dict, product_name: str):
+    try:
+        if "chronopost" in product_name or data.get("type_pdf") == "chronopost" or "chrono" in product_name:
+            mapping = {
+                "chrono-10": "Chrono 10",
+                "chrono-13": "Chrono 13",
+                "chrono-relais-13": "relais",
+                "chrono-express": "Chrono Express"
+            }
+            target_label = mapping.get(product_name)
+            
+            payload = {
+                "sender_zip": data.get("senderCP") or data.get("senderZipCode"),
+                "sender_city": data.get("senderCity"),
+                "recipient_zip": data.get("receiverCP") or data.get("receiverZipCode"),
+                "recipient_city": data.get("receiverCity"),
+                "weight": float(data.get("packageWeight") or 1.0),
+                "sender_iso": data.get("senderCountry", "FR"),
+                "recipient_iso": data.get("receiverCountry", "FR")
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(f"{SIMULATION_API_URL}/api/chronopost/simulate", json=payload, timeout=10) as resp:
+                    if resp.status == 200:
+                        res_json = await resp.json()
+                        offers = res_json.get("offers", [])
+                        for offer in offers:
+                            if target_label and target_label.lower() in offer["label"].lower():
+                                return offer["price"]
+                        if offers: return offers[0]["price"]
+                    
+        elif "colissimo" in product_name or data.get("type_pdf") == "colissimo":
+            mapping = {
+                "colissimo-standard": "Colissimo Domicile",
+                "colissimo-expert": "Colissimo Expert",
+                "colissimo-relais": "Colissimo Relais"
+            }
+            target_label = mapping.get(product_name)
+            
+            payload = {
+                "weight": float(data.get("packageWeight") or 1.0),
+                "sender_iso": data.get("senderCountry", "FR"),
+                "recipient_iso": data.get("receiverCountry", "FR"),
+                "product_code": data.get("productCode") or "DOM"
+            }
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(f"{SIMULATION_API_URL}/api/colissimo/simulate", json=payload, timeout=10) as resp:
+                    if resp.status == 200:
+                        res_json = await resp.json()
+                        offers = res_json.get("offers", [])
+                        for offer in offers:
+                            if target_label and target_label.lower() in offer["label"].lower():
+                                return offer["price"]
+                        if offers: return offers[0]["price"]
+    except Exception as e:
+        logger.error(f"Error calculating price: {e}")
+    return 1.0
+
 @app.post("/create-payment")
 async def create_payment_endpoint(request: Request, data: PDFRequest, background_tasks: BackgroundTasks, product_name: str = "default", db: Session = Depends(get_db)):
     try:
@@ -231,8 +292,10 @@ async def create_payment_endpoint(request: Request, data: PDFRequest, background
         logger.info(f"Création paiement (Async) pour Produit: {product_name}, IP: {client_ip}")
 
         user_data_str = json.dumps(data.dict())
-
-        url, ref, checkout_id = await create_checkout(db=db, amount=1.0, ip_address=client_ip, product_name=product_name, user_data=user_data_str)
+        # Calculate amount dynamically using the simulator
+        amount = await get_price_from_simulator(data.dict(), product_name)
+        
+        url, ref, checkout_id = await create_checkout(db=db, amount=amount, ip_address=client_ip, product_name=product_name, user_data=user_data_str)
         
         if checkout_id:
              background_tasks.add_task(poll_sumup_status, checkout_id)
