@@ -1,6 +1,7 @@
 from curl_cffi import requests
 import json
 import logging
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -72,37 +73,46 @@ def get_chronopost_price(data):
         ]
     }
 
-    try:
-        r = requests.post(
-            f"{url}?lang=fr_FR",
-            data=json.dumps(payload),
-            headers=headers,
-            impersonate="chrome120",
-            timeout=30
-        )
-        
-        if r.status_code != 200:
-            logger.error(f"Chronopost API Error (Code: {r.status_code}): {r.text}")
-            return {"status": "error"}
+    max_retries = 5
+    for attempt in range(max_retries):
+        try:
+            r = requests.post(
+                f"{url}?lang=fr_FR",
+                data=json.dumps(payload),
+                headers=headers,
+                impersonate="chrome120",
+                timeout=30
+            )
             
-        choices = r.json()
-        results = []
-        
-        for service in choices:
-            official_price = float(service.get("unitPriceTTC", 0))
-            our_price = round(official_price * CHRONOPOST_DISCOUNT_RATE, 2)
+            if r.status_code == 200:
+                choices = r.json()
+                results = []
+                
+                for service in choices:
+                    official_price = float(service.get("unitPriceTTC", 0))
+                    our_price = round(official_price * CHRONOPOST_DISCOUNT_RATE, 2)
+                    
+                    results.append({
+                        "label": service.get("label"),
+                        "product_code": service.get("productCode"),
+                        "official_price": official_price,
+                        "price": our_price,
+                        "is_relay": service.get("relay", False),
+                        "delivery_date": service.get("dateDelivery")
+                    })
+                    
+                return {"status": "success", "offers": results}
             
-            results.append({
-                "label": service.get("label"),
-                "product_code": service.get("productCode"),
-                "official_price": official_price,
-                "price": our_price,
-                "is_relay": service.get("relay", False),
-                "delivery_date": service.get("dateDelivery")
-            })
-            
-        return {"status": "success", "offers": results}
+            logger.warning(f"Chronopost Attempt {attempt + 1} failed (Code: {r.status_code})")
+            if attempt < max_retries - 1:
+                time.sleep(1)
+            else:
+                logger.error(f"Chronopost API Final Error (Code: {r.status_code}): {r.text}")
+                return {"status": "error"}
 
-    except Exception as e:
-        logger.error(f"Chronopost Exception: {str(e)}")
-        return {"status": "error"}
+        except Exception as e:
+            logger.error(f"Chronopost Exception on attempt {attempt + 1}: {str(e)}")
+            if attempt < max_retries - 1:
+                time.sleep(1)
+            else:
+                return {"status": "error"}
