@@ -8,9 +8,12 @@ logger = logging.getLogger(__name__)
 URL = "https://www.laposte.fr/colis/occ/ecommerce/occ/v2/lpelPart/e-service/colis/price"
 DOM = ["GP", "MQ", "RE", "GF", "YT", "PM", "WF", "TF", "NC", "PF", "BL", "MF"]
 FR = ["FR", "MC", "AD"]
+EU = ["AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "GR", "HR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SI", "SK"]
+
 def get_zone(iso):
     if iso in FR: return "FRANCE"
     if iso in DOM: return "DOM"
+    if iso in EU: return "UNION_EUROPEENNE"
     try:
         r = requests.get(f"https://restcountries.com/v3.1/alpha/{iso}?fields=region", timeout=5)
         if r.status_code == 200:
@@ -27,6 +30,11 @@ def get_colissimo_price(data, config=None):
         
         zone_dest = get_zone(dest)
         
+        # Validation du poids maximum par zone
+        max_weight = 30000 if zone_dest in ["FRANCE", "DOM", "UNION_EUROPEENNE", "EUROPE"] else 20000
+        if weight > max_weight:
+            return {"status": "error", "message": f"Le poids maximum pour cette destination est de {max_weight/1000}kg"}
+
         user_mode = data.get("shipping_mode", "L_BAL")
         if zone_dest == "FRANCE":
             if weight > 5000:

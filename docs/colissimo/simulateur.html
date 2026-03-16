@@ -347,6 +347,7 @@
 
         const OM_COUNTRIES = ['GP', 'GF', 'MQ', 'YT', 'RE', 'BL', 'MF', 'PM', 'WF', 'NC', 'PF'];
         const FR_COUNTRIES = ['FR', 'MC', 'AD'];
+        const EU_COUNTRIES = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK'];
 
         const weightInput = document.getElementById('weightInput');
         const weightGrams = document.getElementById('weightGrams');
@@ -358,6 +359,11 @@
             const iso = destHidden.value;
             const weight = parseFloat(weightInput.value) || 0;
 
+            const isMajorZone = FR_COUNTRIES.includes(iso) || OM_COUNTRIES.includes(iso) || EU_COUNTRIES.includes(iso);
+            const maxWeight = isMajorZone ? 30 : 20;
+            
+            weightInput.max = maxWeight;
+            
             if (FR_COUNTRIES.includes(iso)) {
                 if (weight > 5) {
                     shippingMode.style.display = 'none';
@@ -375,6 +381,12 @@
                 intlNote.style.display = 'block';
                 weightNote.style.display = 'none';
                 shippingMode.disabled = true;
+            }
+
+            if (weight > maxWeight) {
+                weightInput.classList.add('input-invalid');
+            } else {
+                weightInput.classList.remove('input-invalid');
             }
         }
 
