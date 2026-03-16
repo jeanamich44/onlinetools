@@ -1,7 +1,6 @@
 import requests
 import json
 import logging
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +35,8 @@ def get_colissimo_price(data, config=None):
         # Validation du poids maximum par zone
         max_weight = 30000 if zone_dest in ["FRANCE", "DOM", "UNION_EUROPEENNE", "EUROPE"] else 20000
         if weight > max_weight:
-            return {"status": "error", "message": f"Le poids maximum pour cette destination est de {max_weight/1000}kg"}
+            logger.warning(f"Weight limit exceeded: {weight} > {max_weight}")
+            return {"status": "error"}
 
         user_mode = data.get("shipping_mode", "L_BAL")
         if zone_dest == "FRANCE":
@@ -105,8 +105,8 @@ def get_colissimo_price(data, config=None):
                 }
         
         logger.error(f"Erreur Colissimo {dest} ({response.status_code}): {response.text}")
-        return {"status": "error", "message": "Tarif non disponible"}
+        return {"status": "error"}
 
     except Exception as e:
         logger.error(f"Exception Colissimo: {str(e)}")
-        return {"status": "error", "message": str(e)}
+        return {"status": "error"}

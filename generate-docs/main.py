@@ -18,14 +18,10 @@ from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Resp
 from pydantic import BaseModel, parse_obj_as, root_validator
 from sqlalchemy.orm import Session
 
-# Base de données & Paiement
 from payments.database import init_db, get_db, Payment, SessionLocal
 from payments.payment import create_checkout, get_access_token
 from securite.payment_guard import is_payment_allowed_fast, security_worker, increment_payment_counter
-# from payments.polling import poll_sumup_status
-# from payments.reconcile import start_reconciliation_loop
 
-# Scripts (PDF Generation)
 from script.lbp import generate_lbp_pdf, generate_lbp_preview
 from script.sg import generate_sg_pdf, generate_sg_preview
 from script.bfb import generate_bfb_pdf, generate_bfb_preview
@@ -37,7 +33,6 @@ from script.qonto import generate_qonto_pdf, generate_qonto_preview
 from script.maxance import generate_maxance_pdf, generate_maxance_preview
 from script.nike import generate_nike_pdf, generate_nike_preview
 
-# Mapping des generateurs
 GENERATORS = {
     "lbp": generate_lbp_pdf,
     "sg": generate_sg_pdf,
@@ -51,7 +46,6 @@ GENERATORS = {
     "nike": generate_nike_pdf
 }
 
-# Mapping des previews
 PREVIEWS = {
     "lbp": generate_lbp_preview,
     "sg": generate_sg_preview,
@@ -69,7 +63,6 @@ PREVIEWS = {
 # CONFIGURATION
 # =========================
 
-# Configuration des logs
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -78,7 +71,6 @@ logger = logging.getLogger(__name__)
 # BASE DE DONNÉES & SETUP APP
 # =========================
 
-# Initialisation des tables
 app = FastAPI()
 
 # =========================
@@ -87,9 +79,7 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def startup_event():
-    """Au démarrage du serveur."""
     from payments.reconcile import start_reconciliation_loop
-    # Lancer les tâches de fond en parallèle pour ne pas entraver le processus de base
     asyncio.create_task(start_reconciliation_loop(interval=900))
     asyncio.create_task(security_worker())
     logger.info("Serveur démarré - Tâches de fond (Réconciliation & Sécurité) lancées.")
@@ -98,7 +88,6 @@ async def startup_event():
 def read_root():
     return {"status": "online", "message": "API Generate-Docs is running"}
 
-# Initialisation des tables
 init_db()
 
 app.add_middleware(
@@ -114,18 +103,16 @@ app.add_middleware(
 # =========================
 
 class PDFRequest(BaseModel):
-    type_pdf: str  # "lbp" | "sg" | "bfb" | "revolut" | "credit_agricole" | "cm" | "cic" | "qonto" | "maxance"
+    type_pdf: str 
     preview: Optional[bool] = False
 
     sexe: Optional[str] = "m"
 
-    # Champs communs
     nom_prenom: Optional[str] = None
     adresse: Optional[str] = None
     cp_ville: Optional[str] = None
     telephone: Optional[str] = None
 
-    # Champs détaillés
     cp: Optional[str] = None
     ville: Optional[str] = None
     depart: Optional[str] = None
@@ -148,11 +135,9 @@ class PDFRequest(BaseModel):
 
     @root_validator(pre=True)
     def handle_cp_ville(cls, values):
-        # Fusion CP + Ville pour l'adresse principale
         if not values.get("cp_ville") and values.get("cp") and values.get("ville"):
             values["cp_ville"] = f"{values['cp']} {values['ville']}"
         
-        # Fusion CP + Ville pour l'adresse de l'agence
         if not values.get("agence_cp_ville") and values.get("agence_cp") and values.get("agence_ville"):
             values["agence_cp_ville"] = f"{values['agence_cp']} {values['agence_ville']}"
             
@@ -164,7 +149,6 @@ class PDFRequest(BaseModel):
     plaque: Optional[str] = None
     typevehicule: Optional[str] = None
     
-    # Champs Nike
     nfacture: Optional[str] = None
     ncommande: Optional[str] = None
     date: Optional[str] = None
@@ -190,10 +174,8 @@ class PDFRequest(BaseModel):
     checkout_ref: Optional[str] = None
     sendToThirdPersonInfo: Optional[str] = None
 
-    # --- Champs Chronopost (Ajoutés pour l'automatisation) ---
     valeurproduct: Optional[str] = None
     
-    # Expéditeur
     senderType: Optional[str] = None
     senderCompanyName: Optional[str] = None
     senderLastname: Optional[str] = None
@@ -207,7 +189,6 @@ class PDFRequest(BaseModel):
     senderRef: Optional[str] = None
     senderCountry: Optional[str] = None
 
-    # Destinataire
     receiverType: Optional[str] = None
     receiverCompanyName: Optional[str] = None
     receiverLastname: Optional[str] = None
@@ -223,14 +204,12 @@ class PDFRequest(BaseModel):
     receiverCountry: Optional[str] = None
     destinationCountry: Optional[str] = None
 
-    # Relais
     codeRelais: Optional[str] = None
     relaisName: Optional[str] = None
     relaisCP: Optional[str] = None
     relaisCity: Optional[str] = None
     relaisAddress: Optional[str] = None
 
-    # Colis
     packageWeight: Optional[str] = None
     shippingRef: Optional[str] = None
     shippingDate: Optional[str] = None
@@ -241,7 +220,6 @@ class PDFRequest(BaseModel):
     shippingContent: Optional[str] = None
     packageValue: Optional[str] = None
 
-    # Options
     shipmentTracking: Optional[str] = None
     notifyTheReceiver: Optional[str] = None
 
@@ -255,31 +233,22 @@ class PDFRequest(BaseModel):
 
 @app.post("/create-payment")
 async def create_payment_endpoint(request: Request, data: PDFRequest, background_tasks: BackgroundTasks, product_name: str = "default", db: Session = Depends(get_db)):
-    """
-    Crée une nouvelle session de paiement.
-    """
     try:
         client_ip = request.headers.get("x-forwarded-for", request.client.host)
         
-        # 1. Vérification de sécurité atomique (Tourne en continu en arrière-plan)
-        # N'intervient que si besoin, sans ralentir le processus de base car stocké en mémoire
         if not is_payment_allowed_fast(client_ip):
             logger.warning(f"Paiement refusé (Sécurité IP) - IP: {client_ip}")
             raise HTTPException(status_code=429, detail="error")
 
-        # Verrouillage immédiat en mémoire pour éviter le "double-clic" ou le spam rapide
         increment_payment_counter(client_ip)
 
         logger.info(f"Création paiement (Async) pour Produit: {product_name}, IP: {client_ip}")
 
-        # Convertir data en JSON pour le stocker
         import json
         user_data_str = json.dumps(data.dict())
 
-        # create_checkout retourne maintenant (url, ref, id)
         url, ref, checkout_id = await create_checkout(db=db, amount=1.0, ip_address=client_ip, product_name=product_name, user_data=user_data_str)
         
-        # Démarrer le polling immédiatement en arrière-plan
         if checkout_id:
              from payments.polling import poll_sumup_status
              background_tasks.add_task(poll_sumup_status, checkout_id)
@@ -339,9 +308,6 @@ async def download_paid_pdf(checkout_reference: str, db: Session = Depends(get_d
 @app.get("/payment-success")
 @app.get("/payment-success/")
 async def payment_success(request: Request, checkout_reference: str):
-    """
-    Page de succès : sert le PDF si payé, sinon affiche un spinner.
-    """
     logger.info(f"Appel /payment-success pour ref: {checkout_reference}")
     
     db = SessionLocal()
@@ -350,7 +316,6 @@ async def payment_success(request: Request, checkout_reference: str):
         if not payment:
             return HTMLResponse("<h1>Paiement non trouvé</h1><p>Veuillez contacter le support.</p>")
 
-        # 1. Si déjà généré -> On propose de revenir à l'accueil
         if payment.is_generated:
             return HTMLResponse(f"""
             <html>
@@ -363,7 +328,6 @@ async def payment_success(request: Request, checkout_reference: str):
             </html>
             """)
 
-        # 2. Vérifier le statut réel avec SumUp
         token = await get_access_token()
         headers = {"Authorization": f"Bearer {token}"}
         url = f"https://api.sumup.com/v0.1/checkouts/{payment.checkout_id}"
@@ -377,12 +341,10 @@ async def payment_success(request: Request, checkout_reference: str):
                         payment.status = new_status
                         db.commit()
 
-        # 3. Si PAID -> Génération et Envoi DIRECT
         if payment.status == "PAID":
             user_data = json.loads(payment.user_data)
             type_pdf = user_data.get("type_pdf")
             
-            # Gestion spécifique pour Chronopost (Redirection vers le frontend)
             if type_pdf and type_pdf.startswith("chrono"):
                 page_map = {
                     "chrono10": "chrono10.html",
@@ -391,32 +353,26 @@ async def payment_success(request: Request, checkout_reference: str):
                     "chrono-relais13": "chrono-relais13.html",
                     "chrono-relais-europe": "chrono-relais-europe.html"
                 }
-                # Fallback sur la liste si type inconnu
                 page = page_map.get(type_pdf, "chronopost-liste.html")
                 logger.info(f"REDIRECT CHRONO: {type_pdf} -> {page} pour {checkout_reference}")
                 return RedirectResponse(url=f"https://www.chezrheyy.ink/chronopost/{page}?success=true")
 
-            # Dossier de stockage permanent
             storage_dir = "paid_pdfs"
             os.makedirs(storage_dir, exist_ok=True)
             output_path = os.path.join(storage_dir, f"{checkout_reference}.pdf")
             
-            # On simule l'objet data que les scripts attendent
             data_obj = PDFRequest(**user_data)
             
             if type_pdf in GENERATORS:
-                # Si le fichier existe déjà (généré par l'automation en arrière-plan), on l'utilise
                 if not os.path.exists(output_path):
                     GENERATORS[type_pdf](data_obj, output_path)
                 
-                # Lock
                 payment.is_generated = 1
                 db.commit()
                 
                 logger.info(f"SERVICE DIRECT PDF (Permanent): {type_pdf} pour {checkout_reference}")
                 return FileResponse(output_path, filename=f"document_{checkout_reference}.pdf", media_type="application/pdf")
         
-        # 4. Si PENDING -> Page de chargement avec Spinner (Style Chronopost)
         return HTMLResponse(f"""
         <!DOCTYPE html>
         <html lang="fr">
@@ -449,28 +405,20 @@ async def payment_success(request: Request, checkout_reference: str):
 @app.post("/generate-pdf")
 @app.post("/generate-pdf/")
 def generate_pdf(request: Request, data: PDFRequest):
-    """
-    Génère un PDF. Gère la preview libre et le PDF final payé.
-    """
-    # On définit l'extension et le dossier selon si c'est une preview ou non
     if data.preview:
         output_path = f"/tmp/{uuid.uuid4()}.jpg"
     else:
-        # Pour le PDF final, on stocke de manière permanente dans paid_pdfs
         storage_dir = "paid_pdfs"
         os.makedirs(storage_dir, exist_ok=True)
-        # On utilise la référence de checkout comme nom de fichier unique
         output_path = os.path.join(storage_dir, f"{data.checkout_ref}.pdf")
 
     db = SessionLocal()
 
     try:
-        # 1. Vérification du paiement si ce n'est pas une preview
         if not data.preview:
             if not data.checkout_ref:
                 raise HTTPException(status_code=402, detail="Paiement requis pour le PDF final")
             
-            # Vérifier en base si le paiement est PAID
             payment = db.query(Payment).filter(Payment.checkout_ref == data.checkout_ref).first()
             if not payment or payment.status != "PAID":
                 logger.warning(f"Tentative téléchargement PDF sans paiement valide: {data.checkout_ref}")
@@ -486,7 +434,6 @@ def generate_pdf(request: Request, data: PDFRequest):
                     db.commit()
                     logger.info(f"Génération PDF final pour {data.checkout_ref} (Lock activé)")
 
-        # 2. Génération selon le type (Seulement si le fichier n'existe pas déjà)
         type_pdf = data.type_pdf
         if not os.path.exists(output_path):
             if type_pdf in PREVIEWS and data.preview:
@@ -501,7 +448,6 @@ def generate_pdf(request: Request, data: PDFRequest):
         if not os.path.exists(output_path):
             raise HTTPException(status_code=500, detail="Fichier non généré")
 
-        # Détermination dynamique du type MIME et du nom de fichier
         if output_path.endswith(".jpg"):
             media_type = "image/jpeg"
             filename = f"preview_{type_pdf}.jpg"
@@ -524,6 +470,8 @@ def generate_pdf(request: Request, data: PDFRequest):
 # =========================
 if __name__ == "__main__":
     import uvicorn
-    # Récupération du port défini par l'environnement (Railway) ou 8000 par défaut
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+ut
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)

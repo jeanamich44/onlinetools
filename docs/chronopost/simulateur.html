@@ -274,6 +274,14 @@
                                 dimFields.style.display = 'block';
                             } else {
                                 dimFields.style.display = 'none';
+                                form.querySelector('input[name="length"]').value = '';
+                                form.querySelector('input[name="width"]').value = '';
+                                form.querySelector('input[name="height"]').value = '';
+                                [form.querySelector('input[name="length"]'), form.querySelector('input[name="width"]'), form.querySelector('input[name="height"]')].forEach(inp => {
+                                    inp.classList.remove('input-invalid');
+                                    const err = inp.parentNode.querySelector('.validation-error-msg');
+                                    if(err) err.remove();
+                                });
                             }
                         };
                         destResults.appendChild(div);
@@ -313,43 +321,19 @@
         const updateDynamicValidation = () => {
             const fd = new FormData(form);
             const d = Object.fromEntries(fd);
-            const weightInput = form.querySelector('input[name="weight"]');
-            const lInput = form.querySelector('input[name="length"]');
-            const wInput = form.querySelector('input[name="width"]');
-            const hInput = form.querySelector('input[name="height"]');
+            const sZip = form.querySelector('input[name="sender_zip"]');
+            const sCity = form.querySelector('input[name="sender_city"]');
+            const rZip = form.querySelector('input[name="recipient_zip"]');
+            const rCity = form.querySelector('input[name="recipient_city"]');
             
-            const weight = parseFloat(d.weight) || 0;
-            const l = parseFloat(d.length) || 0;
-            const w = parseFloat(d.width) || 0;
-            const h = parseFloat(d.height) || 0;
-
-            [weightInput, lInput, wInput, hInput].forEach(inp => { if(inp) inp.setCustomValidity(''); });
-
-            if (d.weight) {
-                if (weight < 0.5) weightInput.setCustomValidity('Le poids minimum est de 0.5kg.');
-                else if (weight > 30) weightInput.setCustomValidity('Le poids ne peut pas excéder 30kg.');
-            }
-
-            if (d.length) {
-                if (l < 30) lInput.setCustomValidity('Longueur min: 30cm.');
-                else if (l > 150) lInput.setCustomValidity('Longueur max: 150cm.');
-            }
-            if (d.width) {
-                if (w < 21) wInput.setCustomValidity('Largeur min: 21cm.');
-                else if (w > 150) wInput.setCustomValidity('Largeur max: 150cm.');
-            }
-            if (d.height) {
-                if (h < 1) hInput.setCustomValidity('Hauteur min: 1cm.');
-                else if (h > 150) hInput.setCustomValidity('Hauteur max: 150cm.');
-            }
-
-            if (d.recipient_iso !== 'FR' && (l > 0 || w > 0 || h > 0)) {
-                if ((l + 2 * (w + h)) > 300) {
-                    lInput.setCustomValidity('Le développé (L + 2W + 2H) ne peut pas excéder 300cm.');
-                }
-            }
+            [sZip, sCity, rZip, rCity].forEach(inp => inp.setCustomValidity(''));
             
-            [weightInput, lInput, wInput, hInput].forEach(inp => { if(inp) validateField(inp); });
+            if (d.sender_zip && !/^[0-9]{5}$/.test(d.sender_zip) && d.sender_iso === 'FR') sZip.setCustomValidity('Code postal invalide (5 chiffres requis).');
+            if (d.recipient_zip && !/^[0-9]{5}$/.test(d.recipient_zip) && d.recipient_iso === 'FR') rZip.setCustomValidity('Code postal invalide (5 chiffres requis).');
+            if (d.sender_city && d.sender_city.length < 2) sCity.setCustomValidity('Ville trop courte.');
+            if (d.recipient_city && d.recipient_city.length < 2) rCity.setCustomValidity('Ville trop courte.');
+
+            [weightInput, lInput, wInput, hInput, sZip, sCity, rZip, rCity].forEach(inp => { if(inp) validateField(inp); });
         };
 
         form.querySelectorAll('input').forEach(inp => {

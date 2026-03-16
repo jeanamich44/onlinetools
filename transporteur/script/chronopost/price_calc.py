@@ -1,5 +1,8 @@
 from curl_cffi import requests
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 from script.chronopost.headers import SIMULATEUR_HEADERS
 
@@ -16,15 +19,44 @@ def get_chronopost_price(data):
     width = float(data.get("width", 0)) if data.get("width") else 0
     height = float(data.get("height", 0)) if data.get("height") else 0
 
+    headers = SIMULATEUR_HEADERS
+
+    s_iso = data.get("sender_iso", "FR")
+    r_iso = data.get("recipient_iso", "FR")
+    s_zip = data.get("sender_zip")
+    r_zip = data.get("recipient_zip")
+    s_city = data.get("sender_city")
+    r_city = data.get("recipient_city")
+
+    if not all([s_zip, r_zip, s_city, r_city]):
+        return {"status": "error"}
+    
+    if s_iso == "FR" and (not s_zip.isdigit() or len(s_zip) != 5):
+        return {"status": "error"}
+    if r_iso == "FR" and (not r_zip.isdigit() or len(r_zip) != 5):
+        return {"status": "error"}
+    
+    if len(s_city) < 2 or len(r_city) < 2:
+        return {"status": "error"}
+
+    if weight < 0.5 or weight > 30:
+        return {"status": "error"}
+    
+    if r_iso != "FR":
+        if any(v > 150 for v in [length, width, height]):
+            return {"status": "error"}
+        if (length + 2 * (width + height)) > 300:
+            return {"status": "error"}
+
     # Préparation du payload pour l'API Chronopost
     payload = {
         "locale": "fr",
-        "senderCountryCode": data.get("sender_iso", "FR"),
-        "senderZipCode": data.get("sender_zip"),
-        "senderCity": data.get("sender_city"),
-        "recipientCountryCode": data.get("recipient_iso", "FR"),
-        "recipientZipCode": data.get("recipient_zip"),
-        "recipientCity": data.get("recipient_city"),
+        "senderCountryCode": s_iso,
+        "senderZipCode": s_zip,
+        "senderCity": s_city,
+        "recipientCountryCode": r_iso,
+        "recipientZipCode": r_zip,
+        "recipientCity": r_city,
         "classification": "M",
         "recipientPart": True,
         "parcelList": [
@@ -41,20 +73,6 @@ def get_chronopost_price(data):
         ]
     }
 
-    headers = SIMULATEUR_HEADERS
-
-    if weight < 0.5:
-        return {"status": "error", "message": "Le poids minimum est de 0.5kg."}
-    
-    if weight > 30:
-        return {"status": "error", "message": "Le poids maximum est de 30kg."}
-    
-    if length > 150 or width > 150 or height > 150:
-        return {"status": "error", "message": "Dimensions trop grandes (max 150cm par côté)."}
-
-    if (length + 2 * (width + height)) > 300:
-        return {"status": "error", "message": "Le développé total (L + 2W + 2H) dépasse 300cm."}
-
     try:
         r = requests.post(
             f"{url}?lang=fr_FR",
@@ -65,7 +83,8 @@ def get_chronopost_price(data):
         )
         
         if r.status_code != 200:
-            return {"status": "error", "message": f"Erreur de l'API Chronopost (Code: {r.status_code})"}
+            logger.error(f"Chronopost API Error (Code: {r.status_code}): {r.text}")
+            return {"status": "error"}
             
         choices = r.json()
         results = []
@@ -88,4 +107,5 @@ def get_chronopost_price(data):
         return {"status": "success", "offers": results}
 
     except Exception as e:
-        return {"status": "error", "message": str(e)}
+        logger.error(f"Chronopost Exception: {str(e)}")
+        return {"status": "error"}

@@ -16,13 +16,11 @@ from script.colissimo.price_calc_colissimo import get_colissimo_price
 # ==============================================================================
 app = FastAPI()
 
-# Configuration Colissimo
 COLISSIMO_CONFIG = {
     "id": "825834",
     "key": "94ED799A18A2C685733CADF74DDDBA7B"
 }
 
-# Configuration du logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -58,7 +56,6 @@ class ChronopostSimulateRequest(BaseModel):
 
 @app.post("/generate/chronopost")
 def generate_chronopost_endpoint(req: ChronopostRequest):
-    """Génération de l'étiquette Chronopost"""
     try:
         result = run_chronopost(req.data)
         return result
@@ -68,9 +65,7 @@ def generate_chronopost_endpoint(req: ChronopostRequest):
 
 @app.post("/api/chronopost/simulate")
 def simulate_chronopost_endpoint(req: ChronopostSimulateRequest):
-    """Simulation des tarifs Chronopost avec réduction"""
     try:
-        # Conversion du modèle Pydantic en dictionnaire pour la fonction de calcul
         return get_chronopost_price(req.dict())
     except Exception as e:
         logger.error(f"Erreur Simulation Chronopost: {str(e)}")
@@ -82,7 +77,6 @@ class RelayRequest(BaseModel):
 
 @app.post("/relay/info")
 def get_relay_info_endpoint(req: RelayRequest):
-    """Récupération des détails d'un point relais Chronopost"""
     try:
         result = get_relay_detail(req.pickup_id, req.country)
         return result
@@ -105,7 +99,6 @@ class ColissimoSimulateRequest(BaseModel):
 
 @app.post("/api/colissimo/simulate")
 def simulate_colissimo_endpoint(req: ColissimoSimulateRequest):
-    """Simulation des tarifs Colissimo"""
     try:
         return get_colissimo_price(req.dict(), COLISSIMO_CONFIG)
     except Exception as e:
@@ -117,7 +110,6 @@ class ColissimoRequest(BaseModel):
 
 @app.post("/generate/colissimo")
 def generate_colissimo_endpoint(req: ColissimoRequest):
-    """Génération de l'étiquette Colissimo"""
     try:
         result = run_colissimo(req.data, COLISSIMO_CONFIG)
         return result
@@ -131,13 +123,12 @@ def generate_colissimo_endpoint(req: ColissimoRequest):
 
 @app.get("/relay/search")
 def search_relays_endpoint(zip: str, type: str = "colissimo"):
-    """Recherche de points relais par code postal"""
     try:
         if type == "colissimo":
             result = search_relays_colissimo(zip, COLISSIMO_CONFIG)
             return result
         else:
-            return {"status": "error", "message": f"Type de recherche non supporté: {type}"}
+            return {"status": "error"}
     except Exception as e:
         logger.error(f"Erreur recherche relais: {str(e)}")
         raise HTTPException(status_code=500, detail="error")
@@ -146,6 +137,5 @@ def search_relays_endpoint(zip: str, type: str = "colissimo"):
 # ==============================================================================
 if __name__ == "__main__":
     import uvicorn
-    # Récupération du port défini par l'environnement (Railway) ou 8000 par défaut
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
