@@ -261,6 +261,14 @@
         destSearch.addEventListener('input', (e) => {
             const val = e.target.value.toUpperCase();
             destResults.innerHTML = '';
+            
+            // Réinitialisation si l'utilisateur efface le pays
+            if (val.length === 0) {
+                destHidden.value = '';
+                form.querySelector('input[name="recipient_zip"]').value = '';
+                form.querySelector('input[name="recipient_city"]').value = '';
+            }
+
             if (val.length > 0) {
                 const filtered = Object.keys(COUNTRY_LIST).filter(c => c.includes(val)).slice(0, 10);
                 if (filtered.length > 0) {
@@ -271,6 +279,13 @@
                         div.textContent = countryName;
                         div.onclick = () => {
                             const iso = COUNTRY_LIST[countryName];
+                            
+                            // Réinitialisation des champs si le pays change
+                            if (destHidden.value !== iso) {
+                                form.querySelector('input[name="recipient_zip"]').value = '';
+                                form.querySelector('input[name="recipient_city"]').value = '';
+                            }
+
                             destSearch.value = countryName;
                             destHidden.value = iso;
                             destResults.style.display = 'none';
@@ -296,6 +311,11 @@
             } else {
                 destResults.style.display = 'none';
             }
+        });
+
+        form.querySelector('select[name="sender_iso"]').addEventListener('change', () => {
+            form.querySelector('input[name="sender_zip"]').value = '';
+            form.querySelector('input[name="sender_city"]').value = '';
         });
 
         document.addEventListener('click', (e) => {

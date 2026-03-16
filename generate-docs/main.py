@@ -252,7 +252,7 @@ async def get_price_from_simulator(data: dict, product_name: str):
                 "recipient_city": data.get("receiverCity"),
                 "weight": float(data.get("packageWeight") or 1.0),
                 "sender_iso": data.get("senderCountry", "FR"),
-                "recipient_iso": data.get("receiverCountry", "FR")
+                "recipient_iso": data.get("receiverCountry") or data.get("destinationCountry") or "FR"
             }
             
             async with aiohttp.ClientSession() as session:
