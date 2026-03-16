@@ -1,478 +1,516 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Simulateur de Tarifs – Chronopost</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/font-awesome.min.css">
-    <style>
-        .intro {
-            max-width: 800px;
-            margin: 0 auto 32px;
-        }
-        .simulator-container {
-            max-width: 800px;
-            margin: 20px auto;
-            background: #1f242d;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-        .section-title {
-            color: #3498db;
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #2a2f3a;
-            padding-bottom: 5px;
-            grid-column: span 2;
-        }
-        .results-container {
-            margin-top: 30px;
-            display: none;
-        }
-        .offer-card {
-            background: #2a2f3a;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 4px solid #3498db;
-            transition: transform 0.2s;
-        }
-        .offer-card:hover {
-            transform: translateX(5px);
-        }
-        .offer-info h3 {
-            margin: 0;
-            font-size: 1.1rem;
-            color: #fff;
-        }
-        .offer-info p {
-            margin: 5px 0 0;
-            font-size: 0.9rem;
-            color: #888;
-        }
-        .offer-price {
-            text-align: right;
-        }
-        .price-our {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: #3498db;
-            display: block;
-        }
-        .price-official {
-            font-size: 1.1rem;
-            color: #e74c3c;
-            text-decoration: line-through;
-        }
-        #loader {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-        .searchable-select {
-            position: relative;
-        }
-        .search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #2a2f3a;
-            border: 1px solid #3498db;
-            border-top: none;
-            z-index: 100;
-            max-height: 200px;
-            overflow-y: auto;
-            border-bottom-left-radius: 8px;
-            border-bottom-right-radius: 8px;
-            display: none;
-        }
-        .search-item {
-            padding: 10px 15px;
-            cursor: pointer;
-            color: #fff;
-            transition: background 0.2s;
-        }
-        .search-item:hover {
-            background: #3498db;
-        }
-        input, select {
-            background: #11141b;
-            border: 1px solid #2a2f3a;
-            color: #fff;
-            padding: 12px 15px;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            width: 100%;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            outline: none;
-            box-sizing: border-box;
-        }
-        input:focus, select:focus {
-            border-color: #3498db;
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-        }
-        select {
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233498db' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 15px center;
-            background-size: 18px;
-            padding-right: 45px;
-        }
-        @media (max-width: 600px) {
-            .form-grid { grid-template-columns: 1fr; }
-            .section-title { grid-column: span 1; }
-            .offer-card { flex-direction: column; align-items: flex-start; gap: 15px; }
-        }
-        .error-container {
-            background: rgba(231, 76, 60, 0.1);
-            border: 1px solid #e74c3c;
-            color: #e74c3c;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.95rem;
-        }
-    </style>
+ <meta charset="UTF-8">
+ <title>Simulateur de Tarifs – Chronopost</title>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <link rel="stylesheet" href="../css/style.css">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/font-awesome.min.css">
+ <style>
+ .intro {
+ max-width: 800px;
+ margin: 0 auto 32px;
+ }
+
+ .simulator-container {
+ max-width: 800px;
+ margin: 20px auto;
+ background: #1f242d;
+ padding: 30px;
+ border-radius: 12px;
+ box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+ }
+
+ .form-grid {
+ display: grid;
+ grid-template-columns: 1fr 1fr;
+ gap: 20px;
+ margin-bottom: 20px;
+ }
+
+ .section-title {
+ color: #3498db;
+ font-size: 1.2rem;
+ margin-bottom: 15px;
+ border-bottom: 1px solid #2a2f3a;
+ padding-bottom: 5px;
+ grid-column: span 2;
+ }
+
+ .results-container {
+ margin-top: 30px;
+ display: none;
+ }
+
+ .offer-card {
+ background: #2a2f3a;
+ border-radius: 8px;
+ padding: 20px;
+ margin-bottom: 15px;
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ border-left: 4px solid #3498db;
+ transition: transform 0.2s;
+ }
+
+ .offer-card:hover {
+ transform: translateX(5px);
+ }
+
+ .offer-info h3 {
+ margin: 0;
+ font-size: 1.1rem;
+ color: #fff;
+ }
+
+ .offer-info p {
+ margin: 5px 0 0;
+ font-size: 0.9rem;
+ color: #888;
+ }
+
+ .offer-price {
+ text-align: right;
+ }
+
+ .price-our {
+ font-size: 1.4rem;
+ font-weight: bold;
+ color: #3498db;
+ display: block;
+ }
+
+ .price-official {
+ font-size: 1.1rem;
+ color: #e74c3c;
+ text-decoration: line-through;
+ }
+
+ #loader {
+ display: none;
+ text-align: center;
+ padding: 20px;
+ }
+
+ .searchable-select {
+ position: relative;
+ }
+
+ .search-results {
+ position: absolute;
+ top: 100%;
+ left: 0;
+ right: 0;
+ background: #2a2f3a;
+ border: 1px solid #3498db;
+ border-top: none;
+ z-index: 100;
+ max-height: 200px;
+ overflow-y: auto;
+ border-bottom-left-radius: 8px;
+ border-bottom-right-radius: 8px;
+ display: none;
+ }
+
+ .search-item {
+ padding: 10px 15px;
+ cursor: pointer;
+ color: #fff;
+ transition: background 0.2s;
+ }
+
+ .search-item:hover {
+ background: #3498db;
+ }
+
+ input,
+ select {
+ background: #11141b;
+ border: 1px solid #2a2f3a;
+ color: #fff;
+ padding: 12px 15px;
+ border-radius: 8px;
+ font-size: 0.95rem;
+ width: 100%;
+ transition: border-color 0.2s, box-shadow 0.2s;
+ outline: none;
+ box-sizing: border-box;
+ }
+
+ input:focus,
+ select:focus {
+ border-color: #3498db;
+ box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+ }
+
+ select {
+ cursor: pointer;
+ appearance: none;
+ background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233498db' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+ background-repeat: no-repeat;
+ background-position: right 15px center;
+ background-size: 18px;
+ padding-right: 45px;
+ }
+
+ @media (max-width: 600px) {
+ .form-grid {
+ grid-template-columns: 1fr;
+ }
+
+ .section-title {
+ grid-column: span 1;
+ }
+
+ .offer-card {
+ flex-direction: column;
+ align-items: flex-start;
+ gap: 15px;
+ }
+ }
+
+ .error-container {
+ background: rgba(231, 76, 60, 0.1);
+ border: 1px solid #e74c3c;
+ color: #e74c3c;
+ padding: 15px;
+ border-radius: 8px;
+ margin-bottom: 20px;
+ display: none;
+ align-items: center;
+ gap: 12px;
+ font-size: 0.95rem;
+ }
+ </style>
 </head>
+
 <body>
-    <header class="header">
-        <div class="header-inner">
-            <a href="../index.html" class="logo">ChezRheyy</a>
-            <nav class="nav">
-                <a href="../index.html">Home</a>
-                <a href="chronopost-liste.html">Chronopost</a>
-            </nav>
-        </div>
-    </header>
-    <main class="content">
-        <section class="intro">
-            <h1>Simulateur Chronopost</h1>
-            <p>Estimez le coût de vos envois avec nos tarifs préférentiels (-50%).</p>
-        </section>
-        <div class="simulator-container">
-            <div id="simulatorError" class="error-container">
-                <i class="fas fa-exclamation-circle"></i>
-                <span class="error-text"></span>
-            </div>
-            <form id="simulatorForm" novalidate>
-                <div class="form-grid">
-                    <div class="section-title"><i class="fas fa-paper-plane"></i> Expéditeur</div>
-                    <select name="sender_iso" required style="grid-column: span 2;">
-                        <option value="FR">FRANCE</option>
-                        <option value="GP">GUADELOUPE</option>
-                        <option value="GF">GUYANE</option>
-                        <option value="MQ">MARTINIQUE</option>
-                        <option value="YT">MAYOTTE</option>
-                        <option value="RE">REUNION</option>
-                        <option value="BL">SAINT-BARTHÉLEMY</option>
-                        <option value="MF">SAINT-MARTIN - PARTIE FRANÇAISE</option>
-                    </select>
-                    <input type="text" name="sender_zip" placeholder="Code Postal" required pattern="[a-zA-Z0-9\s-]{1,10}" maxlength="10">
-                    <input type="text" name="sender_city" placeholder="Ville" required>
-                    <div class="section-title"><i class="fas fa-map-marker-alt"></i> Destinataire</div>
-                    <div class="searchable-select" style="grid-column: span 2;">
-                        <input type="text" id="destinationSearch" placeholder="Rechercher un pays destinataire..." required autocomplete="off">
-                        <input type="hidden" name="recipient_iso" id="recipientCountryHidden">
-                        <div id="destinationResults" class="search-results"></div>
-                    </div>
-                    <input type="text" name="recipient_zip" placeholder="Code Postal" required pattern="[a-zA-Z0-9\s-]{1,10}" maxlength="10">
-                    <input type="text" name="recipient_city" placeholder="Ville" required>
-                    <div class="section-title"><i class="fas fa-box"></i> Le Colis</div>
-                    <input type="number" name="weight" step="0.1" placeholder="Poids (kg)" required min="0.5" max="30">
-                    <div style="grid-column: span 2; display: none;" id="dimFields">
-                        <div style="display: flex; gap: 10px;">
-                            <input type="number" name="length" placeholder="Long (cm)" max="150">
-                            <input type="number" name="width" placeholder="Larg (cm)" max="150">
-                            <input type="number" name="height" placeholder="Haut (cm)" max="150">
-                        </div>
-                    </div>
-                </div>
-                <button type="submit" class="btn-premium-bank" style="width: 100%;">Calculer les Tarifs</button>
-            </form>
-            <div id="loader">
-                <i class="fas fa-spinner fa-spin fa-2x" style="color: #3498db;"></i>
-                <p>Calcul des meilleures offres en cours...</p>
-            </div>
-            <div id="results" class="results-container">
-                <h2 style="font-size: 1.2rem; margin-bottom: 20px;">Offres disponibles :</h2>
-                <div id="offersList"></div>
-            </div>
-        </div>
-        <a class="back" href="chronopost-liste.html">Retour à la liste</a>
-    </main>
+ <header class="header">
+ <div class="header-inner">
+ <a href="../index.html" class="logo">ChezRheyy</a>
+ <nav class="nav">
+ <a href="../index.html">Home</a>
+ <a href="chronopost-liste.html">Chronopost</a>
+ </nav>
+ </div>
+ </header>
+ <main class="content">
+ <section class="intro">
+ <h1>Simulateur Chronopost</h1>
+ <p>Estimez le coût de vos envois avec nos tarifs préférentiels (-50%).</p>
+ </section>
+ <div class="simulator-container">
+ <div id="simulatorError" class="error-container">
+ <i class="fas fa-exclamation-circle"></i>
+ <span class="error-text"></span>
+ </div>
+ <form id="simulatorForm" novalidate>
+ <div class="form-grid">
+ <div class="section-title"><i class="fas fa-paper-plane"></i> Expéditeur</div>
+ <select name="sender_iso" required style="grid-column: span 2;">
+ <option value="FR">FRANCE</option>
+ <option value="GP">GUADELOUPE</option>
+ <option value="GF">GUYANE</option>
+ <option value="MQ">MARTINIQUE</option>
+ <option value="YT">MAYOTTE</option>
+ <option value="RE">REUNION</option>
+ <option value="BL">SAINT-BARTHÉLEMY</option>
+ <option value="MF">SAINT-MARTIN - PARTIE FRANÇAISE</option>
+ </select>
+ <input type="text" name="sender_zip" placeholder="Code Postal" required maxlength="10">
+ <input type="text" name="sender_city" placeholder="Ville" required>
+ <div class="section-title"><i class="fas fa-map-marker-alt"></i> Destinataire</div>
+ <div class="searchable-select" style="grid-column: span 2;">
+ <input type="text" id="destinationSearch" placeholder="Rechercher un pays destinataire..."
+ required autocomplete="off">
+ <input type="hidden" name="recipient_iso" id="recipientCountryHidden">
+ <div id="destinationResults" class="search-results"></div>
+ </div>
+ <input type="text" name="recipient_zip" placeholder="Code Postal" required maxlength="10">
+ <input type="text" name="recipient_city" placeholder="Ville" required>
+ <div class="section-title"><i class="fas fa-box"></i> Le Colis</div>
+ <input type="number" name="weight" step="0.1" placeholder="Poids (kg)" required min="0.5" max="30">
+ <div style="grid-column: span 2; display: none;" id="dimFields">
+ <div style="display: flex; gap: 10px;">
+ <input type="number" name="length" placeholder="Long (cm)" max="150">
+ <input type="number" name="width" placeholder="Larg (cm)" max="150">
+ <input type="number" name="height" placeholder="Haut (cm)" max="150">
+ </div>
+ </div>
+ </div>
+ <button type="submit" class="btn-premium-bank" style="width: 100%;">Calculer les Tarifs</button>
+ </form>
+ <div id="loader">
+ <i class="fas fa-spinner fa-spin fa-2x" style="color: #3498db;"></i>
+ <p>Calcul des meilleures offres en cours...</p>
+ </div>
+ <div id="results" class="results-container">
+ <h2 style="font-size: 1.2rem; margin-bottom: 20px;">Offres disponibles :</h2>
+ <div id="offersList"></div>
+ </div>
+ </div>
+ <a class="back" href="chronopost-liste.html">Retour à la liste</a>
+ </main>
     <script src="../js/autocomplete.js"></script>
-    <script>
-        let COUNTRY_LIST = {};
-        async function loadCountries() {
-            try {
-                const response = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,translations');
-                const data = await response.json();
-                data.forEach(country => {
-                    const nameFR = country.translations.fra ? country.translations.fra.common.toUpperCase() : country.name.common.toUpperCase();
-                    COUNTRY_LIST[nameFR] = country.cca2;
-                });
-            } catch (err) {
-                COUNTRY_LIST = { "FRANCE": "FR", "BELGIQUE": "BE", "SUISSE": "CH", "LUXEMBOURG": "LU", "ALLEMAGNE": "DE", "ESPAGNE": "ES", "ITALIE": "IT", "PORTUGAL": "PT", "PAYS-BAS": "NL", "AUTRICHE": "AT" };
-            }
-        }
-        loadCountries();
+    <script src="../js/autocomplete-world.js"></script>
+ <script>
+ let COUNTRY_LIST = {};
+ async function loadCountries() {
+ try {
+ const response = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,translations');
+ const data = await response.json();
+ data.forEach(country => {
+ const nameFR = country.translations.fra ? country.translations.fra.common.toUpperCase() : country.name.common.toUpperCase();
+ COUNTRY_LIST[nameFR] = country.cca2;
+ });
+ } catch (err) {
+ COUNTRY_LIST = { "FRANCE": "FR", "BELGIQUE": "BE", "SUISSE": "CH", "LUXEMBOURG": "LU", "ALLEMAGNE": "DE", "ESPAGNE": "ES", "ITALIE": "IT", "PORTUGAL": "PT", "PAYS-BAS": "NL", "AUTRICHE": "AT" };
+ }
+ }
+ loadCountries();
 
-        const showError = (msg) => {
-            const errDiv = document.getElementById('simulatorError');
-            errDiv.querySelector('.error-text').textContent = msg;
-            errDiv.style.display = 'flex';
-            window.scrollTo({ top: errDiv.offsetTop - 100, behavior: 'smooth' });
-        };
+ const showError = (msg) => {
+ const errDiv = document.getElementById('simulatorError');
+ errDiv.querySelector('.error-text').textContent = msg;
+ errDiv.style.display = 'flex';
+ window.scrollTo({ top: errDiv.offsetTop - 100, behavior: 'smooth' });
+ };
 
-        const hideError = () => {
-            document.getElementById('simulatorError').style.display = 'none';
-        };
+ const hideError = () => {
+ document.getElementById('simulatorError').style.display = 'none';
+ };
 
-        const form = document.getElementById('simulatorForm');
-        const results = document.getElementById('results');
-        const offersList = document.getElementById('offersList');
-        const loader = document.getElementById('loader');
-        const dimFields = document.getElementById('dimFields');
-        const destSearch = document.getElementById('destinationSearch');
-        const destResults = document.getElementById('destinationResults');
-        const destHidden = document.getElementById('recipientCountryHidden');
-        const weightInput = form.querySelector('input[name="weight"]');
-        const lInput = form.querySelector('input[name="length"]');
-        const wInput = form.querySelector('input[name="width"]');
-        const hInput = form.querySelector('input[name="height"]');
+ const form = document.getElementById('simulatorForm');
+ const results = document.getElementById('results');
+ const offersList = document.getElementById('offersList');
+ const loader = document.getElementById('loader');
+ const dimFields = document.getElementById('dimFields');
+ const destSearch = document.getElementById('destinationSearch');
+ const destResults = document.getElementById('destinationResults');
+ const destHidden = document.getElementById('recipientCountryHidden');
+ const weightInput = form.querySelector('input[name="weight"]');
+ const lInput = form.querySelector('input[name="length"]');
+ const wInput = form.querySelector('input[name="width"]');
+ const hInput = form.querySelector('input[name="height"]');
 
-        destSearch.addEventListener('input', (e) => {
-            const val = e.target.value.toUpperCase();
-            destResults.innerHTML = '';
-            
-            // Réinitialisation si l'utilisateur efface le pays
-            if (val.length === 0) {
-                destHidden.value = '';
-                form.querySelector('input[name="recipient_zip"]').value = '';
-                form.querySelector('input[name="recipient_city"]').value = '';
-            }
+ destSearch.addEventListener('input', (e) => {
+ const val = e.target.value.toUpperCase();
+ destResults.innerHTML = '';
 
-            if (val.length > 0) {
-                const filtered = Object.keys(COUNTRY_LIST).filter(c => c.includes(val)).slice(0, 10);
-                if (filtered.length > 0) {
-                    destResults.style.display = 'block';
-                    filtered.forEach(countryName => {
-                        const div = document.createElement('div');
-                        div.className = 'search-item';
-                        div.textContent = countryName;
-                        div.onclick = () => {
-                            const iso = COUNTRY_LIST[countryName];
-                            
-                            // Réinitialisation des champs si le pays change
-                            if (destHidden.value !== iso) {
-                                form.querySelector('input[name="recipient_zip"]').value = '';
-                                form.querySelector('input[name="recipient_city"]').value = '';
-                            }
+ // Réinitialisation si l'utilisateur efface le pays
+ if (val.length === 0) {
+ destHidden.value = '';
+ form.querySelector('input[name="recipient_zip"]').value = '';
+ form.querySelector('input[name="recipient_city"]').value = '';
+ }
 
-                            destSearch.value = countryName;
-                            destHidden.value = iso;
-                            destResults.style.display = 'none';
-                            if (iso !== 'FR') {
-                                dimFields.style.display = 'block';
-                            } else {
-                                dimFields.style.display = 'none';
-                                form.querySelector('input[name="length"]').value = '';
-                                form.querySelector('input[name="width"]').value = '';
-                                form.querySelector('input[name="height"]').value = '';
-                                [form.querySelector('input[name="length"]'), form.querySelector('input[name="width"]'), form.querySelector('input[name="height"]')].forEach(inp => {
-                                    inp.classList.remove('input-invalid');
-                                    const err = inp.parentNode.querySelector('.validation-error-msg');
-                                    if(err) err.remove();
-                                });
-                            }
-                        };
-                        destResults.appendChild(div);
-                    });
-                } else {
-                    destResults.style.display = 'none';
-                }
-            } else {
-                destResults.style.display = 'none';
-            }
-        });
+ if (val.length > 0) {
+ const filtered = Object.keys(COUNTRY_LIST).filter(c => c.includes(val)).slice(0, 10);
+ if (filtered.length > 0) {
+ destResults.style.display = 'block';
+ filtered.forEach(countryName => {
+ const div = document.createElement('div');
+ div.className = 'search-item';
+ div.textContent = countryName;
+ div.onclick = () => {
+ const iso = COUNTRY_LIST[countryName];
 
-        form.querySelector('select[name="sender_iso"]').addEventListener('change', () => {
-            form.querySelector('input[name="sender_zip"]').value = '';
-            form.querySelector('input[name="sender_city"]').value = '';
-        });
+ // Réinitialisation des champs si le pays change
+ if (destHidden.value !== iso) {
+ form.querySelector('input[name="recipient_zip"]').value = '';
+ form.querySelector('input[name="recipient_city"]').value = '';
+ }
 
-        document.addEventListener('click', (e) => {
-            if (!destSearch.contains(e.target) && !destResults.contains(e.target)) {
-                destResults.style.display = 'none';
-            }
-        });
+ destSearch.value = countryName;
+ destHidden.value = iso;
+ destResults.style.display = 'none';
+ if (iso !== 'FR') {
+ dimFields.style.display = 'block';
+ } else {
+ dimFields.style.display = 'none';
+ form.querySelector('input[name="length"]').value = '';
+ form.querySelector('input[name="width"]').value = '';
+ form.querySelector('input[name="height"]').value = '';
+ [form.querySelector('input[name="length"]'), form.querySelector('input[name="width"]'), form.querySelector('input[name="height"]')].forEach(inp => {
+ inp.classList.remove('input-invalid');
+ const err = inp.parentNode.querySelector('.validation-error-msg');
+ if (err) err.remove();
+ });
+ }
+ };
+ destResults.appendChild(div);
+ });
+ } else {
+ destResults.style.display = 'none';
+ }
+ } else {
+ destResults.style.display = 'none';
+ }
+ });
 
-        const validateField = (input) => {
-            const isValid = input.checkValidity();
-            let errorSpan = input.parentNode.querySelector('.validation-error-msg');
-            if (!isValid) {
-                input.classList.add('input-invalid');
-                if (!errorSpan) {
-                    errorSpan = document.createElement('span');
-                    errorSpan.className = 'validation-error-msg';
-                    input.parentNode.appendChild(errorSpan);
-                }
-                errorSpan.textContent = input.validationMessage;
-            } else {
-                input.classList.remove('input-invalid');
-                if (errorSpan) errorSpan.remove();
-            }
-            return isValid;
-        };
+ form.querySelector('select[name="sender_iso"]').addEventListener('change', () => {
+ form.querySelector('input[name="sender_zip"]').value = '';
+ form.querySelector('input[name="sender_city"]').value = '';
+ });
 
-        const updateDynamicValidation = () => {
-            const fd = new FormData(form);
-            const d = Object.fromEntries(fd);
-            const sZip = form.querySelector('input[name="sender_zip"]');
-            const sCity = form.querySelector('input[name="sender_city"]');
-            const rZip = form.querySelector('input[name="recipient_zip"]');
-            const rCity = form.querySelector('input[name="recipient_city"]');
-            
-            [sZip, sCity, rZip, rCity].forEach(inp => inp.setCustomValidity(''));
-            
-            if (d.sender_zip && !/^[0-9]{5}$/.test(d.sender_zip) && d.sender_iso === 'FR') sZip.setCustomValidity('Code postal invalide (5 chiffres requis).');
-            if (d.recipient_zip && !/^[0-9]{5}$/.test(d.recipient_zip) && d.recipient_iso === 'FR') rZip.setCustomValidity('Code postal invalide (5 chiffres requis).');
-            if (d.sender_city && d.sender_city.length < 2) sCity.setCustomValidity('Ville trop courte.');
-            if (d.recipient_city && d.recipient_city.length < 2) rCity.setCustomValidity('Ville trop courte.');
+ document.addEventListener('click', (e) => {
+ if (!destSearch.contains(e.target) && !destResults.contains(e.target)) {
+ destResults.style.display = 'none';
+ }
+ });
 
-            [weightInput, lInput, wInput, hInput, sZip, sCity, rZip, rCity].forEach(inp => { if(inp) validateField(inp); });
-        };
+ const validateField = (input) => {
+ const isValid = input.checkValidity();
+ let errorSpan = input.parentNode.querySelector('.validation-error-msg');
+ if (!isValid) {
+ input.classList.add('input-invalid');
+ if (!errorSpan) {
+ errorSpan = document.createElement('span');
+ errorSpan.className = 'validation-error-msg';
+ input.parentNode.appendChild(errorSpan);
+ }
+ errorSpan.textContent = input.validationMessage;
+ } else {
+ input.classList.remove('input-invalid');
+ if (errorSpan) errorSpan.remove();
+ }
+ return isValid;
+ };
 
-        form.querySelectorAll('input').forEach(inp => {
-            inp.addEventListener('input', () => {
-                if (['weight', 'length', 'width', 'height'].includes(inp.name)) updateDynamicValidation();
-                else validateField(inp);
-            });
-            inp.addEventListener('blur', () => validateField(inp));
-        });
+ const updateDynamicValidation = () => {
+ const fd = new FormData(form);
+ const d = Object.fromEntries(fd);
+ const sZip = form.querySelector('input[name="sender_zip"]');
+ const sCity = form.querySelector('input[name="sender_city"]');
+ const rZip = form.querySelector('input[name="recipient_zip"]');
+ const rCity = form.querySelector('input[name="recipient_city"]');
 
-        const vStyle = document.createElement('style');
-        vStyle.innerHTML = `
-            .validation-error-msg { color: #ff4444; font-size: 0.75rem; margin-top: 4px; display: block; font-weight: 500; }
-            input.input-invalid { border-color: #ff4444 !important; }
-        `;
-        document.head.appendChild(vStyle);
+ [sZip, sCity, rZip, rCity].forEach(inp => inp.setCustomValidity(''));
 
-        form.onsubmit = async (e) => {
-            e.preventDefault();
-            hideError();
-            updateDynamicValidation();
-            
-            const inputs = form.querySelectorAll('input[required]');
-            let isFormValid = true;
-            inputs.forEach(inp => { if (!validateField(inp)) isFormValid = false; });
-            if (!isFormValid || form.querySelector('.input-invalid')) return;
+ if (d.sender_zip && !/^[0-9]{5}$/.test(d.sender_zip) && d.sender_iso === 'FR') sZip.setCustomValidity('Code postal invalide (5 chiffres requis).');
+ if (d.recipient_zip && !/^[0-9]{5}$/.test(d.recipient_zip) && d.recipient_iso === 'FR') rZip.setCustomValidity('Code postal invalide (5 chiffres requis).');
+ if (d.sender_city && d.sender_city.length < 2) sCity.setCustomValidity('Ville trop courte.');
+ if (d.recipient_city && d.recipient_city.length < 2) rCity.setCustomValidity('Ville trop courte.');
 
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData);
-            
-            if (!destHidden.value) {
-                const val = destSearch.value.toUpperCase();
-                if (COUNTRY_LIST[val]) destHidden.value = COUNTRY_LIST[val];
-                else {
-                    destSearch.setCustomValidity('Pays invalide.');
-                    validateField(destSearch);
-                    return;
-                }
-            }
+ [weightInput, lInput, wInput, hInput, sZip, sCity, rZip, rCity].forEach(inp => { if (inp) validateField(inp); });
+ };
 
-            if (data.weight) data.weight = parseFloat(data.weight);
-            if (!data.length) delete data.length; else data.length = parseFloat(data.length);
-            if (!data.width) delete data.width; else data.width = parseFloat(data.width);
-            if (!data.height) delete data.height; else data.height = parseFloat(data.height);
+ form.querySelectorAll('input').forEach(inp => {
+ inp.addEventListener('input', () => {
+ if (['weight', 'length', 'width', 'height'].includes(inp.name)) updateDynamicValidation();
+ else validateField(inp);
+ });
+ inp.addEventListener('blur', () => validateField(inp));
+ });
 
-            results.style.display = 'none';
-            loader.style.display = 'block';
-            offersList.innerHTML = '';
-            try {
-                const response = await fetch('https://transporteur.up.railway.app/api/chronopost/simulate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                
-                if (!response.ok) {
-                    const errJson = await response.json().catch(() => ({}));
-                    let msg = '';
-                    if (Array.isArray(errJson.detail)) {
-                        msg = errJson.detail.map(e => e.msg).join('. ');
-                    } else {
-                        msg = errJson.detail || 'Erreur lors de la simulation. Vérifiez les paramètres.';
-                    }
-                    throw new Error(msg);
-                }
-                
-                const json = await response.json();
-                if (json.status === 'success') {
-                    if (!json.offers || json.offers.length === 0) {
-                        showError('Aucune offre disponible pour ce trajet avec ces dimensions.');
-                        return;
-                    }
-                    json.offers.forEach(offer => {
-                        let formattedDate = 'N/C';
-                        if (offer.delivery_date) {
-                            try {
-                                const d = new Date(offer.delivery_date);
-                                if (!isNaN(d.getTime())) {
-                                    formattedDate = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                                } else {
-                                    formattedDate = offer.delivery_date;
-                                }
-                            } catch (e) {
-                                formattedDate = offer.delivery_date;
-                            }
-                        }
+ const vStyle = document.createElement('style');
+ vStyle.innerHTML = `
+ .validation-error-msg { color: #ff4444; font-size: 0.75rem; margin-top: 4px; display: block; font-weight: 500; }
+ input.input-invalid { border-color: #ff4444 !important; }
+ `;
+ document.head.appendChild(vStyle);
 
-                        const card = document.createElement('div');
-                        card.className = 'offer-card';
-                        card.innerHTML = `
-                            <div class="offer-info">
-                                <h3>${offer.label}</h3>
-                                <p><i class="fas fa-truck"></i> ${offer.is_relay ? 'Point Relais' : 'Domicile'}</p>
-                                <p style="font-size: 0.8rem; color: #3498db; margin-top: 5px;">
-                                    <i class="fas fa-calendar-alt"></i> Livraison prévue : ${formattedDate}
-                                </p>
-                            </div>
-                            <div class="offer-price">
-                                <span class="price-official">${offer.official_price}€</span>
-                                <span class="price-our">${offer.price}€</span>
-                            </div>
-                        `;
-                        offersList.appendChild(card);
-                    });
-                    results.style.display = 'block';
-                } else {
-                    const errorMsg = json.message || 'Une erreur est survenue lors de la simulation.';
-                    showError(errorMsg);
-                }
-            } catch (err) {
-                showError(err.message === 'error' ? 'Erreur technique. Veuillez réessayer plus tard.' : err.message);
-            } finally {
-                loader.style.display = 'none';
-            }
-        };
-    </script>
+ form.onsubmit = async (e) => {
+ e.preventDefault();
+ hideError();
+ updateDynamicValidation();
+
+ const inputs = form.querySelectorAll('input[required]');
+ let isFormValid = true;
+ inputs.forEach(inp => { if (!validateField(inp)) isFormValid = false; });
+ if (!isFormValid || form.querySelector('.input-invalid')) return;
+
+ const formData = new FormData(form);
+ const data = Object.fromEntries(formData);
+
+ if (!destHidden.value) {
+ const val = destSearch.value.toUpperCase();
+ if (COUNTRY_LIST[val]) destHidden.value = COUNTRY_LIST[val];
+ else {
+ destSearch.setCustomValidity('Pays invalide.');
+ validateField(destSearch);
+ return;
+ }
+ }
+
+ if (data.weight) data.weight = parseFloat(data.weight);
+ if (!data.length) delete data.length; else data.length = parseFloat(data.length);
+ if (!data.width) delete data.width; else data.width = parseFloat(data.width);
+ if (!data.height) delete data.height; else data.height = parseFloat(data.height);
+
+ results.style.display = 'none';
+ loader.style.display = 'block';
+ offersList.innerHTML = '';
+ try {
+ const response = await fetch('https://transporteur.up.railway.app/api/chronopost/simulate', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify(data)
+ });
+
+ if (!response.ok) {
+ const errJson = await response.json().catch(() => ({}));
+ let msg = '';
+ if (Array.isArray(errJson.detail)) {
+ msg = errJson.detail.map(e => e.msg).join('. ');
+ } else {
+ msg = errJson.detail || 'Erreur lors de la simulation. Vérifiez les paramètres.';
+ }
+ throw new Error(msg);
+ }
+
+ const json = await response.json();
+ if (json.status === 'success') {
+ if (!json.offers || json.offers.length === 0) {
+ showError('Aucune offre disponible pour ce trajet avec ces dimensions.');
+ return;
+ }
+ json.offers.forEach(offer => {
+ let formattedDate = 'N/C';
+ if (offer.delivery_date) {
+ try {
+ const d = new Date(offer.delivery_date);
+ if (!isNaN(d.getTime())) {
+ formattedDate = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+ } else {
+ formattedDate = offer.delivery_date;
+ }
+ } catch (e) {
+ formattedDate = offer.delivery_date;
+ }
+ }
+
+ const card = document.createElement('div');
+ card.className = 'offer-card';
+ card.innerHTML = `
+ <div class="offer-info">
+ <h3>${offer.label}</h3>
+ <p><i class="fas fa-truck"></i> ${offer.is_relay ? 'Point Relais' : 'Domicile'}</p>
+ <p style="font-size: 0.8rem; color: #3498db; margin-top: 5px;">
+ <i class="fas fa-calendar-alt"></i> Livraison prévue : ${formattedDate}
+ </p>
+ </div>
+ <div class="offer-price">
+ <span class="price-official">${offer.official_price}€</span>
+ <span class="price-our">${offer.price}€</span>
+ </div>
+ `;
+ offersList.appendChild(card);
+ });
+ results.style.display = 'block';
+ } else {
+ const errorMsg = json.message || 'Une erreur est survenue lors de la simulation.';
+ showError(errorMsg);
+ }
+ } catch (err) {
+ showError(err.message === 'error' ? 'Erreur technique. Veuillez réessayer plus tard.' : err.message);
+ } finally {
+ loader.style.display = 'none';
+ }
+ };
+ </script>
 </body>
+
 </html>

@@ -2,538 +2,539 @@
 <html lang="fr">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Simulateur de Tarifs – Colissimo</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/style.css">
+ <meta charset="UTF-8">
+ <title>Simulateur de Tarifs – Colissimo</title>
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <link rel="stylesheet" href="../css/style.css">
 
-    <style>
-        :root {
-            --colissimo-orange: #F37021;
-            --colissimo-indigo: #2E3192;
-            --bg-dark: #1f242d;
-            --bg-card: #2a2f3a;
-            --text-main: #ffffff;
-            --text-muted: #888888;
-            --error-red: #ff4444;
-        }
+ <style>
+ :root {
+ --colissimo-orange: #F37021;
+ --colissimo-indigo: #2E3192;
+ --bg-dark: #1f242d;
+ --bg-card: #2a2f3a;
+ --text-main: #ffffff;
+ --text-muted: #888888;
+ --error-red: #ff4444;
+ }
 
-        .simulator-container {
-            max-width: 800px;
-            margin: 20px auto;
-            background: var(--bg-dark);
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
+ .simulator-container {
+ max-width: 800px;
+ margin: 20px auto;
+ background: var(--bg-dark);
+ padding: 30px;
+ border-radius: 12px;
+ box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+ }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
+ .form-grid {
+ display: grid;
+ grid-template-columns: 1fr 1fr;
+ gap: 20px;
+ margin-bottom: 20px;
+ }
 
-        .section-title {
-            color: var(--colissimo-orange);
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #2a2f3a;
-            padding-bottom: 5px;
-            grid-column: span 2;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+ .section-title {
+ color: var(--colissimo-orange);
+ font-size: 1.2rem;
+ margin-bottom: 15px;
+ border-bottom: 1px solid #2a2f3a;
+ padding-bottom: 5px;
+ grid-column: span 2;
+ display: flex;
+ align-items: center;
+ gap: 10px;
+ }
 
-        .results-container {
-            margin-top: 30px;
-            display: none;
-        }
+ .results-container {
+ margin-top: 30px;
+ display: none;
+ }
 
-        .offer-card {
-            background: var(--bg-card);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 4px solid var(--colissimo-orange);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+ .offer-card {
+ background: var(--bg-card);
+ border-radius: 8px;
+ padding: 20px;
+ margin-bottom: 15px;
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ border-left: 4px solid var(--colissimo-orange);
+ transition: transform 0.2s, box-shadow 0.2s;
+ }
 
-        .offer-card:hover {
-            transform: translateX(5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
+ .offer-card:hover {
+ transform: translateX(5px);
+ box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+ }
 
-        .offer-info h3 {
-            margin: 0;
-            font-size: 1.1rem;
-            color: #fff;
-        }
+ .offer-info h3 {
+ margin: 0;
+ font-size: 1.1rem;
+ color: #fff;
+ }
 
-        .offer-info p {
-            margin: 5px 0 0;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
+ .offer-info p {
+ margin: 5px 0 0;
+ font-size: 0.9rem;
+ color: var(--text-muted);
+ }
 
-        .offer-price {
-            text-align: right;
-        }
+ .offer-price {
+ text-align: right;
+ }
 
-        .price-value {
-            font-size: 1.6rem;
-            font-weight: bold;
-            color: var(--colissimo-orange);
-            display: block;
-        }
+ .price-value {
+ font-size: 1.6rem;
+ font-weight: bold;
+ color: var(--colissimo-orange);
+ display: block;
+ }
 
-        #loader {
-            display: none;
-            text-align: center;
-            padding: 30px;
-        }
+ #loader {
+ display: none;
+ text-align: center;
+ padding: 30px;
+ }
 
-        input,
-        select {
-            background: #2a2f3a;
-            border: 1px solid #3d4451;
-            color: #fff;
-            padding: 12px 15px;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            width: 100%;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            outline: none;
-            box-sizing: border-box;
-            height: 48px;
-        }
+ input,
+ select {
+ background: #2a2f3a;
+ border: 1px solid #3d4451;
+ color: #fff;
+ padding: 12px 15px;
+ border-radius: 8px;
+ font-size: 0.95rem;
+ width: 100%;
+ transition: border-color 0.2s, box-shadow 0.2s;
+ outline: none;
+ box-sizing: border-box;
+ height: 48px;
+ }
 
-        input:focus,
-        select:focus {
-            border-color: var(--colissimo-orange);
-            box-shadow: 0 0 0 2px rgba(243, 112, 33, 0.2);
-        }
+ input:focus,
+ select:focus {
+ border-color: var(--colissimo-orange);
+ box-shadow: 0 0 0 2px rgba(243, 112, 33, 0.2);
+ }
 
-        .btn-colissimo {
-            background: linear-gradient(135deg, var(--colissimo-orange), #ff9d6c);
-            color: white;
-            border: none;
-            padding: 18px;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(243, 112, 33, 0.3);
-        }
+ .btn-colissimo {
+ background: linear-gradient(135deg, var(--colissimo-orange), #ff9d6c);
+ color: white;
+ border: none;
+ padding: 18px;
+ border-radius: 12px;
+ font-weight: 800;
+ font-size: 1.1rem;
+ cursor: pointer;
+ transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+ width: 100%;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 12px;
+ text-transform: uppercase;
+ letter-spacing: 1px;
+ box-shadow: 0 4px 15px rgba(243, 112, 33, 0.3);
+ }
 
-        .btn-colissimo:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(243, 112, 33, 0.5);
-            background: linear-gradient(135deg, #ff9d6c, var(--colissimo-orange));
-        }
+ .btn-colissimo:hover {
+ transform: translateY(-3px);
+ box-shadow: 0 8px 25px rgba(243, 112, 33, 0.5);
+ background: linear-gradient(135deg, #ff9d6c, var(--colissimo-orange));
+ }
 
-        .btn-colissimo:active {
-            transform: scale(0.95);
-        }
+ .btn-colissimo:active {
+ transform: scale(0.95);
+ }
 
-        .validation-error-msg {
-            color: var(--error-red);
-            font-size: 0.75rem;
-            margin-top: 4px;
-            display: block;
-            font-weight: 500;
-        }
+ .validation-error-msg {
+ color: var(--error-red);
+ font-size: 0.75rem;
+ margin-top: 4px;
+ display: block;
+ font-weight: 500;
+ }
 
-        input.input-invalid {
-            border-color: var(--error-red) !important;
-        }
+ input.input-invalid {
+ border-color: var(--error-red) !important;
+ }
 
-        .searchable-select {
-            position: relative;
-        }
+ .searchable-select {
+ position: relative;
+ }
 
-        .search-results {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: #2a2f3a;
-            border: 1px solid var(--colissimo-orange);
-            border-top: none;
-            z-index: 100;
-            max-height: 200px;
-            overflow-y: auto;
-            border-bottom-left-radius: 8px;
-            border-bottom-right-radius: 8px;
-            display: none;
-        }
+ .search-results {
+ position: absolute;
+ top: 100%;
+ left: 0;
+ right: 0;
+ background: #2a2f3a;
+ border: 1px solid var(--colissimo-orange);
+ border-top: none;
+ z-index: 100;
+ max-height: 200px;
+ overflow-y: auto;
+ border-bottom-left-radius: 8px;
+ border-bottom-right-radius: 8px;
+ display: none;
+ }
 
-        .search-item {
-            padding: 10px 15px;
-            cursor: pointer;
-            color: #fff;
-            transition: background 0.2s;
-        }
+ .search-item {
+ padding: 10px 15px;
+ cursor: pointer;
+ color: #fff;
+ transition: background 0.2s;
+ }
 
-        .search-item:hover {
-            background: var(--colissimo-orange);
-        }
+ .search-item:hover {
+ background: var(--colissimo-orange);
+ }
 
-        .error-container {
-            background: rgba(255, 68, 68, 0.1);
-            border: 1px solid var(--error-red);
-            color: var(--error-red);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-            font-size: 0.9rem;
-            align-items: center;
-            gap: 10px;
-        }
+ .error-container {
+ background: rgba(255, 68, 68, 0.1);
+ border: 1px solid var(--error-red);
+ color: var(--error-red);
+ padding: 15px;
+ border-radius: 8px;
+ margin-bottom: 20px;
+ display: none;
+ font-size: 0.9rem;
+ align-items: center;
+ gap: 10px;
+ }
 
-        @media (max-width: 600px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
+ @media (max-width: 600px) {
+ .form-grid {
+ grid-template-columns: 1fr;
+ }
 
-            .section-title {
-                grid-column: span 1;
-            }
+ .section-title {
+ grid-column: span 1;
+ }
 
-            .offer-card {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
-            }
-        }
-    </style>
+ .offer-card {
+ flex-direction: column;
+ align-items: flex-start;
+ gap: 15px;
+ }
+ }
+ </style>
 </head>
 
 <body class="colissimo-page">
-    <header class="header">
-        <div class="header-inner">
-            <a href="../index.html" class="logo">ChezRheyy</a>
-            <nav class="nav">
-                <a href="../index.html">Home</a>
-                <a href="colissimo-liste.html">Colissimo</a>
-            </nav>
-        </div>
-    </header>
+ <header class="header">
+ <div class="header-inner">
+ <a href="../index.html" class="logo">ChezRheyy</a>
+ <nav class="nav">
+ <a href="../index.html">Home</a>
+ <a href="colissimo-liste.html">Colissimo</a>
+ </nav>
+ </div>
+ </header>
 
-    <main class="content">
-        <section class="intro" style="text-align: center; width: 100%;">
-            <h1 style="text-align: center; margin-bottom: 10px;">Simulateur Colissimo</h1>
-            <p style="text-align: center; color: #9ca3af;">Estimez instantanément le prix de vos envois Colissimo.</p>
-        </section>
+ <main class="content">
+ <section class="intro" style="text-align: center; width: 100%;">
+ <h1 style="text-align: center; margin-bottom: 10px;">Simulateur Colissimo</h1>
+ <p style="text-align: center; color: #9ca3af;">Estimez instantanément le prix de vos envois Colissimo.</p>
+ </section>
 
-        <div class="simulator-container">
-            <div id="simulatorError" class="error-container">
-                <span class="error-text">Une erreur est survenue.</span>
-            </div>
-            <form id="colissimoSimulator" novalidate>
-                <div class="form-grid">
-                    <div class="section-title">Départ</div>
-                    <select name="sender_iso" id="senderIso" required style="grid-column: span 2;">
-                        <option value="FR">FRANCE</option>
-                        <option value="AD">ANDORRE</option>
-                        <option value="GP">GUADELOUPE</option>
-                        <option value="GF">GUYANE FRANÇAISE</option>
-                        <option value="MQ">MARTINIQUE</option>
-                        <option value="YT">MAYOTTE</option>
-                        <option value="MC">MONACO</option>
-                        <option value="RE">RÉUNION</option>
-                        <option value="BL">SAINT BARTHÉLEMY</option>
-                        <option value="MF">SAINT MARTIN (FR)</option>
-                    </select>
+ <div class="simulator-container">
+ <div id="simulatorError" class="error-container">
+ <span class="error-text">Une erreur est survenue.</span>
+ </div>
+ <form id="colissimoSimulator" novalidate>
+ <div class="form-grid">
+ <div class="section-title">Départ</div>
+ <select name="sender_iso" id="senderIso" required style="grid-column: span 2;">
+ <option value="FR">FRANCE</option>
+ <option value="AD">ANDORRE</option>
+ <option value="GP">GUADELOUPE</option>
+ <option value="GF">GUYANE FRANÇAISE</option>
+ <option value="MQ">MARTINIQUE</option>
+ <option value="YT">MAYOTTE</option>
+ <option value="MC">MONACO</option>
+ <option value="RE">RÉUNION</option>
+ <option value="BL">SAINT BARTHÉLEMY</option>
+ <option value="MF">SAINT MARTIN (FR)</option>
+ </select>
 
-                    <div class="section-title">Destination</div>
-                    <div class="searchable-select" style="grid-column: span 2;">
-                        <input type="text" id="destinationSearch" placeholder="Rechercher un pays..." required
-                            autocomplete="off" maxlength="80">
-                        <input type="hidden" name="recipient_iso" id="recipientCountryHidden" value="FR">
-                        <div id="destinationResults" class="search-results"></div>
-                    </div>
+ <div class="section-title">Destination</div>
+ <div class="searchable-select" style="grid-column: span 2;">
+ <input type="text" id="destinationSearch" placeholder="Rechercher un pays..." required
+ autocomplete="off" maxlength="80">
+ <input type="hidden" name="recipient_iso" id="recipientCountryHidden" value="FR">
+ <div id="destinationResults" class="search-results"></div>
+ </div>
 
-                    <div class="section-title">Options de Livraison</div>
-                    <div id="shippingModeContainer" style="grid-column: span 2;">
-                        <select name="shipping_mode" id="shippingMode">
-                            <option value="L_BAL">Sans signature (Boîte aux lettres)</option>
-                            <option value="L_CS">Avec signature (Remise en main propre)</option>
-                        </select>
-                        <div id="intlShippingNote"
-                            style="display: none; color: var(--colissimo-orange); font-size: 0.9rem; padding: 12px; background: rgba(243, 112, 33, 0.1); border-radius: 8px;">
-                            Signature obligatoire pour cette destination.
-                        </div>
-                        <div id="weightShippingNote"
-                            style="display: none; color: var(--colissimo-orange); font-size: 0.9rem; padding: 12px; background: rgba(243, 112, 33, 0.1); border-radius: 8px;">
-                            Signature obligatoire pour les colis de plus de 5kg.
-                        </div>
-                    </div>
+ <div class="section-title">Options de Livraison</div>
+ <div id="shippingModeContainer" style="grid-column: span 2;">
+ <select name="shipping_mode" id="shippingMode">
+ <option value="L_BAL">Sans signature (Boîte aux lettres)</option>
+ <option value="L_CS">Avec signature (Remise en main propre)</option>
+ </select>
+ <div id="intlShippingNote"
+ style="display: none; color: var(--colissimo-orange); font-size: 0.9rem; padding: 12px; background: rgba(243, 112, 33, 0.1); border-radius: 8px;">
+ Signature obligatoire pour cette destination.
+ </div>
+ <div id="weightShippingNote"
+ style="display: none; color: var(--colissimo-orange); font-size: 0.9rem; padding: 12px; background: rgba(243, 112, 33, 0.1); border-radius: 8px;">
+ Signature obligatoire pour les colis de plus de 5kg.
+ </div>
+ </div>
 
-                    <div class="section-title">Caractéristiques</div>
-                    <div style="grid-column: span 1;">
-                        <select name="package_format" required>
-                            <option value="F_STD">Format Standard (Colis < 150cm)</option>
-                            <option value="F_VOL">Format Volumineux (150cm < Colis < 200cm)</option>
-                        </select>
-                    </div>
-                    <div style="position: relative; grid-column: span 1;">
-                        <input type="number" name="weight" id="weightInput" step="0.01" placeholder="Poids (kg)"
-                            required min="0.25" max="30" maxlength="10">
-                        <small id="weightGrams"
-                            style="display: block; margin-top: 5px; color: var(--text-muted); font-size: 0.8rem;">soit 0
-                            grammes</small>
-                    </div>
-                </div>
+ <div class="section-title">Caractéristiques</div>
+ <div style="grid-column: span 1;">
+ <select name="package_format" required>
+ <option value="F_STD">Format Standard (Colis < 150cm)</option>
+ <option value="F_VOL">Format Volumineux (150cm < Colis < 200cm)</option>
+ </select>
+ </div>
+ <div style="position: relative; grid-column: span 1;">
+ <input type="number" name="weight" id="weightInput" step="0.01" placeholder="Poids (kg)"
+ required min="0.25" max="30" maxlength="10">
+ <small id="weightGrams"
+ style="display: block; margin-top: 5px; color: var(--text-muted); font-size: 0.8rem;">soit 0
+ grammes</small>
+ </div>
+ </div>
 
-                <button type="submit" class="btn-colissimo">
-                    Simuler le prix
-                </button>
-            </form>
+ <button type="submit" class="btn-colissimo">
+ Simuler le prix
+ </button>
+ </form>
 
-            <div id="loader">
-                <div class="spinner-simple"></div>
-                <p style="margin-top: 15px; color: var(--text-muted);">Consultation des tarifs Colissimo...</p>
-            </div>
+ <div id="loader">
+ <div class="spinner-simple"></div>
+ <p style="margin-top: 15px; color: var(--text-muted);">Consultation des tarifs Colissimo...</p>
+ </div>
 
-            <div id="results" class="results-container">
-                <h2 style="font-size: 1.2rem; margin-bottom: 20px; color: #fff;">Meilleure offre trouvée :</h2>
-                <div id="offersList"></div>
-            </div>
-        </div>
+ <div id="results" class="results-container">
+ <h2 style="font-size: 1.2rem; margin-bottom: 20px; color: #fff;">Meilleure offre trouvée :</h2>
+ <div id="offersList"></div>
+ </div>
+ </div>
 
-        <a class="back" href="colissimo-liste.html">Retour à la liste</a>
-    </main>
+ <a class="back" href="colissimo-liste.html">Retour à la liste</a>
+ </main>
 
-    <script src="../js/autocomplete.js"></script>
-    <script>
-        const form = document.getElementById('colissimoSimulator');
-        const results = document.getElementById('results');
-        const offersList = document.getElementById('offersList');
-        const loader = document.getElementById('loader');
-        const destSearch = document.getElementById('destinationSearch');
-        const destResults = document.getElementById('destinationResults');
-        const destHidden = document.getElementById('recipientCountryHidden');
-        const productSelector = document.getElementById('productCodeSelector');
-        let COUNTRY_LIST = {};
+ <script src="../js/autocomplete.js"></script>
+ <script>
+ const form = document.getElementById('colissimoSimulator');
+ const results = document.getElementById('results');
+ const offersList = document.getElementById('offersList');
+ const loader = document.getElementById('loader');
+ const destSearch = document.getElementById('destinationSearch');
+ const destResults = document.getElementById('destinationResults');
+ const destHidden = document.getElementById('recipientCountryHidden');
+ const productSelector = document.getElementById('productCodeSelector');
+ let COUNTRY_LIST = {};
 
-        async function loadCountries() {
-            try {
-                const response = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,translations');
-                const data = await response.json();
-                data.forEach(country => {
-                    const nameFR = country.translations.fra ? country.translations.fra.common.toUpperCase() : country.name.common.toUpperCase();
-                    COUNTRY_LIST[nameFR] = country.cca2;
-                });
-            } catch (err) {
-                COUNTRY_LIST = {
-                    "FRANCE": "FR", "BELGIQUE": "BE", "SUISSE": "CH", "LUXEMBOURG": "LU",
-                    "ALLEMAGNE": "DE", "ESPAGNE": "ES", "ITALIE": "IT", "PORTUGAL": "PT",
-                    "PAYS-BAS": "NL", "AUTRICHE": "AT"
-                };
-            }
-        }
+ async function loadCountries() {
+ try {
+ const response = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,translations');
+ const data = await response.json();
+ data.forEach(country => {
+ const nameFR = country.translations.fra ? country.translations.fra.common.toUpperCase() : country.name.common.toUpperCase();
+ COUNTRY_LIST[nameFR] = country.cca2;
+ });
+ } catch (err) {
+ COUNTRY_LIST = {
+ "FRANCE": "FR", "BELGIQUE": "BE", "SUISSE": "CH", "LUXEMBOURG": "LU",
+ "ALLEMAGNE": "DE", "ESPAGNE": "ES", "ITALIE": "IT", "PORTUGAL": "PT",
+ "PAYS-BAS": "NL", "AUTRICHE": "AT"
+ };
+ }
+ }
 
-        const OM_COUNTRIES = ['GP', 'GF', 'MQ', 'YT', 'RE', 'BL', 'MF', 'PM', 'WF', 'NC', 'PF'];
-        const FR_COUNTRIES = ['FR', 'MC', 'AD'];
-        const EU_COUNTRIES = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK'];
+ const OM_COUNTRIES = ['GP', 'GF', 'MQ', 'YT', 'RE', 'BL', 'MF', 'PM', 'WF', 'NC', 'PF'];
+ const FR_COUNTRIES = ['FR', 'MC', 'AD'];
+ const EU_COUNTRIES = ['AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK'];
 
-        const weightInput = document.getElementById('weightInput');
-        const weightGrams = document.getElementById('weightGrams');
-        const shippingMode = document.getElementById('shippingMode');
-        const intlNote = document.getElementById('intlShippingNote');
-        const weightNote = document.getElementById('weightShippingNote');
+ const weightInput = document.getElementById('weightInput');
+ const weightGrams = document.getElementById('weightGrams');
+ const shippingMode = document.getElementById('shippingMode');
+ const intlNote = document.getElementById('intlShippingNote');
+ const weightNote = document.getElementById('weightShippingNote');
 
-        function updateShippingOptions() {
-            const iso = destHidden.value;
-            const weight = parseFloat(weightInput.value) || 0;
+ function updateShippingOptions() {
+ const iso = destHidden.value;
+ const weight = parseFloat(weightInput.value) || 0;
 
-            const isMajorZone = FR_COUNTRIES.includes(iso) || OM_COUNTRIES.includes(iso) || EU_COUNTRIES.includes(iso);
-            const maxWeight = isMajorZone ? 30 : 20;
-            
-            weightInput.max = maxWeight;
-            
-            if (FR_COUNTRIES.includes(iso)) {
-                if (weight > 5) {
-                    shippingMode.style.display = 'none';
-                    intlNote.style.display = 'none';
-                    weightNote.style.display = 'block';
-                    shippingMode.value = 'L_CS';
-                } else {
-                    shippingMode.style.display = 'block';
-                    intlNote.style.display = 'none';
-                    weightNote.style.display = 'none';
-                }
-                shippingMode.disabled = false;
-            } else {
-                shippingMode.style.display = 'none';
-                intlNote.style.display = 'block';
-                weightNote.style.display = 'none';
-                shippingMode.disabled = true;
-            }
+ const isMajorZone = FR_COUNTRIES.includes(iso) || OM_COUNTRIES.includes(iso) || EU_COUNTRIES.includes(iso);
+ const maxWeight = isMajorZone ? 30 : 20;
+ 
+ weightInput.max = maxWeight;
+ 
+ if (FR_COUNTRIES.includes(iso)) {
+ if (weight > 5) {
+ shippingMode.style.display = 'none';
+ intlNote.style.display = 'none';
+ weightNote.style.display = 'block';
+ shippingMode.value = 'L_CS';
+ } else {
+ shippingMode.style.display = 'block';
+ intlNote.style.display = 'none';
+ weightNote.style.display = 'none';
+ }
+ shippingMode.disabled = false;
+ } else {
+ shippingMode.style.display = 'none';
+ intlNote.style.display = 'block';
+ weightNote.style.display = 'none';
+ shippingMode.disabled = true;
+ }
 
-            if (weight > maxWeight) {
-                weightInput.classList.add('input-invalid');
-            } else {
-                weightInput.classList.remove('input-invalid');
-            }
-        }
+ if (weight > maxWeight) {
+ weightInput.classList.add('input-invalid');
+ } else {
+ weightInput.classList.remove('input-invalid');
+ }
+ }
 
-        weightInput.addEventListener('input', () => {
-            const kg = parseFloat(weightInput.value) || 0;
-            weightGrams.textContent = `soit ${(kg * 1000).toLocaleString()} grammes`;
-            updateShippingOptions();
-        });
+ weightInput.addEventListener('input', () => {
+ const kg = parseFloat(weightInput.value) || 0;
+ weightGrams.textContent = `soit ${(kg * 1000).toLocaleString()} grammes`;
+ updateShippingOptions();
+ });
 
-        loadCountries();
+ loadCountries();
 
-        destSearch.addEventListener('input', (e) => {
-            const val = e.target.value.toUpperCase();
-            destResults.innerHTML = '';
-            if (val.length > 0) {
-                const filtered = Object.keys(COUNTRY_LIST).filter(c => c.includes(val)).slice(0, 8);
-                if (filtered.length > 0) {
-                    destResults.style.display = 'block';
-                    filtered.forEach(countryName => {
-                        const div = document.createElement('div');
-                        div.className = 'search-item';
-                        div.textContent = countryName;
-                        div.onclick = () => {
-                            destSearch.value = countryName;
-                            const iso = COUNTRY_LIST[countryName];
-                            destHidden.value = iso;
-                            destResults.style.display = 'none';
-                            updateShippingOptions(iso);
-                        };
-                        destResults.appendChild(div);
-                    });
-                } else {
-                    destResults.style.display = 'none';
-                }
-            } else {
-                destResults.style.display = 'none';
-            }
-        });
+ destSearch.addEventListener('input', (e) => {
+ const val = e.target.value.toUpperCase();
+ destResults.innerHTML = '';
+ if (val.length > 0) {
+ const filtered = Object.keys(COUNTRY_LIST).filter(c => c.includes(val)).slice(0, 8);
+ if (filtered.length > 0) {
+ destResults.style.display = 'block';
+ filtered.forEach(countryName => {
+ const div = document.createElement('div');
+ div.className = 'search-item';
+ div.textContent = countryName;
+ div.onclick = () => {
+ destSearch.value = countryName;
+ const iso = COUNTRY_LIST[countryName];
+ destHidden.value = iso;
+ destResults.style.display = 'none';
+ updateShippingOptions(iso);
+ };
+ destResults.appendChild(div);
+ });
+ } else {
+ destResults.style.display = 'none';
+ }
+ } else {
+ destResults.style.display = 'none';
+ }
+ });
 
-        document.addEventListener('click', (e) => {
-            if (!destSearch.contains(e.target) && !destResults.contains(e.target)) {
-                destResults.style.display = 'none';
-            }
-        });
-
-
-        const validateField = (input) => {
-            const isValid = input.checkValidity();
-            let errorSpan = input.parentNode.querySelector('.validation-error-msg');
-
-            if (!isValid) {
-                input.classList.add('input-invalid');
-                if (!errorSpan) {
-                    errorSpan = document.createElement('span');
-                    errorSpan.className = 'validation-error-msg';
-                    input.parentNode.appendChild(errorSpan);
-                }
-                errorSpan.textContent = input.validationMessage;
-            } else {
-                input.classList.remove('input-invalid');
-                if (errorSpan) errorSpan.remove();
-            }
-            return isValid;
-        };
-
-        form.querySelectorAll('input, select').forEach(inp => {
-            inp.addEventListener('input', () => validateField(inp));
-            inp.addEventListener('blur', () => validateField(inp));
-        });
+ document.addEventListener('click', (e) => {
+ if (!destSearch.contains(e.target) && !destResults.contains(e.target)) {
+ destResults.style.display = 'none';
+ }
+ });
 
 
-        form.onsubmit = async (e) => {
-            e.preventDefault();
+ const validateField = (input) => {
+ const isValid = input.checkValidity();
+ let errorSpan = input.parentNode.querySelector('.validation-error-msg');
 
-            const inputs = form.querySelectorAll('input[required]');
-            let isFormValid = true;
-            inputs.forEach(inp => { if (!validateField(inp)) isFormValid = false; });
-            if (!isFormValid) return;
+ if (!isValid) {
+ input.classList.add('input-invalid');
+ if (!errorSpan) {
+ errorSpan = document.createElement('span');
+ errorSpan.className = 'validation-error-msg';
+ input.parentNode.appendChild(errorSpan);
+ }
+ errorSpan.textContent = input.validationMessage;
+ } else {
+ input.classList.remove('input-invalid');
+ if (errorSpan) errorSpan.remove();
+ }
+ return isValid;
+ };
 
-            const formData = new FormData(form);
-            const data = Object.fromEntries(formData);
+ form.querySelectorAll('input, select').forEach(inp => {
+ inp.addEventListener('input', () => validateField(inp));
+ inp.addEventListener('blur', () => validateField(inp));
+ });
 
-            if (data.weight) data.weight = parseFloat(data.weight);
 
-            const showError = (msg) => {
-                const errorDiv = document.getElementById('simulatorError');
-                errorDiv.querySelector('.error-text').textContent = msg;
-                errorDiv.style.display = 'flex';
-                window.scrollTo({ top: errorDiv.offsetTop - 100, behavior: 'smooth' });
-            };
+ form.onsubmit = async (e) => {
+ e.preventDefault();
 
-            const hideError = () => {
-                document.getElementById('simulatorError').style.display = 'none';
-            };
+ const inputs = form.querySelectorAll('input[required]');
+ let isFormValid = true;
+ inputs.forEach(inp => { if (!validateField(inp)) isFormValid = false; });
+ if (!isFormValid) return;
 
-            results.style.display = 'none';
-            hideError();
-            loader.style.display = 'block';
-            offersList.innerHTML = '';
+ const formData = new FormData(form);
+ const data = Object.fromEntries(formData);
 
-            try {
-                const response = await fetch('https://transporteur.up.railway.app/api/colissimo/simulate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
+ if (data.weight) data.weight = parseFloat(data.weight);
 
-                if (!response.ok) throw new Error('Erreur serveur API');
+ const showError = (msg) => {
+ const errorDiv = document.getElementById('simulatorError');
+ errorDiv.querySelector('.error-text').textContent = msg;
+ errorDiv.style.display = 'flex';
+ window.scrollTo({ top: errorDiv.offsetTop - 100, behavior: 'smooth' });
+ };
 
-                const json = await response.json();
+ const hideError = () => {
+ document.getElementById('simulatorError').style.display = 'none';
+ };
 
-                if (json.status === 'success') {
-                    if (!json.offers || json.offers.length === 0) {
-                        showError('Aucune offre disponible pour ce trajet.');
-                        return;
-                    }
+ results.style.display = 'none';
+ hideError();
+ loader.style.display = 'block';
+ offersList.innerHTML = '';
 
-                    json.offers.forEach(offer => {
-                        const card = document.createElement('div');
-                        card.className = 'offer-card';
-                        card.innerHTML = `
-                            <div class="offer-info">
-                                <h3>${offer.label || 'Offre Colissimo'}</h3>
-                                <p>Livraison estimée : ${offer.delivery_date || 'N/C'}</p>
-                                <p>Service officiel Colissimo</p>
-                            </div>
-                            <div class="offer-price">
-                                ${offer.official_price ? `<span style="text-decoration: line-through; color: var(--error-red); font-size: 1.1rem; display: block;">${offer.official_price.toFixed(2)} €</span>` : ''}
-                                <span class="price-value">${offer.price.toFixed(2)} €</span>
-                            </div>
-                        `;
-                        offersList.appendChild(card);
-                    });
-                    results.style.display = 'block';
-                } else {
-                    const errorMsg = json.message || 'Impossible de calculer le tarif pour cette destination ou ce poids.';
-                    showError(errorMsg);
-                }
-            } catch (err) {
-                showError('Une erreur technique est survenue.');
-            } finally {
-                loader.style.display = 'none';
-            }
-        };
-    </script>
+ try {
+ const response = await fetch('https://transporteur.up.railway.app/api/colissimo/simulate', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify(data)
+ });
+
+ if (!response.ok) throw new Error('Erreur serveur API');
+
+ const json = await response.json();
+
+ if (json.status === 'success') {
+ if (!json.offers || json.offers.length === 0) {
+ showError('Aucune offre disponible pour ce trajet.');
+ return;
+ }
+
+ json.offers.forEach(offer => {
+ const card = document.createElement('div');
+ card.className = 'offer-card';
+ card.innerHTML = `
+ <div class="offer-info">
+ <h3>${offer.label || 'Offre Colissimo'}</h3>
+ <p>Livraison estimée : ${offer.delivery_date || 'N/C'}</p>
+ <p>Service officiel Colissimo</p>
+ </div>
+ <div class="offer-price">
+ ${offer.official_price ? `<span style="text-decoration: line-through; color: var(--error-red); font-size: 1.1rem; display: block;">${offer.official_price.toFixed(2)} €</span>` : ''}
+ <span class="price-value">${offer.price.toFixed(2)} €</span>
+ </div>
+ `;
+ offersList.appendChild(card);
+ });
+ results.style.display = 'block';
+ } else {
+ const errorMsg = json.message || 'Impossible de calculer le tarif pour cette destination ou ce poids.';
+ showError(errorMsg);
+ }
+ } catch (err) {
+ showError('Une erreur technique est survenue.');
+ } finally {
+ loader.style.display = 'none';
+ }
+ };
+ </script>
 </body>
 
 </html>
+
