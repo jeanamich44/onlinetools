@@ -10,6 +10,12 @@ def get_chronopost_price(data):
 
     url = "https://www.chronopost.fr/wsmchronoweb-rest/offre/list"
     
+    # Validation et préparation des dimensions (par défaut à 0)
+    weight = float(data.get("weight", 0))
+    length = float(data.get("length", 0)) if data.get("length") else 0
+    width = float(data.get("width", 0)) if data.get("width") else 0
+    height = float(data.get("height", 0)) if data.get("height") else 0
+
     # Préparation du payload pour l'API Chronopost
     payload = {
         "locale": "fr",
@@ -23,10 +29,10 @@ def get_chronopost_price(data):
         "recipientPart": True,
         "parcelList": [
             {
-                "height": data.get("height"),
-                "width": data.get("width"),
-                "length": data.get("length"),
-                "weight": data.get("weight"),
+                "height": height,
+                "width": width,
+                "length": length,
+                "weight": weight,
                 "policyValue": 0,
                 "productDescriptionCode": "",
                 "productDescriptionLabel": "",
@@ -37,23 +43,17 @@ def get_chronopost_price(data):
 
     headers = SIMULATEUR_HEADERS
 
-    # Validation locale avant envoi
-    weight = float(data.get("weight", 0))
-    length = float(data.get("length", 0)) if data.get("length") else 0
-    width = float(data.get("width", 0)) if data.get("width") else 0
-    height = float(data.get("height", 0)) if data.get("height") else 0
-
     if weight < 0.5:
-        return {"status": "error"}
+        return {"status": "error", "message": "Le poids minimum est de 0.5kg."}
     
     if weight > 30:
-        return {"status": "error"}
+        return {"status": "error", "message": "Le poids maximum est de 30kg."}
     
     if length > 150 or width > 150 or height > 150:
-        return {"status": "error"}
+        return {"status": "error", "message": "Dimensions trop grandes (max 150cm par côté)."}
 
     if (length + 2 * (width + height)) > 300:
-        return {"status": "error"}
+        return {"status": "error", "message": "Le développé total (L + 2W + 2H) dépasse 300cm."}
 
     try:
         r = requests.post(
@@ -65,7 +65,7 @@ def get_chronopost_price(data):
         )
         
         if r.status_code != 200:
-            return {"status": "error"}
+            return {"status": "error", "message": f"Erreur de l'API Chronopost (Code: {r.status_code})"}
             
         choices = r.json()
         results = []
@@ -88,4 +88,4 @@ def get_chronopost_price(data):
         return {"status": "success", "offers": results}
 
     except Exception as e:
-        return {"status": "error"}
+        return {"status": "error", "message": str(e)}

@@ -456,7 +456,8 @@
                     });
                     results.style.display = 'block';
                 } else {
-                    showError('Une erreur est survenue lors de la simulation.');
+                    const errorMsg = json.message || 'Une erreur est survenue lors de la simulation.';
+                    showError(errorMsg);
                 }
             } catch (err) {
                 showError(err.message === 'error' ? 'Erreur technique. Veuillez réessayer plus tard.' : err.message);
