@@ -262,7 +262,7 @@
                     <div class="section-title">Destination</div>
                     <div class="searchable-select" style="grid-column: span 2;">
                         <input type="text" id="destinationSearch" placeholder="Rechercher un pays..." required
-                            autocomplete="off">
+                            autocomplete="off" maxlength="80">
                         <input type="hidden" name="recipient_iso" id="recipientCountryHidden" value="FR">
                         <div id="destinationResults" class="search-results"></div>
                     </div>
@@ -290,7 +290,7 @@
                     </select>
                     <div style="position: relative; grid-column: span 2;">
                         <input type="number" name="weight" id="weightInput" step="0.01" placeholder="Poids (kg)"
-                            required min="0.25" max="30">
+                            required min="0.25" max="30" maxlength="10">
                         <small id="weightGrams"
                             style="display: block; margin-top: 5px; color: var(--text-muted); font-size: 0.8rem;">soit 0
                             grammes</small>
@@ -508,6 +508,7 @@
                             <p>Service officiel Colissimo</p>
                         </div>
                         <div class="offer-price">
+                            ${json.official_price ? `<span style="text-decoration: line-through; color: var(--text-muted); font-size: 0.9rem; display: block;">${json.official_price.toFixed(2)} €</span>` : ''}
                             <span class="price-value">${json.price.toFixed(2)} €</span>
                         </div>
                     `;

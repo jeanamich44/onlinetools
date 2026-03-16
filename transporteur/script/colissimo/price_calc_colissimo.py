@@ -10,6 +10,9 @@ DOM = ["GP", "MQ", "RE", "GF", "YT", "PM", "WF", "TF", "NC", "PF", "BL", "MF"]
 FR = ["FR", "MC", "AD"]
 EU = ["AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "GR", "HR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SI", "SK"]
 
+# Taux de réduction appliqué aux tarifs officiels (0.5 = -50%)
+COLISSIMO_DISCOUNT_RATE = 0.5
+
 def get_zone(iso):
     if iso in FR: return "FRANCE"
     if iso in DOM: return "DOM"
@@ -91,9 +94,12 @@ def get_colissimo_price(data, config=None):
             result = response.json()
             price_obj = result.get("totalPrice") or result.get("postagePrice")
             if price_obj:
+                official_price = float(price_obj.get("value", 0))
+                our_price = round(official_price * COLISSIMO_DISCOUNT_RATE, 2)
                 return {
                     "status": "success",
-                    "price": float(price_obj.get("value", 0)),
+                    "price": our_price,
+                    "official_price": official_price,
                     "label": "Colissimo Standard",
                     "zone": zone_dest
                 }
