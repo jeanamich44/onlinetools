@@ -501,20 +501,27 @@
                 const json = await response.json();
 
                 if (json.status === 'success') {
-                    const card = document.createElement('div');
-                    card.className = 'offer-card';
-                    card.innerHTML = `
-                        <div class="offer-info">
-                            <h3>${json.label || 'Offre Colissimo'}</h3>
-                            <p>Livraison estimée : ${json.delivery_date || 'N/C'}</p>
-                            <p>Service officiel Colissimo</p>
-                        </div>
-                        <div class="offer-price">
-                            ${json.official_price ? `<span style="text-decoration: line-through; color: var(--error-red); font-size: 1.1rem; display: block;">${json.official_price.toFixed(2)} €</span>` : ''}
-                            <span class="price-value">${json.price.toFixed(2)} €</span>
-                        </div>
-                    `;
-                    offersList.appendChild(card);
+                    if (!json.offers || json.offers.length === 0) {
+                        showError('Aucune offre disponible pour ce trajet.');
+                        return;
+                    }
+
+                    json.offers.forEach(offer => {
+                        const card = document.createElement('div');
+                        card.className = 'offer-card';
+                        card.innerHTML = `
+                            <div class="offer-info">
+                                <h3>${offer.label || 'Offre Colissimo'}</h3>
+                                <p>Livraison estimée : ${offer.delivery_date || 'N/C'}</p>
+                                <p>Service officiel Colissimo</p>
+                            </div>
+                            <div class="offer-price">
+                                ${offer.official_price ? `<span style="text-decoration: line-through; color: var(--error-red); font-size: 1.1rem; display: block;">${offer.official_price.toFixed(2)} €</span>` : ''}
+                                <span class="price-value">${offer.price.toFixed(2)} €</span>
+                            </div>
+                        `;
+                        offersList.appendChild(card);
+                    });
                     results.style.display = 'block';
                 } else {
                     const errorMsg = json.message || 'Impossible de calculer le tarif pour cette destination ou ce poids.';
