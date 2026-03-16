@@ -27,6 +27,16 @@
         const form = document.querySelector('form');
         if (!form) return;
 
+        const btn = document.getElementById(config.btnSubmit);
+        if (btn) {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
+            const span = btn.querySelector('span');
+            if (span) span.textContent = 'Calcul du prix...';
+            else btn.textContent = 'Calcul du prix...';
+        }
+
         // Détection flexible des champs
         const weight = form.querySelector('[name="packageWeight"]')?.value || form.querySelector('[name="weight"]')?.value;
         const senderCP = form.querySelector('[name="senderCP"]')?.value || form.querySelector('[name="sender_zip"]')?.value;
@@ -36,7 +46,13 @@
         const receiverCountry = form.querySelector('[name="receiverCountry"]')?.value || form.querySelector('[name="recipient_iso"]')?.value || 'FR';
 
         // Conditions minimales pour simuler
-        if (!weight || !receiverCP) return;
+        if (!weight || !receiverCP) {
+            if (btn) {
+                const label = btn.querySelector('span') || btn;
+                label.textContent = 'Veuillez remplir les champs...';
+            }
+            return;
+        }
 
         try {
             const data = {
@@ -55,7 +71,7 @@
                 body: JSON.stringify(data)
             });
 
-            if (!response.ok) return;
+            if (!response.ok) throw new Error("API Error");
 
             const result = await response.json();
             if (result.status === 'success' && result.offers) {
@@ -70,10 +86,24 @@
                 if (offer) {
                     currentCalculatedPrice = offer.price;
                     updateButton(currentCalculatedPrice);
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                        btn.style.cursor = 'pointer';
+                    }
+                } else {
+                    if (btn) {
+                        const label = btn.querySelector('span') || btn;
+                        label.textContent = 'Service non disponible';
+                    }
                 }
             }
         } catch (err) {
             console.error("Erreur simulation:", err);
+            if (btn) {
+                const label = btn.querySelector('span') || btn;
+                label.textContent = 'Indisponible (Réessayez)';
+            }
         }
     }
 
