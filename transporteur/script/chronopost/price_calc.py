@@ -96,7 +96,7 @@ def get_chronopost_price(data):
                 "label": service.get("label"),
                 "product_code": service.get("productCode"),
                 "official_price": official_price,
-                "our_price": our_price,
+                "price": our_price,
                 "is_relay": service.get("relay", False),
                 "delivery_date": service.get("dateDelivery")
             })

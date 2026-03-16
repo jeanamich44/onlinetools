@@ -94,13 +94,40 @@ def get_colissimo_price(data, config=None):
             price_obj = result.get("totalPrice") or result.get("postagePrice")
             if price_obj:
                 official_price = float(price_obj.get("value", 0))
-                our_price = round(official_price * COLISSIMO_DISCOUNT_RATE, 2)
+                
+                offers = []
+                
+                main_label = "Colissimo Standard"
+                if zone_dest == "FRANCE":
+                    main_label = "Colissimo Domicile" if delivery_mode == "L_BAL" else "Colissimo Expert"
+                elif zone_dest == "DOM":
+                    main_label = "Colissimo Outre-Mer"
+                elif zone_dest in ["UNION_EUROPEENNE", "EUROPE"]:
+                    main_label = "Colissimo Europe"
+                elif zone_dest == "INTERNATIONAL":
+                    main_label = "Colissimo International"
+
+                offers.append({
+                    "label": main_label,
+                    "official_price": official_price,
+                    "price": round(official_price * COLISSIMO_DISCOUNT_RATE, 2),
+                    "zone": zone_dest
+                })
+
+                if zone_dest == "FRANCE" and sender == "FR":
+                    base_remise = round(official_price * COLISSIMO_DISCOUNT_RATE, 2)
+                    relay_price = base_remise if base_remise < 8.0 else max(0, base_remise - 3.0)
+                    offers.append({
+                        "label": "Colissimo Relais",
+                        "official_price": official_price,
+                        "price": relay_price,
+                        "zone": zone_dest,
+                        "is_relay": True
+                    })
+
                 return {
                     "status": "success",
-                    "price": our_price,
-                    "official_price": official_price,
-                    "label": "Colissimo Standard",
-                    "zone": zone_dest
+                    "offers": offers
                 }
         
         logger.error(f"Erreur Colissimo {dest} ({response.status_code}): {response.text}")
