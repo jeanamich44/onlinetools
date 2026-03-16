@@ -391,9 +391,9 @@
             }
 
             if (data.weight) data.weight = parseFloat(data.weight);
-            if (data.length) data.length = parseFloat(data.length);
-            if (data.width) data.width = parseFloat(data.width);
-            if (data.height) data.height = parseFloat(data.height);
+            if (!data.length) delete data.length; else data.length = parseFloat(data.length);
+            if (!data.width) delete data.width; else data.width = parseFloat(data.width);
+            if (!data.height) delete data.height; else data.height = parseFloat(data.height);
 
             results.style.display = 'none';
             loader.style.display = 'block';
@@ -407,7 +407,13 @@
                 
                 if (!response.ok) {
                     const errJson = await response.json().catch(() => ({}));
-                    throw new Error(errJson.detail || 'Erreur lors de la simulation. Vérifiez les paramètres.');
+                    let msg = '';
+                    if (Array.isArray(errJson.detail)) {
+                        msg = errJson.detail.map(e => e.msg).join('. ');
+                    } else {
+                        msg = errJson.detail || 'Erreur lors de la simulation. Vérifiez les paramètres.';
+                    }
+                    throw new Error(msg);
                 }
                 
                 const json = await response.json();

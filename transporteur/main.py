@@ -11,6 +11,9 @@ from script.chronopost.price_calc import get_chronopost_price
 from script.colissimo.colissimo import run_colissimo, search_relays_colissimo
 from script.colissimo.price_calc_colissimo import get_colissimo_price
 
+# ==============================================================================
+# CONFIGURATION ET INITIALISATION
+# ==============================================================================
 app = FastAPI()
 
 # Configuration Colissimo
@@ -34,7 +37,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- CHRONOPOST ---
+# ==============================================================================
+# SECTION CHRONOPOST
+# ==============================================================================
 
 class ChronopostRequest(BaseModel):
     data: dict
@@ -71,6 +76,24 @@ def simulate_chronopost_endpoint(req: ChronopostSimulateRequest):
         logger.error(f"Erreur Simulation Chronopost: {str(e)}")
         raise HTTPException(status_code=500, detail="error")
 
+class RelayRequest(BaseModel):
+    pickup_id: str
+    country: str = None
+
+@app.post("/relay/info")
+def get_relay_info_endpoint(req: RelayRequest):
+    """Récupération des détails d'un point relais Chronopost"""
+    try:
+        result = get_relay_detail(req.pickup_id, req.country)
+        return result
+    except Exception as e:
+        logger.error(f"Erreur Relay: {str(e)}")
+        raise HTTPException(status_code=500, detail="error")
+
+# ==============================================================================
+# SECTION COLISSIMO
+# ==============================================================================
+
 class ColissimoSimulateRequest(BaseModel):
     weight: float
     sender_iso: str = "FR"
@@ -89,22 +112,6 @@ def simulate_colissimo_endpoint(req: ColissimoSimulateRequest):
         logger.error(f"Erreur Simulation Colissimo: {str(e)}")
         raise HTTPException(status_code=500, detail="error")
 
-class RelayRequest(BaseModel):
-    pickup_id: str
-    country: str = None
-
-@app.post("/relay/info")
-def get_relay_info_endpoint(req: RelayRequest):
-    """Récupération des détails d'un point relais Chronopost"""
-    try:
-        result = get_relay_detail(req.pickup_id, req.country)
-        return result
-    except Exception as e:
-        logger.error(f"Erreur Relay: {str(e)}")
-        raise HTTPException(status_code=500, detail="error")
-
-# --- COLISSIMO ---
-
 class ColissimoRequest(BaseModel):
     data: dict
 
@@ -118,7 +125,9 @@ def generate_colissimo_endpoint(req: ColissimoRequest):
         logger.error(f"Erreur Colissimo: {str(e)}")
         raise HTTPException(status_code=500, detail="error")
 
-# --- RECHERCHE RELAIS ---
+# ==============================================================================
+# RECHERCHE DE POINTS RELAIS
+# ==============================================================================
 
 @app.get("/relay/search")
 def search_relays_endpoint(zip: str, type: str = "colissimo"):
