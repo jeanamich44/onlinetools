@@ -30,7 +30,7 @@ def get_colissimo_price(data, config=None):
         user_mode = data.get("shipping_mode", "L_BAL")
         if zone_dest == "FRANCE":
             if weight > 5000:
-                delivery_mode = None
+                delivery_mode = "L_CS"
             else:
                 delivery_mode = user_mode
         else:

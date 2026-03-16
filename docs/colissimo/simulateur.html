@@ -271,7 +271,7 @@
                     <div id="shippingModeContainer" style="grid-column: span 2;">
                         <select name="shipping_mode" id="shippingMode">
                             <option value="L_BAL">Sans signature (Boîte aux lettres)</option>
-                            <option value="L_DOM">Avec signature (Remise en main propre)</option>
+                            <option value="L_CS">Avec signature (Remise en main propre)</option>
                         </select>
                         <div id="intlShippingNote"
                             style="display: none; color: var(--colissimo-orange); font-size: 0.9rem; padding: 12px; background: rgba(243, 112, 33, 0.1); border-radius: 8px;">
@@ -363,7 +363,7 @@
                     shippingMode.style.display = 'none';
                     intlNote.style.display = 'none';
                     weightNote.style.display = 'block';
-                    shippingMode.value = 'L_DOM';
+                    shippingMode.value = 'L_CS';
                 } else {
                     shippingMode.style.display = 'block';
                     intlNote.style.display = 'none';
