@@ -141,3 +141,11 @@ def search_relays_endpoint(zip: str, type: str = "colissimo"):
     except Exception as e:
         logger.error(f"Erreur recherche relais: {str(e)}")
         raise HTTPException(status_code=500, detail="error")
+# ==============================================================================
+# LANCEMENT DE L'APPLICATION
+# ==============================================================================
+if __name__ == "__main__":
+    import uvicorn
+    # Récupération du port défini par l'environnement (Railway) ou 8000 par défaut
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

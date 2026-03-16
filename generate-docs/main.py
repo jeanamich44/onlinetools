@@ -518,3 +518,12 @@ def generate_pdf(request: Request, data: PDFRequest):
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.close()
+
+# =========================
+# LANCEMENT
+# =========================
+if __name__ == "__main__":
+    import uvicorn
+    # Récupération du port défini par l'environnement (Railway) ou 8000 par défaut
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
