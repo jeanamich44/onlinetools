@@ -492,10 +492,18 @@
 
  </form>
 
- <script src="../js/autocomplete.js"></script>
+ <script>
+        window.PRICE_CONFIG = { carrier: 'chronopost', offerLabel: 'relais' };
+    </script>
+    <script src='../js/price-dynamic.js'></script>
+    <script src='../js/autocomplete.js'></script>
  <a class="back" href="./chronopost-liste.html">Retour</a>
  </main>
- <script src="../js/autocomplete-world.js"></script>
+ <script>
+  window.PRICE_CONFIG = { carrier: 'chronopost', offerLabel: 'relais' };
+ </script>
+ <script src='../js/price-dynamic.js'></script>
+ <script src='../js/autocomplete-world.js'></script>
  <script>
 
  document.addEventListener('DOMContentLoaded', function () {
@@ -808,4 +816,6 @@
 </body>
 
 </html>
+
+
 

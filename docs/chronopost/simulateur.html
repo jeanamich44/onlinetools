@@ -253,7 +253,11 @@
  </div>
  <a class="back" href="chronopost-liste.html">Retour à la liste</a>
  </main>
-    <script src="../js/autocomplete.js"></script>
+    <script>
+        window.PRICE_CONFIG = { carrier: 'chronopost', offerLabel: 'relais' };
+    </script>
+    <script src='../js/price-dynamic.js'></script>
+    <script src='../js/autocomplete.js'></script>
     <script src="../js/autocomplete-world.js"></script>
  <script>
  let COUNTRY_LIST = {};
@@ -514,3 +518,5 @@
 </body>
 
 </html>
+
+
