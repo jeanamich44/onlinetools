@@ -476,15 +476,6 @@ def generate_pdf(request: Request, data: PDFRequest):
                 logger.warning(f"Tentative téléchargement PDF sans paiement valide: {data.checkout_ref}")
                 raise HTTPException(status_code=402, detail="Paiement non confirmé")
             
-            # Si déjà marqué comme généré MAIS que le fichier manque sur le disque (erreur précédente), 
-            # on l'autorise à se régénérer une fois pour réparer. 
-            # Si le fichier existe, on le servira directement plus bas sans repasser dans GENERATORS.
-            
-            # 1.3 Sécurité : Vérifier si déjà généré (Anti-Fraude)
-            # On ne bloque QUE si les données ne correspondent pas ou si c'est abusif.
-            # Ici on laisse passer si c'est le même checkout_ref pour permettre le "renvoi".
-            
-            # Si on a un checkout_ref, on utilise les données sauvegardées en base au moment du paiement
             if payment.user_data:
                 saved_data = json.loads(payment.user_data)
                 for key, value in saved_data.items():
