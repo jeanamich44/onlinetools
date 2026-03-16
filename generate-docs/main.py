@@ -323,15 +323,21 @@ async def create_payment_endpoint(request: Request, data: PDFRequest, background
              background_tasks.add_task(poll_sumup_status, checkout_id)
         
         return {"payment_url": url, "checkout_ref": ref}
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Erreur création paiement: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error: {e}")
+        raise HTTPException(status_code=500, detail="error")
+
+# ---------------------------------------------------------------------------------
+# STATUS PAIEMENT
+# ---------------------------------------------------------------------------------
 
 @app.get("/api/payment-status/{checkout_reference}")
 async def get_payment_status(checkout_reference: str, db: Session = Depends(get_db)):
     payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
     if not payment:
-        raise HTTPException(status_code=404, detail="Error")
+        raise HTTPException(status_code=404, detail="error")
     return {
         "status": payment.status,
         "is_generated": payment.is_generated
@@ -350,11 +356,15 @@ async def wait_for_success(checkout_reference: str, db: Session = Depends(get_db
         await asyncio.sleep(1.5)
     return {"status": "TIMEOUT"}
 
+# ---------------------------------------------------------------------------------
+# TÉLÉCHARGEMENT PDF
+# ---------------------------------------------------------------------------------
+
 @app.get("/api/download-pdf/{checkout_reference}")
 async def download_paid_pdf(checkout_reference: str, db: Session = Depends(get_db)):
     payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
     if not payment or payment.status != "PAID":
-        raise HTTPException(status_code=402, detail="Error")
+        raise HTTPException(status_code=402, detail="error")
     
     try:
         data = json.loads(payment.user_data)
@@ -368,7 +378,11 @@ async def download_paid_pdf(checkout_reference: str, db: Session = Depends(get_d
     if os.path.exists(file_path):
         return FileResponse(file_path, filename=f"document_{checkout_reference}.pdf", media_type="application/pdf")
     
-    raise HTTPException(status_code=404, detail="Error")
+    raise HTTPException(status_code=404, detail="error")
+
+# ---------------------------------------------------------------------------------
+# SUCCESS PAIEMENT
+# ---------------------------------------------------------------------------------
 
 @app.get("/payment-success")
 @app.get("/payment-success/")
@@ -486,12 +500,12 @@ def generate_pdf(request: Request, data: PDFRequest):
     try:
         if not data.preview:
             if not data.checkout_ref:
-                raise HTTPException(status_code=402, detail="Paiement requis pour le PDF final")
+                raise HTTPException(status_code=402, detail="error")
             
             payment = db.query(Payment).filter(Payment.checkout_ref == data.checkout_ref).first()
             if not payment or payment.status != "PAID":
-                logger.warning(f"Tentative téléchargement PDF sans paiement valide: {data.checkout_ref}")
-                raise HTTPException(status_code=402, detail="Paiement non confirmé")
+                logger.warning(f"Unauthorized download: {data.checkout_ref}")
+                raise HTTPException(status_code=402, detail="error")
             
             if payment.user_data:
                 saved_data = json.loads(payment.user_data)
@@ -510,12 +524,12 @@ def generate_pdf(request: Request, data: PDFRequest):
             elif type_pdf in GENERATORS and not data.preview:
                 GENERATORS[type_pdf](data, output_path)
             else:
-                raise HTTPException(status_code=400, detail=f"Type PDF inconnu : {type_pdf}")
+                raise HTTPException(status_code=400, detail="error")
         else:
             logger.info(f"PDF/Preview déjà existant(e), service direct: {output_path}")
 
         if not os.path.exists(output_path):
-            raise HTTPException(status_code=500, detail="Fichier non généré")
+            raise HTTPException(status_code=500, detail="error")
 
         if output_path.endswith(".jpg"):
             media_type = "image/jpeg"
@@ -529,8 +543,8 @@ def generate_pdf(request: Request, data: PDFRequest):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Erreur generate_pdf: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Error: {e}")
+        raise HTTPException(status_code=500, detail="error")
     finally:
         db.close()
 
