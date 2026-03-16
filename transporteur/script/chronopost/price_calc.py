@@ -6,14 +6,13 @@ logger = logging.getLogger(__name__)
 
 from script.chronopost.headers import SIMULATEUR_HEADERS
 
-# Taux de réduction appliqué aux tarifs officiels (0.5 = -50%)
 CHRONOPOST_DISCOUNT_RATE = 0.5
 
 def get_chronopost_price(data):
 
     url = "https://www.chronopost.fr/wsmchronoweb-rest/offre/list"
     
-    # Validation et préparation des dimensions (par défaut à 0)
+
     weight = float(data.get("weight", 0))
     length = float(data.get("length", 0)) if data.get("length") else 0
     width = float(data.get("width", 0)) if data.get("width") else 0
@@ -48,7 +47,7 @@ def get_chronopost_price(data):
         if (length + 2 * (width + height)) > 300:
             return {"status": "error"}
 
-    # Préparation du payload pour l'API Chronopost
+
     payload = {
         "locale": "fr",
         "senderCountryCode": s_iso,
@@ -90,9 +89,7 @@ def get_chronopost_price(data):
         results = []
         
         for service in choices:
-            # Prix officiel TTC
             official_price = float(service.get("unitPriceTTC", 0))
-            # Calcul du prix réduit
             our_price = round(official_price * CHRONOPOST_DISCOUNT_RATE, 2)
             
             results.append({

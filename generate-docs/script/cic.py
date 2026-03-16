@@ -58,7 +58,6 @@ def generate_cic(data, output_path, is_preview=False):
         page.insert_font(FONT_REG_NAME, FONT_ARIAL_REG)
         page.insert_font(FONT_BOLD_NAME, FONT_ARIAL_BOLD)
 
-        # Tri par longueur décroissante pour éviter les conflits de sous-chaînes
         for k in sorted(values.keys(), key=len, reverse=True):
             overwrite(page, k, values[k])
         
@@ -72,7 +71,7 @@ def generate_cic(data, output_path, is_preview=False):
         doc.close()
         flatten_pdf(output_path)
 
-# Wrappers pour compatibilité main.py
+
 def generate_cic_pdf(data, output_path):
     return generate_cic(data, output_path, is_preview=False)
 

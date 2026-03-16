@@ -6,12 +6,9 @@ from datetime import datetime
 
 import logging
 
-# Configure logging to console (stdout) which Railway captures
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Railway provides DATABASE_URL. 
-# Note: SQLAlchemy requires 'postgresql://' but Railway might give 'postgres://'.
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
 if SQLALCHEMY_DATABASE_URL:
@@ -26,9 +23,9 @@ else:
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     pool_pre_ping=True,
-    pool_size=5,          # Plus petit pour Railway
-    max_overflow=10,      # Limite le débordement
-    pool_recycle=300,     # Recycle les connexions toutes les 5 min
+    pool_size=5,
+    max_overflow=10,
+    pool_recycle=300,
     connect_args={"connect_timeout": 10}
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -39,16 +36,16 @@ class Payment(Base):
     __tablename__ = "payments"
 
     id = Column(Integer, primary_key=True, index=True)
-    checkout_id = Column(String, index=True, nullable=True) # SumUp Checkout ID
-    checkout_ref = Column(String, unique=True, index=True) # Our internal reference (UUID)
+    checkout_id = Column(String, index=True, nullable=True)
+    checkout_ref = Column(String, unique=True, index=True)
     amount = Column(Float)
     currency = Column(String, default="EUR")
-    status = Column(String, default="PENDING") # PENDING, PAID, FAILED
-    ip_address = Column(String, nullable=True) # User IP
-    product_name = Column(String, nullable=True) # e.g. "lbp", "sg", "assurance"
+    status = Column(String, default="PENDING")
+    ip_address = Column(String, nullable=True)
+    product_name = Column(String, nullable=True)
     payment_url = Column(String, nullable=True)
-    user_data = Column(String, nullable=True) # JSON store for PDF fields
-    is_generated = Column(Integer, default=0) # 0 = No, 1 = Yes (Anti-fraud lock)
+    user_data = Column(String, nullable=True)
+    is_generated = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 def init_db():

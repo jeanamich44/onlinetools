@@ -9,10 +9,12 @@ from .database import Payment, SessionLocal
 from sqlalchemy.orm import Session
 import logging
 
-# Configuration
+# =========================
+# CONFIGURATION
+# =========================
+
 CLIENT_ID = "cc_classic_ju7wWXPLFWeNtFgwerzub54kOSlsh".strip()
 CLIENT_SECRET = "cc_sk_classic_zGdCSOq3BzS2lPsVFmKZHpQKI8fwt8V6zoIFQLqpl46jLCizbf".strip()
-# CODE_MARCHAND = "MCHYQUG3".strip() # Invalide
 PAY_TO_EMAIL = "dupuisrenov83@outlook.fr"
 API_KEY = "sup_sk_3pYZm9Maezj1XgpL76qxKvKUc".strip() 
 
@@ -22,19 +24,18 @@ CHECKOUT_URL = "https://api.sumup.com/v0.1/checkouts"
 
 logger = logging.getLogger(__name__)
 
-# Cache de Token
+# =========================
+# CACHE
+# =========================
+
 _token_cache = {
     "access_token": None,
-    "expires_at": 0 # Timestamp
+    "expires_at": 0
 }
 
 async def get_access_token():
-    """
-    Récupère un token d'accès de manière asynchrone, en utilisant un cache global.
-    """
     global _token_cache
     
-    # Vérifier si on a un token valide
     if _token_cache["access_token"] and time.time() < _token_cache["expires_at"]:
         return _token_cache["access_token"]
 
@@ -51,9 +52,8 @@ async def get_access_token():
                 if response.status == 200:
                     data = await response.json()
                     token = data.get("access_token")
-                    expires_in = data.get("expires_in", 3600) # Par défaut 1h
+                    expires_in = data.get("expires_in", 3600)
                     
-                    # Mettre à jour le cache 
                     _token_cache["access_token"] = token
                     _token_cache["expires_at"] = time.time() + expires_in - 60
                     
@@ -67,12 +67,8 @@ async def get_access_token():
         raise Exception(f"Erreur Récupération Token: {str(e)}")
 
 def get_access_token_sync():
-    """
-    Récupère un token d'accès de manière synchrone (pour le polling).
-    """
     global _token_cache
     
-    # Vérifier si on a un token valide
     if _token_cache["access_token"] and time.time() < _token_cache["expires_at"]:
         return _token_cache["access_token"]
 
@@ -88,9 +84,8 @@ def get_access_token_sync():
         if response.status_code == 200:
             data = response.json()
             token = data.get("access_token")
-            expires_in = data.get("expires_in", 3600) # Par défaut 1h
+            expires_in = data.get("expires_in", 3600)
             
-            # Mettre à jour le cache 
             _token_cache["access_token"] = token
             _token_cache["expires_at"] = time.time() + expires_in - 60
             
@@ -103,11 +98,6 @@ def get_access_token_sync():
         raise Exception(f"Erreur Récupération Token (Sync): {str(e)}")
 
 async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=None, product_name=None, user_data=None):
-    """
-    Crée une session de paiement.
-    Nouveau flux : Insertion DB immédiate -> Appel API SumUp -> Mise à jour DB.
-    """
-    # 1. Générer une référence locale
     checkout_ref = str(uuid.uuid4())
     
     db = SessionLocal()
@@ -125,7 +115,6 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
         db.commit()
         db.refresh(new_payment)
         
-        # 3. Appel API SumUp
         token = await get_access_token()
         valid_until = (datetime.utcnow() + timedelta(minutes=15)).isoformat() + "Z"
         APP_DOMAIN = "https://generate-docs-production.up.railway.app"
@@ -152,7 +141,6 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
                 if status_code >= 400:
                     text = await response.text()
                     logger.error(f"Echec API SumUp ({status_code}): {text}")
-                    # On marque en FAILED en base avant de lever l'erreur
                     new_payment.status = "API_ERROR"
                     db.commit()
                     raise Exception(f"Echec Checkout: {status_code} {text}")

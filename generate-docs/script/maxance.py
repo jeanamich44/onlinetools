@@ -129,7 +129,7 @@ def generate_maxance(data, output_path, is_preview=False):
         doc.close()
         flatten_pdf(output_path)
 
-# Wrappers
+
 def generate_maxance_pdf(data, output_path):
     return generate_maxance(data, output_path, is_preview=False)
 

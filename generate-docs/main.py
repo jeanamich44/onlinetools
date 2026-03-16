@@ -1,5 +1,5 @@
 # =========================
-# IMPORTS
+# IMPORTATIONS
 # =========================
 
 import os
@@ -73,13 +73,13 @@ logger = logging.getLogger(__name__)
 
 
 # =========================
-# BASE DE DONNÉES & SETUP APP
+# BASE DE DONNEE ET CONFIGURATION
 # =========================
 
 app = FastAPI()
 
 # =========================
-# TÂCHES DE FOND (RECONCILIATION)
+# TACHES DE FOND
 # =========================
 
 @app.on_event("startup")
@@ -103,7 +103,7 @@ app.add_middleware(
 )
 
 # =========================
-# MODÈLES PYDANTIC
+# MODELES
 # =========================
 
 class PDFRequest(BaseModel):

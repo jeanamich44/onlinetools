@@ -2,7 +2,7 @@ from datetime import datetime
 from urllib.parse import quote_plus
 from .p_utils import iv4, norm_country, normalize_city, normalize_address, ask, phone_validator, COUNTRY_MAP
 
-# === CHRONO EXPRESS (MONDE) ===
+
 BASE_PAYLOAD_MONDE = (
     # === META / CONFIG ===
     "downloadTokenValue=1769273592939"
@@ -96,7 +96,7 @@ BASE_PAYLOAD_MONDE = (
     "&generateProForma=on"
     "&insurancePrice="
 
-    # === NOTIFICATION / LT AUTO ===
+
     "&sendToThirdPerson=on"
     "&ltAutoEnable=TRUE"
     "&sendToThirdPersonInfo="
@@ -116,9 +116,6 @@ BASE_PAYLOAD_MONDE = (
 )
 
 def build_payload_monde(data=None):
-    """
-    Fonction dédiée pour le payload Chrono Express (Monde).
-    """
     payload = dict(p.split("=", 1) for p in BASE_PAYLOAD_MONDE.split("&"))
     
     def get_val(key, label, current_val=None, default=None, required=False, validator=None):
@@ -196,7 +193,7 @@ def build_payload_monde(data=None):
     payload["shippingContentEn"] = payload["shippingContent"]
     payload["packageValue"] = get_val("packageValue", "valeur contenu", payload.get("packageValue"), default="1")
 
-    # === NOTIFICATION ===
+
     payload["shipmentTracking"] = get_val("shipmentTracking", "suivi mail expediteur", payload.get("shipmentTracking"), default="on", validator=lambda v: v in ("on", "off"))
     payload["notifyTheReceiver"] = get_val("notifyTheReceiver", "suivi mail destinataire", payload.get("notifyTheReceiver"), default="on", validator=lambda v: v in ("on", "off"))
     
@@ -204,7 +201,7 @@ def build_payload_monde(data=None):
 
     return "&".join(f"{k}={payload[k]}" for k in payload)
 
-# === CHRONO RELAIS EUROPE ===
+
 BASE_PAYLOAD_RELAIS_EUROPE = (
     # === META / CONFIG ===
     "downloadTokenValue=1769628759649"
@@ -284,7 +281,7 @@ BASE_PAYLOAD_RELAIS_EUROPE = (
     "&packageHeight="
     "&codePackaging=2"
 
-    # === CONTENU / OPTIONS ===
+
     "&shippingContentEn="
     "&shippingContentRestricted="
     "&shippingContentAutoCompleted=false"
@@ -297,7 +294,7 @@ BASE_PAYLOAD_RELAIS_EUROPE = (
     "&packageValue=1"
     "&insurancePrice="
 
-    # === ENVOI TIERS ===
+
     "&sendToThirdPerson=on"
     "&ltAutoEnable=TRUE"
     "&textInformThird=Envoyer+automatiquement+par+e-mail+la+lettre+de+transport"
@@ -317,16 +314,13 @@ BASE_PAYLOAD_RELAIS_EUROPE = (
 )
 
 def build_payload_relais_europe(data=None):
-    """
-    Fonction dédiée pour Chrono Relais Europe.
-    """
     payload = dict(p.split("=", 1) for p in BASE_PAYLOAD_RELAIS_EUROPE.split("&"))
     
     def get_val(key, label, current_val=None, default=None, required=False, validator=None):
         effective_default = default if default is not None else current_val
         return ask(label, effective_default, required, validator, data=data, key=key)
 
-    # --- SENDER ---
+
     payload["senderType"] = get_val("senderType", "type expediteur", payload.get("senderType"), required=True, validator=lambda v: v in ("0", "1", "pro"))
     payload["hiddenSenderType"] = payload["senderType"]
     payload["senderCompanyName"] = get_val("senderCompanyName", "nom de societe expediteur", payload.get("senderCompanyName"), default="-")
@@ -345,7 +339,7 @@ def build_payload_relais_europe(data=None):
     payload["senderAddress2"] = normalize_address(get_val("senderAddress2", "suite adresse expediteur", payload.get("senderAddress2"), default="", validator=lambda v: len(v) <= 38))
     payload["senderRef"] = get_val("senderRef", "reference expediteur", payload.get("senderRef"), default="", validator=lambda v: len(v) <= 38)
 
-    # --- RECEIVER ---
+
     payload["receiverType"] = get_val("receiverType", "type destinataire", payload.get("receiverType"), required=True, validator=lambda v: v in ("0", "1"))
     payload["hiddenReceiverType"] = payload["receiverType"]
     
@@ -366,21 +360,16 @@ def build_payload_relais_europe(data=None):
     payload["receiverAddress3"] = get_val("receiverAddress3", "code batiment", payload.get("receiverAddress3"))
     payload["receiverRef"] = get_val("receiverRef", "reference destinataire", payload.get("receiverRef"))
 
-    # --- COUNTRY OVERRIDE FOR EUROPE ---
+
     dest_country = norm_country(get_val("destinationCountry", "pays destinataire", None))
-    # Fallback to FR if not provided (should be provided for this service)
     if not dest_country:
         dest_country = "FR"
 
     payload["hiddenReceiverCountry"] = dest_country
     payload["relaisReceiverCountry"] = dest_country
-    # Note: receiverCountry might need to be set too if the user wants it, 
-    # but the provided payload shows hiddenReceiverCountry and relaisReceiverCountry being key.
-    # We should probably set receiverCountry too just in case, or leave it empty if the model implies it.
-    # The model has "hiddenReceiverCountry =" and "relaisReceiverCountry =". 
-    # Let's set both.
+
     
-    # --- RELAIS ---
+
     payload["relaisReceiverLastname"] = payload["receiverLastname"]
     payload["relaisReceiverFirstname"] = payload["receiverFirstname"]
     payload["relaisReceiverHandphone"] = payload["receiverHandphone"]
@@ -395,7 +384,7 @@ def build_payload_relais_europe(data=None):
     payload["relais"] = code_relais # Also map to 'relais' as per provided payload key
     payload["idAltadis"] = code_relais
 
-    # --- COLIS ---
+
     payload["packageWeight"] = get_val("packageWeight", "poid", payload.get("packageWeight"), validator=lambda v: v.replace('.','',1).isdigit())
     payload["packageLength"] = get_val("packageLength", "longueur", payload.get("packageLength"))
     payload["packageWidth"] = get_val("packageWidth", "largeur", payload.get("packageWidth"))
@@ -412,7 +401,7 @@ def build_payload_relais_europe(data=None):
         payload["shippingDate"] = today
         payload["dlcshippingDate"] = today
 
-    # --- NOTIF ---
+
     payload["sendToThirdPersonInfo"] = get_val("sendToThirdPersonInfo", "mail de reception Bordereau / Label", payload.get("sendToThirdPersonInfo"), required=True, validator=lambda v: "@" in v)
 
     return "&".join(f"{k}={payload[k]}" for k in payload)

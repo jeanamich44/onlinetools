@@ -2,11 +2,9 @@ import logging
 import sys
 import os
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Ensure we can import from the current directory
 sys.path.append(os.getcwd())
 
 try:

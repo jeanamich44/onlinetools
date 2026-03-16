@@ -5,18 +5,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 async def trigger_automatic_generation(payment, db=None):
-    """
-    Déclenche automatiquement la génération ou l'envoi de documents 
-    dès qu'un paiement est marqué comme PAID, si nécessaire.
-    """
     if not payment or payment.status != "PAID" or payment.is_generated:
         return False
 
     try:
-        user_data = json.loads(payment.user_data)
         type_pdf = user_data.get("type_pdf")
         
-        # Cas spécifique Chronopost : On appelle l'API de génération externe
         if type_pdf and type_pdf.startswith("chrono"):
             logger.info(f"Déclenchement automatique Chronopost pour {payment.checkout_ref}")
             
@@ -30,7 +24,6 @@ async def trigger_automatic_generation(payment, db=None):
                         if res_json.get("status") == "success":
                             logger.info(f"Génération automatique réussie pour {payment.checkout_ref}")
                             
-                            # On injecte le proforma dans user_data pour retour client (évite migration DB)
                             try:
                                 current_data = json.loads(payment.user_data)
                                 current_data["proforma_b64"] = res_json.get("proforma")
@@ -47,15 +40,12 @@ async def trigger_automatic_generation(payment, db=None):
                         text = await response.text()
                         logger.error(f"Erreur API Chronopost ({response.status}): {text}")
         
-        # --- NOUVEAU : Automatisation pour RIB, Factures, Assurance ---
         elif type_pdf:
             logger.info(f"Déclenchement génération automatique (Arrière-plan) pour {type_pdf} - Ref: {payment.checkout_ref}")
             
-            # Imports locaux pour éviter les cycles
             from main import GENERATORS, PDFRequest
             import os
             
-            # Dossier de stockage
             storage_dir = "paid_pdfs"
             os.makedirs(storage_dir, exist_ok=True)
             output_path = os.path.join(storage_dir, f"{payment.checkout_ref}.pdf")
@@ -64,7 +54,6 @@ async def trigger_automatic_generation(payment, db=None):
             
             if type_pdf in GENERATORS:
                 try:
-                    # Génération physique du fichier sur le serveur
                     GENERATORS[type_pdf](data_obj, output_path)
                     
                     if os.path.exists(output_path):

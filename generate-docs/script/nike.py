@@ -10,7 +10,7 @@ PDF_TEMPLATE = Paths.template("NIKE.pdf")
 FONT_ARIAL = Paths.font("arial.ttf")
 
 # =========================
-# UTILS
+# UTILITAIRES
 # =========================
 
 def generer_num_aleatoire(longueur=8):
@@ -54,7 +54,6 @@ STYLES = {
 # =========================
 
 def traiter_page(page, remplacements):
-    """Effectue les remplacements sur une page."""
     actions = []
     
     for cle, val in remplacements.items():
@@ -66,12 +65,9 @@ def traiter_page(page, remplacements):
     if not actions:
         return
 
-    # 1. Masquage
-    for r, cle, val in actions:
         page.add_redact_annot(r, fill=(1, 1, 1))
     page.apply_redactions()
 
-    # 2. Écriture
     for r, cle, val in actions:
         style = STYLES.get(cle, STYLE_DEFAUT)
         taille = style.get("size", 8.0)
@@ -106,7 +102,6 @@ DEFAULTS = {
 }
 
 def preparer_valeurs(data):
-    """Prépare le dictionnaire de valeurs à partir de l'objet data."""
     maintenant = datetime.now()
     
     total_str = safe_get(data, "prixx", DEFAULTS).replace("€", "").replace(",", ".").strip()
@@ -171,11 +166,9 @@ def generate_nike(data, output_path, is_preview=False):
         doc.close()
         flatten_pdf(output_path)
 
-# Wrappers
+
 def generate_nike_pdf(data, output_path):
-    """Génère le PDF final pour Nike."""
     return generate_nike(data, output_path, is_preview=False)
 
 def generate_nike_preview(data, output_path):
-    """Génère la preview pour Nike."""
     return generate_nike(data, output_path, is_preview=True)

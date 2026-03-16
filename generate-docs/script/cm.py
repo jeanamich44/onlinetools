@@ -4,7 +4,7 @@ import re
 from .p_utils import save_pdf_as_jpg, flatten_pdf, add_watermark, Paths, safe_get, get_rib_defaults
 
 # =========================
-# CHEMINS (EN LIGNE)
+# CHEMINS
 # =========================
 
 PDF_TEMPLATE = Paths.template("CM.pdf")
@@ -43,7 +43,6 @@ def format_iban(v: str):
 def overwrite(page, key, text):
     is_bold = key in BOLD_KEYS
     fontfile = FONT_ARIAL_BOLD_PATH if is_bold else FONT_ARIAL_REG_PATH
-    
     rects = page.search_for(key)
     if not rects:
         return
@@ -67,7 +66,6 @@ def overwrite(page, key, text):
 # =========================
 
 def generate_cm(data, output_path, is_preview=False):
-    # Mapping des valeurs avec fallback sur les nouveaux DEFAULTS
     values = {
         "*banque": safe_get(data, "banque", DEFAULTS),
         "*guichet": safe_get(data, "guichet", DEFAULTS),
@@ -87,7 +85,6 @@ def generate_cm(data, output_path, is_preview=False):
     doc = fitz.open(PDF_TEMPLATE)
 
     for page in doc:
-        # Tri par longueur décroissante pour être sûr de ne pas écraser les sous-tags
         for k in sorted(values.keys(), key=len, reverse=True):
             overwrite(page, k, values[k])
         
@@ -101,7 +98,7 @@ def generate_cm(data, output_path, is_preview=False):
         doc.close()
         flatten_pdf(output_path)
 
-# Wrappers pour compatibilité main.py
+
 def generate_cm_pdf(data, output_path):
     return generate_cm(data, output_path, is_preview=False)
 

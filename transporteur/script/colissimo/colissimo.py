@@ -5,22 +5,20 @@ import email
 import base64
 from email.policy import default
 from datetime import datetime
-import fitz  # PyMuPDF pour le traitement PDF ultra-rapide en mémoire
+import fitz
 from .p_utils import geocode_zip, USER_AGENT
 
-# Configuration du logging
-logger = logging.getLogger(__name__)
+# =========================
+# CONFIGURATION
+# =========================
 
-# URLs de l'API Colissimo SLS REST v3.1
+logger = logging.getLogger(__name__)
 PATCH_BASE_URL = "https://ws.colissimo.fr/sls-ws/SlsServiceWSRest/3.1"
 GENERATE_LABEL_URL = f"{PATCH_BASE_URL}/generateLabel"
 CHECK_LABEL_URL = f"{PATCH_BASE_URL}/checkGenerateLabel"
 PLAN_PICKUP_URL = f"{PATCH_BASE_URL}/planPickup"
 
 def parse_multipart_response(response):
-    """
-    Parse une réponse multipart/related de Colissimo pour extraire le JSON et les fichiers (PDF/CN23).
-    """
     content_type = response.headers.get("Content-Type", "")
     
     if "multipart" not in content_type:
@@ -29,7 +27,6 @@ def parse_multipart_response(response):
         except:
             return {"error": "Réponse non JSON et non Multipart"}, {}
 
-    # L'email.message_from_bytes a besoin du header Content-Type pour savoir comment parser
     msg_data = b"Content-Type: " + content_type.encode("utf-8") + b"\r\n\r\n" + response.content
     msg = email.message_from_bytes(msg_data, policy=default)
     
@@ -42,17 +39,15 @@ def parse_multipart_response(response):
         if ctype == "application/json":
             json_infos = json.loads(part.get_payload(decode=True))
         else:
-            # On stocke les fichiers binaires (étiquettes, douanes, etc.)
-            part_name = part.get_param("name", header="Content-Disposition") or part.get_filename() or "label"
             payloads[part_name] = part.get_payload(decode=True)
             
     return json_infos, payloads
 
+# =========================
+# GENERATION ETIQUETTE
+# =========================
+
 def run_colissimo(data, config, method="generateLabel"):
-    """
-    Exécute une méthode de l'API SLS REST v3.1.
-    method: 'generateLabel', 'checkGenerateLabel' ou 'planPickup'
-    """
     
     if method == "generateLabel":
         url = GENERATE_LABEL_URL
@@ -63,13 +58,11 @@ def run_colissimo(data, config, method="generateLabel"):
     else:
         return {"status": "error"}
     
-    # Payload de base
     payload = {
         "contractNumber": config.get("id"),
         "password": config.get("key")
     }
 
-    # Configuration spécifique selon la méthode
     if method in ["generateLabel", "checkGenerateLabel"]:
         payload.update({
             "outputFormat": {
@@ -120,7 +113,6 @@ def run_colissimo(data, config, method="generateLabel"):
             }
         })
 
-        # Gestion spécifique du Point Relais (Product Code COL)
         if data.get("productCode") == "COL" and data.get("pickupLocationId"):
             pickup_type = data.get("pickupLocationType", "A2P")
             payload["letter"]["service"]["productCode"] = pickup_type
@@ -130,7 +122,6 @@ def run_colissimo(data, config, method="generateLabel"):
             payload["letter"]["customsDeclarations"] = data["customs"]
             
     elif method == "planPickup":
-        # Spécifique au retrait en boîte aux lettres (Retour par exemple)
         payload.update({
             "parcelNumber": data.get("parcelNumber"),
             "mailBoxPickingDate": data.get("pickupDate"),
@@ -163,7 +154,6 @@ def run_colissimo(data, config, method="generateLabel"):
             if method in ["generateLabel", "checkGenerateLabel"]:
                 if "label" in files:
                     try:
-                        # Masquage du numéro de contrat à la volée
                         pdf_doc = fitz.open(stream=files["label"], filetype="pdf")
                         page = pdf_doc[0]
                         contract_id = str(config.get("id"))
@@ -192,10 +182,11 @@ def run_colissimo(data, config, method="generateLabel"):
         return {"status": "failed"}
 
 
+# =========================
+# RECHERCHE POINTS RELAIS
+# =========================
+
 def search_relays_colissimo(zip_code, config=None):
-    """
-    Recherche les points de retrait Colissimo via l'API publique La Poste.
-    """
     logger.info(f"Recherche de points de retrait Colissimo pour le CP: {zip_code}")
     
     lat, lon = geocode_zip(zip_code)
@@ -245,7 +236,6 @@ def search_relays_colissimo(zip_code, config=None):
                     if raw_type and "BUREAU" in str(raw_type).upper(): relay_type = "BPR"
                     if raw_type and "CONSIGNE" in str(raw_type).upper(): relay_type = "PCS"
 
-                    # Sécurisation du parsing de la distance
                     distance_raw = item.get("distance", 0)
                     distance_km = 0
                     if isinstance(distance_raw, (int, float)):
@@ -253,7 +243,6 @@ def search_relays_colissimo(zip_code, config=None):
                     elif isinstance(distance_raw, str) and distance_raw.replace('.','',1).isdigit():
                         distance_km = float(distance_raw) / 1000
                     elif isinstance(distance_raw, dict):
-                        # Cas où distance est un dict {"value": ..., "unit": ...}
                         val = distance_raw.get("value", 0)
                         distance_km = float(val) / 1000 if isinstance(val, (int, float, str)) else 0
 

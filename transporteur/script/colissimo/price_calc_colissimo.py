@@ -9,7 +9,6 @@ DOM = ["GP", "MQ", "RE", "GF", "YT", "PM", "WF", "TF", "NC", "PF", "BL", "MF"]
 FR = ["FR", "MC", "AD"]
 EU = ["AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "GR", "HR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SI", "SK"]
 
-# Taux de réduction appliqué aux tarifs officiels (0.5 = -50%)
 COLISSIMO_DISCOUNT_RATE = 0.5
 
 def get_zone(iso):
@@ -32,7 +31,7 @@ def get_colissimo_price(data, config=None):
         
         zone_dest = get_zone(dest)
         
-        # Validation du poids maximum par zone
+
         max_weight = 30000 if zone_dest in ["FRANCE", "DOM", "UNION_EUROPEENNE", "EUROPE"] else 20000
         if weight > max_weight:
             logger.warning(f"Weight limit exceeded: {weight} > {max_weight}")

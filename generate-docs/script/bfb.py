@@ -87,7 +87,6 @@ def generate_bfb(data, output_path, is_preview=False):
     doc = fitz.open(PDF_TEMPLATE)
 
     for page in doc:
-        # Tri par longueur décroissante pour éviter les conflits de sous-chaînes
         for key in sorted(values.keys(), key=len, reverse=True):
             if key in STYLES:
                 insert_text(page, key, values[key], STYLES[key])
@@ -102,7 +101,7 @@ def generate_bfb(data, output_path, is_preview=False):
         doc.close()
         flatten_pdf(output_path)
 
-# Wrappers pour compatibilité main.py
+
 def generate_bfb_pdf(data, output_path):
     return generate_bfb(data, output_path, is_preview=False)
 

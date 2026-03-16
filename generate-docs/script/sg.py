@@ -54,7 +54,6 @@ def generate_sg(data, output_path, is_preview=False):
         align_ref = page.search_for("Agence de domiciliation")
         x_align = align_ref[0].x1 if align_ref else 515.0
 
-        # Tri par longueur décroissante pour éviter les conflits de sous-chaînes
         for key in sorted(values.keys(), key=len, reverse=True):
             text = values[key]
             for rect in page.search_for(f"*{key}"):
@@ -84,7 +83,7 @@ def generate_sg(data, output_path, is_preview=False):
         doc.close()
         flatten_pdf(output_path)
 
-# Wrappers pour compatibilité main.py
+
 def generate_sg_pdf(data, output_path):
     return generate_sg(data, output_path, is_preview=False)
 

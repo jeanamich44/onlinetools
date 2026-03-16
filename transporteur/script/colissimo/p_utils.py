@@ -3,28 +3,23 @@ import logging
 
 from datetime import datetime
 
-# Configuration du logging local
-logger = logging.getLogger(__name__)
+# =========================
+# CONFIGURATION
+# =========================
 
-# User-Agent dédié pour les requêtes Colissimo
+logger = logging.getLogger(__name__)
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 
 def get_current_date():
-    """Retourne la date du jour au format requis par Colissimo (YYYY-MM-DD)."""
     return datetime.now().strftime("%Y-%m-%d")
 
 def safe_float(value, default=0.0):
-    """Convertit une valeur en float de manière sécurisée."""
     try:
         return float(value)
     except (TypeError, ValueError):
         return default
 
 def geocode_zip(zip_code):
-    """
-    Géocode un code postal en coordonnées lat/lng via Nominatim (OSM).
-    Utilisé pour la recherche de points relais.
-    """
     url = "https://nominatim.openstreetmap.org/search"
     params = {
         "postalcode": zip_code,

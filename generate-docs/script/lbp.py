@@ -58,7 +58,7 @@ def generate_lbp(data, output_path, is_preview=False):
         doc.close()
         flatten_pdf(output_path)
 
-# Wrappers pour compatibilité main.py
+
 def generate_lbp_pdf(data, output_path):
     return generate_lbp(data, output_path, is_preview=False)
 

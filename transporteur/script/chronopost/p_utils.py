@@ -5,11 +5,10 @@ iv4 = "5da5c8dee16b5abef1e7d2072cb335c2"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36"
 
 def get_current_cart_date():
-    """Retourne la date actuelle au format DD/MM/YYYY/HH:MM"""
     now = datetime.now()
     return now.strftime("%d/%m/%Y/%H:%M")
 
-# Mapping Pays Nom -> ISO
+
 COUNTRY_MAP = {
     "AFGHANISTAN": "AF", "AFRIQUE DU SUD": "ZA", "ALBANIE": "AL", "ALGÉRIE": "DZ", "ALLEMAGNE": "DE",
     "ANDORRE": "AD", "ANGOLA": "AO", "ANGUILLA": "AI", "ANTARCTIQUE": "AQ", "ANTIGUA-ET-BARBUDA": "AG",
@@ -71,10 +70,8 @@ def norm_country(val):
     if not val:
         return ""
     val = val.strip().upper()
-    # Si déjà code ISO (<= 3 chars, ex: FR, USA)
     if len(val) <= 3:
         return val
-    # Sinon lookup
     return COUNTRY_MAP.get(val, val)
 
 def ask(label, default=None, required=False, validator=None, data=None, key=None):
@@ -86,12 +83,11 @@ def ask(label, default=None, required=False, validator=None, data=None, key=None
         if default is not None:
             val = default
         elif required:
-            # In API mode, missing required field is an error
             raise ValueError(f"Missing required field: {key} ({label})")
         else:
-             val = "" # optional field empty
+             val = ""
     
-    # Validate if validator exists
+
     if validator and val: 
             if not validator(val):
                 raise ValueError(f"Invalid value for {key}: {val}")

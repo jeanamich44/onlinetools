@@ -19,7 +19,6 @@ async def poll_sumup_status(checkout_id: str):
         async with aiohttp.ClientSession() as session:
             while time.time() - start_time < timeout:
                 try:
-                    # 1. Obtenir une session courte uniquement pour cette vérifications
                     db = SessionLocal()
                     try:
                         payment = db.query(Payment).filter(Payment.checkout_id == checkout_id).first()
@@ -33,7 +32,6 @@ async def poll_sumup_status(checkout_id: str):
                             logger.info(f"Polling: Paiement {checkout_id} déjà finalisé: {payment.status}")
                             break
 
-                        # 2. Interroger l'API SumUp EN DEHORS d'un bloc de commit
                         token = await get_access_token()
                         headers = {"Authorization": f"Bearer {token}"}
                         url = f"https://api.sumup.com/v0.1/checkouts/{checkout_id}"
@@ -56,17 +54,16 @@ async def poll_sumup_status(checkout_id: str):
                                         await trigger_automatic_generation(payment, db=db)
 
                                     if new_status in ["PAID", "FAILED"]:
-                                        break # Terminé
+                                        break
                             else:
                                 logger.warning(f"Erreur polling API {checkout_id}: {status_code}")
                     
                     finally:
-                        db.close() # CRITIQUE : Libère la connexion immédiatement
+                        db.close()
 
                 except Exception as e:
                     logger.error(f"Erreur Boucle Polling: {e}")
 
-                # Intervalle dynamique
                 elapsed = time.time() - start_time
                 if elapsed <= 60:
                     current_interval = 1

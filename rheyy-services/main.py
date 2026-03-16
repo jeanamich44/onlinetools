@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import time
 import logging
 
-# Imports locaux
+
 from database import init_db, get_db, Payment, Admin
 from security import (
     get_password_hash, 
@@ -73,7 +73,6 @@ async def login(req: LoginRequest, db: Session = Depends(get_db)):
     if not admin or not verify_password(req.password, admin.hashed_password):
         raise HTTPException(status_code=401, detail="Identifiants incorrects")
     
-    # Mise à jour de la dernière connexion
     admin.last_login = datetime.utcnow()
     db.commit()
     
@@ -82,7 +81,6 @@ async def login(req: LoginRequest, db: Session = Depends(get_db)):
 
 @app.post("/admin/setup-first-admin")
 async def setup_first_admin(req: LoginRequest, request: Request, db: Session = Depends(get_db)):
-    """Route temporaire pour créer le premier admin (protégée par IP)."""
     check_ip_whitelist(request)
     
     try:
@@ -144,13 +142,12 @@ def generate_zip_endpoint(req: QRRequest, admin: str = Depends(get_current_admin
 
 @app.get("/admin/stats")
 async def get_stats(admin: str = Depends(get_current_admin), db: Session = Depends(get_db)):
-    """Statistiques globales pour le dashboard."""
     total_payments = db.query(Payment).count()
     paid_payments = db.query(Payment).filter(Payment.status == "PAID").count()
     total_revenue = db.query(Payment).filter(Payment.status == "PAID").with_entities(Payment.amount).all()
     revenue = sum([p[0] for p in total_revenue]) if total_revenue else 0
     
-    # PDF générés aujourd'hui
+
     today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
     generated_today = db.query(Payment).filter(Payment.is_generated == 1, Payment.created_at >= today).count()
 
@@ -168,11 +165,9 @@ async def list_payments(
     admin: str = Depends(get_current_admin), 
     db: Session = Depends(get_db)
 ):
-    """Liste les derniers paiements."""
     payments = db.query(Payment).order_by(Payment.created_at.desc()).offset(skip).limit(limit).all()
     return payments
 
 @app.get("/admin/verify-session")
 async def verify_session(admin: str = Depends(get_current_admin)):
-    """Vérifie si le token est toujours valide."""
     return {"status": "ok", "admin": admin}
