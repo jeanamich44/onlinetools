@@ -17,6 +17,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response, StreamingResponse
 from pydantic import BaseModel, parse_obj_as, root_validator
 from sqlalchemy.orm import Session
+import base64
+from io import BytesIO
+import uvicorn
 
 from payments.database import init_db, get_db, Payment, SessionLocal
 from payments.payment import create_checkout, get_access_token
@@ -32,6 +35,8 @@ from script.cic import generate_cic_pdf, generate_cic_preview
 from script.qonto import generate_qonto_pdf, generate_qonto_preview
 from script.maxance import generate_maxance_pdf, generate_maxance_preview
 from script.nike import generate_nike_pdf, generate_nike_preview
+from payments.reconcile import start_reconciliation_loop
+from payments.polling import poll_sumup_status
 
 GENERATORS = {
     "lbp": generate_lbp_pdf,
@@ -79,7 +84,6 @@ app = FastAPI()
 
 @app.on_event("startup")
 async def startup_event():
-    from payments.reconcile import start_reconciliation_loop
     asyncio.create_task(start_reconciliation_loop(interval=900))
     asyncio.create_task(security_worker())
     logger.info("Serveur démarré - Tâches de fond (Réconciliation & Sécurité) lancées.")
@@ -244,13 +248,11 @@ async def create_payment_endpoint(request: Request, data: PDFRequest, background
 
         logger.info(f"Création paiement (Async) pour Produit: {product_name}, IP: {client_ip}")
 
-        import json
         user_data_str = json.dumps(data.dict())
 
         url, ref, checkout_id = await create_checkout(db=db, amount=1.0, ip_address=client_ip, product_name=product_name, user_data=user_data_str)
         
         if checkout_id:
-             from payments.polling import poll_sumup_status
              background_tasks.add_task(poll_sumup_status, checkout_id)
         
         return {"payment_url": url, "checkout_ref": ref}
@@ -270,7 +272,6 @@ async def get_payment_status(checkout_reference: str, db: Session = Depends(get_
 
 @app.get("/api/wait-for-success/{checkout_reference}")
 async def wait_for_success(checkout_reference: str, db: Session = Depends(get_db)):
-    import asyncio
     for _ in range(30):
         db.expire_all()
         payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
@@ -288,12 +289,9 @@ async def download_paid_pdf(checkout_reference: str, db: Session = Depends(get_d
     if not payment or payment.status != "PAID":
         raise HTTPException(status_code=402, detail="Error")
     
-    import json
     try:
         data = json.loads(payment.user_data)
         if "proforma_b64" in data:
-            import base64
-            from io import BytesIO
             pdf_bytes = base64.b64decode(data["proforma_b64"])
             return StreamingResponse(BytesIO(pdf_bytes), media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=proforma_{checkout_reference}.pdf"})
     except:
@@ -469,9 +467,5 @@ def generate_pdf(request: Request, data: PDFRequest):
 # LANCEMENT
 # =========================
 if __name__ == "__main__":
-    import uvicorn
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
-ut
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)

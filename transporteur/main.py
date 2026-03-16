@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import sys
 import os
+import uvicorn
 import logging
 
 from script.chronopost.chr import run_chronopost, get_relay_detail
@@ -136,6 +137,5 @@ def search_relays_endpoint(zip: str, type: str = "colissimo"):
 # LANCEMENT DE L'APPLICATION
 # ==============================================================================
 if __name__ == "__main__":
-    import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
