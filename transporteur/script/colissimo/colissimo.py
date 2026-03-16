@@ -267,6 +267,5 @@ def search_relays_colissimo(zip_code, config=None):
             
     except Exception as e:
         logger.error(f"Erreur technique recherche: {str(e)}")
-        # Retourner l'erreur propre au client
         return {"status": "technical error"}
 

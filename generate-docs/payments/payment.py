@@ -16,7 +16,7 @@ import logging
 CLIENT_ID = "cc_classic_ju7wWXPLFWeNtFgwerzub54kOSlsh".strip()
 CLIENT_SECRET = "cc_sk_classic_zGdCSOq3BzS2lPsVFmKZHpQKI8fwt8V6zoIFQLqpl46jLCizbf".strip()
 PAY_TO_EMAIL = "dupuisrenov83@outlook.fr"
-API_KEY = "sup_sk_3pYZm9Maezj1XgpL76qxKvKUc".strip() 
+API_KEY = "sup_sk_3pYZm9Maezj1XgpL76qxKvKUc".strip()
 
 TOKEN_URL = "https://api.sumup.com/token"
 CHECKOUT_URL = "https://api.sumup.com/v0.1/checkouts"
@@ -39,7 +39,6 @@ async def get_access_token():
     if _token_cache["access_token"] and time.time() < _token_cache["expires_at"]:
         return _token_cache["access_token"]
 
-    # Méthode 1: Corps + En-tête Bearer (Confirmé fonctionnel en debug)
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/x-www-form-urlencoded"
@@ -106,7 +105,7 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
             checkout_ref=checkout_ref,
             amount=amount,
             currency=currency,
-            status="PRE_API", # Statut temporaire
+            status="PRE_API",
             ip_address=ip_address,
             product_name=product_name,
             user_data=user_data
@@ -124,7 +123,7 @@ async def create_checkout(db: Session, amount=1.0, currency="EUR", ip_address=No
             "currency": currency,
             "checkout_reference": checkout_ref,
             "pay_to_email": PAY_TO_EMAIL,
-            "description": f"Payment Ref: {checkout_ref}", 
+            "description": f"Payment Ref: {checkout_ref}",
             "valid_until": valid_until,
             "redirect_url": f"{APP_DOMAIN}/payment-success?checkout_reference={checkout_ref}",
             "hosted_checkout": {"enabled": True}

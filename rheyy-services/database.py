@@ -5,18 +5,16 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import logging
 
-# Configuration des logs
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# URL de la base de données (PostgreSQL sur Railway)
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
 if SQLALCHEMY_DATABASE_URL:
     if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
         SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
 else:
-    # Fallback pour le développement local si nécessaire
     SQLALCHEMY_DATABASE_URL = "sqlite:///./rheyy_services.db"
     logger.warning("DATABASE_URL non trouvée, utilisation d'une base SQLite locale.")
 

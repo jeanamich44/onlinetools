@@ -6,6 +6,7 @@ import logging
 from sqlalchemy.orm import Session
 from .database import Payment, SessionLocal
 from .payment import get_access_token, get_access_token_sync
+from .automation import trigger_automatic_generation
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +14,7 @@ async def poll_sumup_status(checkout_id: str):
     logger.info(f"Démarrage polling arrière-plan pour Checkout ID: {checkout_id}")
     
     start_time = time.time()
-    timeout = 900 
+    timeout = 900
     
     try:
         async with aiohttp.ClientSession() as session:
@@ -50,7 +51,6 @@ async def poll_sumup_status(checkout_id: str):
                                     db.commit()
                                     
                                     if new_status == "PAID":
-                                        from .automation import trigger_automatic_generation
                                         await trigger_automatic_generation(payment, db=db)
 
                                     if new_status in ["PAID", "FAILED"]:

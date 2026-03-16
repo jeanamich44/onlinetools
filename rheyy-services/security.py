@@ -19,7 +19,7 @@ SECRET_KEY = os.getenv("RHEYY_TOKEN_KEY", "rheyy-super-token-key-change-it")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 120
 
-# Whitelist IP chargée depuis les variables d'environnement (séparées par des virgules)
+
 ALLOWED_IPS = [ip.strip() for ip in os.getenv("ADMIN_IP_WHITELIST", "127.0.0.1").split(",")]
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -54,14 +54,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 # =========================
 
 def check_ip_whitelist(request: Request):
-    """Vérifie si l'IP de la requête est autorisée."""
     client_ip = request.headers.get("x-forwarded-for", request.client.host)
-    # Gérer les listes d'IP si derrière un proxy (prendre la première)
     if "," in client_ip:
         client_ip = client_ip.split(",")[0].strip()
         
     if client_ip not in ALLOWED_IPS:
-        # En production, on peut loguer cette tentative
         raise HTTPException(
             status_code=403, 
             detail="Accès refusé : IP non autorisée."
@@ -72,11 +69,8 @@ async def get_current_admin(
     request: Request,
     auth: HTTPAuthorizationCredentials = Security(security)
 ):
-    """Vérifie l'IP ET le token JWT."""
-    # 1. Vérifie l'IP
     check_ip_whitelist(request)
     
-    # 2. Vérifie le Token
     token = auth.credentials
     credentials_exception = HTTPException(
         status_code=401,

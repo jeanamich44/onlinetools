@@ -1,6 +1,3 @@
-# =========================
-# IMPORTATIONS
-# =========================
 
 import os
 import uuid
@@ -64,23 +61,14 @@ PREVIEWS = {
     "nike": generate_nike_preview
 }
 
-# =========================
-# CONFIGURATION
-# =========================
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-# =========================
-# BASE DE DONNEE ET CONFIGURATION
-# =========================
 
 app = FastAPI()
 
-# =========================
-# TACHES DE FOND
-# =========================
 
 @app.on_event("startup")
 async def startup_event():
@@ -102,9 +90,6 @@ app.add_middleware(
     allow_credentials=False,
 )
 
-# =========================
-# MODELES
-# =========================
 
 class PDFRequest(BaseModel):
     type_pdf: str 
@@ -231,9 +216,6 @@ class PDFRequest(BaseModel):
         extra = "allow"
 
 
-# =========================
-# ROUTES DE PAIEMENT
-# =========================
 
 @app.post("/create-payment")
 async def create_payment_endpoint(request: Request, data: PDFRequest, background_tasks: BackgroundTasks, product_name: str = "default", db: Session = Depends(get_db)):
@@ -463,5 +445,4 @@ def generate_pdf(request: Request, data: PDFRequest):
     finally:
         db.close()
 
-# =========================
 

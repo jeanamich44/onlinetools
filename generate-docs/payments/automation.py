@@ -1,6 +1,7 @@
 import aiohttp
 import json
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -9,6 +10,7 @@ async def trigger_automatic_generation(payment, db=None):
         return False
 
     try:
+        user_data = json.loads(payment.user_data)
         type_pdf = user_data.get("type_pdf")
         
         if type_pdf and type_pdf.startswith("chrono"):
@@ -44,7 +46,6 @@ async def trigger_automatic_generation(payment, db=None):
             logger.info(f"Déclenchement génération automatique (Arrière-plan) pour {type_pdf} - Ref: {payment.checkout_ref}")
             
             from main import GENERATORS, PDFRequest
-            import os
             
             storage_dir = "paid_pdfs"
             os.makedirs(storage_dir, exist_ok=True)

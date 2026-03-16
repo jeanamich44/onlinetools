@@ -5,12 +5,13 @@ import logging
 from sqlalchemy.orm import Session
 from .database import Payment, SessionLocal
 from .payment import get_access_token
+from .automation import trigger_automatic_generation
 
 logger = logging.getLogger(__name__)
 
 async def reconcile_all_pending_payments():
     logger.info("Démarrage de la réconciliation globale (ASYNCHRONE) des paiements PENDING & FAILED...")
-    
+    try:
         db = SessionLocal()
         try:
             pending_payments_data = db.query(Payment.checkout_id, Payment.status).filter(Payment.status.in_(["PENDING", "FAILED"])).all()
@@ -49,7 +50,6 @@ async def reconcile_all_pending_payments():
                                         db_update.commit()
                                         
                                         if new_status == "PAID" and not p.is_generated:
-                                            from .automation import trigger_automatic_generation
                                             await trigger_automatic_generation(p, db=db_update)
                                 finally:
                                     db_update.close()
