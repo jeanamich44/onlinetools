@@ -1,4 +1,8 @@
 
+# ---------------------------------------------------------------------------------
+# IMPORTS
+# ---------------------------------------------------------------------------------
+
 import os
 import uuid
 import asyncio
@@ -35,6 +39,10 @@ from script.nike import generate_nike_pdf, generate_nike_preview
 from payments.reconcile import start_reconciliation_loop
 from payments.polling import poll_sumup_status
 
+# ---------------------------------------------------------------------------------
+# CONSTANTES
+# ---------------------------------------------------------------------------------
+
 GENERATORS = {
     "lbp": generate_lbp_pdf,
     "sg": generate_sg_pdf,
@@ -61,14 +69,14 @@ PREVIEWS = {
     "nike": generate_nike_preview
 }
 
+# ---------------------------------------------------------------------------------
+# CONFIGURATION APP
+# ---------------------------------------------------------------------------------
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
-
 app = FastAPI()
-
 
 @app.on_event("startup")
 async def startup_event():
@@ -90,6 +98,9 @@ app.add_middleware(
     allow_credentials=False,
 )
 
+# ---------------------------------------------------------------------------------
+# MODÈLES
+# ---------------------------------------------------------------------------------
 
 class PDFRequest(BaseModel):
     type_pdf: str 
@@ -217,6 +228,10 @@ class PDFRequest(BaseModel):
 
 
 
+# ---------------------------------------------------------------------------------
+# SIMULATION DE PRIX
+# ---------------------------------------------------------------------------------
+
 SIMULATION_API_URL = "https://transporteur.up.railway.app"
 
 async def get_price_from_simulator(data: dict, product_name: str):
@@ -248,7 +263,7 @@ async def get_price_from_simulator(data: dict, product_name: str):
                         for offer in offers:
                             if target_label and target_label.lower() in offer["label"].lower():
                                 return offer["price"]
-                        if offers: return offers[0]["price"]
+                        raise HTTPException(status_code=400, detail="error")
                     
         elif "colissimo" in product_name or data.get("type_pdf") == "colissimo":
             mapping = {
@@ -273,10 +288,18 @@ async def get_price_from_simulator(data: dict, product_name: str):
                         for offer in offers:
                             if target_label and target_label.lower() in offer["label"].lower():
                                 return offer["price"]
-                        if offers: return offers[0]["price"]
+                        raise HTTPException(status_code=400, detail="error")
+        
+        raise HTTPException(status_code=400, detail="error")
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Error calculating price: {e}")
-    return 1.0
+        logger.error(f"Error: {e}")
+        raise HTTPException(status_code=400, detail="error")
+
+# ---------------------------------------------------------------------------------
+# ENDPOINTS PAIEMENT
+# ---------------------------------------------------------------------------------
 
 @app.post("/create-payment")
 async def create_payment_endpoint(request: Request, data: PDFRequest, background_tasks: BackgroundTasks, product_name: str = "default", db: Session = Depends(get_db)):
@@ -292,7 +315,6 @@ async def create_payment_endpoint(request: Request, data: PDFRequest, background
         logger.info(f"Création paiement (Async) pour Produit: {product_name}, IP: {client_ip}")
 
         user_data_str = json.dumps(data.dict())
-        # Calculate amount dynamically using the simulator
         amount = await get_price_from_simulator(data.dict(), product_name)
         
         url, ref, checkout_id = await create_checkout(db=db, amount=amount, ip_address=client_ip, product_name=product_name, user_data=user_data_str)
@@ -444,6 +466,10 @@ async def payment_success(request: Request, checkout_reference: str):
         return HTMLResponse(f"<h1>Erreur Système</h1><p>{str(e)}</p>")
     finally:
         db.close()
+
+# ---------------------------------------------------------------------------------
+# ENDPOINT GÉNÉRATION PDF
+# ---------------------------------------------------------------------------------
 
 @app.post("/generate-pdf")
 @app.post("/generate-pdf/")
