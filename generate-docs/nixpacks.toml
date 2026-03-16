@@ -1,0 +1,2 @@
+[variables]
+PATH = "/opt/venv/bin:$PATH"
