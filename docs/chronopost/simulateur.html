@@ -253,6 +253,10 @@
         const destSearch = document.getElementById('destinationSearch');
         const destResults = document.getElementById('destinationResults');
         const destHidden = document.getElementById('recipientCountryHidden');
+        const weightInput = form.querySelector('input[name="weight"]');
+        const lInput = form.querySelector('input[name="length"]');
+        const wInput = form.querySelector('input[name="width"]');
+        const hInput = form.querySelector('input[name="height"]');
 
         destSearch.addEventListener('input', (e) => {
             const val = e.target.value.toUpperCase();

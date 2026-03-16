@@ -1,5 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
 
+    function debounce(func, wait) {
+        let timeout;
+        return function (...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
     function getMinZipLength(country) {
         switch (country) {
             case 'US': return 5;
@@ -30,17 +38,36 @@ document.addEventListener('DOMContentLoaded', () => {
         let prefix = "";
         let cityInput = null;
         let countryInput = null;
+        const name = cpInput.name;
+        const nameLower = name.toLowerCase();
 
-        if (cpInput.name.endsWith('_cp')) {
-            prefix = cpInput.name.split('_')[0];
-            cityInput = document.querySelector(`input[name="${prefix}_ville"]`);
-            countryInput = document.querySelector(`select[name="${prefix}_pays"]`) || document.querySelector(`input[name="${prefix}_pays"]`);
-        } else if (cpInput.name.endsWith('CP')) {
-            prefix = cpInput.name.replace('CP', '');
-            cityInput = document.querySelector(`input[name="${prefix}City"]`);
-            countryInput = document.querySelector(`select[name="${prefix}Country"]`) || document.querySelector(`input[name="${prefix}Country"]`);
+        if (name.includes('_')) {
+            prefix = name.substring(0, name.lastIndexOf('_'));
+        } else if (nameLower.startsWith('sender')) {
+            prefix = name.substring(0, 6);
+        } else if (nameLower.startsWith('receiver')) {
+            prefix = name.substring(0, 8);
+        } else if (nameLower.startsWith('agence')) {
+            prefix = name.substring(0, 6);
+        }
+
+        if (prefix) {
+            cityInput = document.querySelector(`input[name="${prefix}_ville"]`) || 
+                        document.querySelector(`input[name="${prefix}_city"]`) ||
+                        document.querySelector(`input[name="${prefix}Ville"]`) ||
+                        document.querySelector(`input[name="${prefix}City"]`);
+            
+            countryInput = document.querySelector(`select[name="${prefix}_iso"]`) || 
+                          document.querySelector(`input[name="${prefix}_iso"]`) ||
+                          document.querySelector(`select[name="${prefix}_pays"]`) ||
+                          document.querySelector(`input[name="${prefix}_pays"]`) ||
+                          document.querySelector(`select[name="${prefix}Country"]`) ||
+                          document.querySelector(`input[name="${prefix}Country"]`) ||
+                          document.querySelector(`input[id="recipientCountryHidden"]`);
         } else {
-            return;
+            cityInput = document.querySelector('input[name="ville"]') || document.querySelector('input[name="city"]');
+            countryInput = document.querySelector('select[name="iso"]') || document.querySelector('input[name="iso"]') || 
+                          document.querySelector('select[name="pays"]') || document.querySelector('input[name="pays"]');
         }
 
         if (!cityInput) return;
@@ -51,8 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(citiesList);
         cityInput.setAttribute('list', citiesListId);
 
-        cpInput.addEventListener('input', async function () {
-            const zip = this.value.trim();
+        const fetchCities = async function () {
+            const zip = cpInput.value.trim();
 
             let countryCode = 'FR';
             if (countryInput) {
@@ -61,25 +88,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (zip.length < getMinZipLength(countryCode)) return;
 
-            if (countryCode === 'FR') {
-                if (!/^\d+$/.test(zip)) return;
+            if (['FR', 'GP', 'GF', 'MQ', 'RE', 'YT', 'BL', 'MF'].includes(countryCode)) {
                 try {
                     const response = await fetch(`https://geo.api.gouv.fr/communes?codePostal=${zip}&fields=nom&format=json&geometry=centre`);
                     const data = await response.json();
 
                     citiesList.innerHTML = '';
-                    if (data.length === 1) {
+                    if (data.length === 1 && zip.length === 5) {
                         cityInput.value = data[0].nom;
-                    } else {
+                    } else if (data.length > 0) {
                         data.forEach(city => {
                             const option = document.createElement('option');
                             option.value = city.nom;
                             citiesList.appendChild(option);
                         });
                     }
-                } catch (e) {
-                    console.error("FR Geo Error", e);
-                }
+                } catch (e) {}
             }
             else {
                 const queryZip = normalizeZip(zip, countryCode);
@@ -87,18 +111,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 try {
                     const response = await fetch(apiUrl);
-                    if (!response.ok) {
-                        return;
-                    }
+                    if (!response.ok) return;
                     const data = await response.json();
 
                     citiesList.innerHTML = '';
                     if (data.places && data.places.length > 0) {
                         if (data.places.length === 1) {
                             let cityName = data.places[0]["place name"];
-
                             if (cityName.includes(' (')) cityName = cityName.split(' (')[0];
-
                             const parts = cityName.split(' ');
                             if (parts.length > 1 && ['Downtown', 'North', 'South', 'East', 'West', 'Central'].includes(parts[0])) {
                                 cityName = parts.slice(1).join(' ');
@@ -121,11 +141,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             citiesList.appendChild(option);
                         });
                     }
-                } catch (e) {
-                    console.warn("Zippopotam Error", e);
-                }
+                } catch (e) {}
             }
-        });
+        };
+
+        cpInput.addEventListener('input', debounce(fetchCities, 300));
     }
 
     function setupAddressAutocomplete(addrInput) {
@@ -133,15 +153,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let prefix = "";
         let countryInput = null;
+        let zipInput = null;
+        const name = addrInput.name;
+        const nameLower = name.toLowerCase();
 
-        if (addrInput.name.endsWith('_adresse')) {
-            prefix = addrInput.name.split('_')[0];
-            countryInput = document.querySelector(`select[name="${prefix}_pays"]`) || document.querySelector(`input[name="${prefix}_pays"]`);
-        } else if (addrInput.name.endsWith('Address')) {
-            prefix = addrInput.name.replace('Address', '');
-            countryInput = document.querySelector(`select[name="${prefix}Country"]`) || document.querySelector(`input[name="${prefix}Country"]`);
-        } else {
-            return;
+        if (name.includes('_')) {
+            prefix = name.substring(0, name.lastIndexOf('_'));
+        } else if (nameLower.startsWith('sender')) {
+            prefix = name.substring(0, 6);
+        } else if (nameLower.startsWith('receiver')) {
+            prefix = name.substring(0, 8);
+        } else if (nameLower.startsWith('agence')) {
+            prefix = name.substring(0, 6);
+        }
+
+        if (prefix) {
+            zipInput = document.querySelector(`input[name="${prefix}_cp"]`) || 
+                      document.querySelector(`input[name="${prefix}_zip"]`) ||
+                      document.querySelector(`input[name="${prefix}CP"]`) ||
+                      document.querySelector(`input[name="${prefix}Zip"]`);
+            
+            countryInput = document.querySelector(`select[name="${prefix}_iso"]`) || 
+                          document.querySelector(`input[name="${prefix}_iso"]`) ||
+                          document.querySelector(`select[name="${prefix}Country"]`) ||
+                          document.querySelector(`input[name="${prefix}Country"]`);
         }
 
         const streetListId = `${prefix}-street-list-${Math.random().toString(36).substr(2, 9)}`;
@@ -151,21 +186,14 @@ document.addEventListener('DOMContentLoaded', () => {
         addrInput.setAttribute('list', streetListId);
         addrInput.setAttribute('autocomplete', 'off');
 
-        addrInput.addEventListener('input', async function () {
-            const query = this.value;
+        const fetchAddresses = async function () {
+            const query = addrInput.value;
             if (query.length < 4) return;
 
             let countryCode = 'FR';
             if (countryInput) countryCode = countryInput.value ? countryInput.value.toUpperCase() : 'FR';
 
             if (countryCode !== 'FR') return;
-
-            let zipInput = null;
-            if (addrInput.name.endsWith('_adresse')) {
-                zipInput = document.querySelector(`input[name="${prefix}_cp"]`);
-            } else {
-                zipInput = document.querySelector(`input[name="${prefix}CP"]`);
-            }
 
             let apiUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`;
             if (zipInput && zipInput.value.length === 5) {
@@ -179,49 +207,67 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (data.features && data.features.length > 0) {
                     data.features.forEach(feature => {
-                        const validAddress = feature.properties.name;
-                        const contextMap = feature.properties;
+                        const props = feature.properties;
                         const option = document.createElement('option');
-                        option.value = validAddress;
-                        option.label = `${contextMap.postcode} ${contextMap.city}`;
+                        option.value = props.name;
+                        option.dataset.zip = props.postcode;
+                        option.dataset.city = props.city;
+                        option.label = `${props.postcode} ${props.city}`;
                         streetList.appendChild(option);
                     });
                 }
-            } catch (e) { console.error("Address API Error", e); }
+            } catch (e) {}
+        };
+
+        addrInput.addEventListener('input', debounce(fetchAddresses, 300));
+        
+        addrInput.addEventListener('change', function () {
+            const val = this.value;
+            const options = streetList.childNodes;
+            for (let i = 0; i < options.length; i++) {
+                if (options[i].value === val) {
+                    if (zipInput) zipInput.value = options[i].dataset.zip;
+                    
+                    let cityField = null;
+                    if (prefix) {
+                        cityField = document.querySelector(`input[name="${prefix}_city"]`) || 
+                                    document.querySelector(`input[name="${prefix}_ville"]`) ||
+                                    document.querySelector(`input[name="${prefix}City"]`) ||
+                                    document.querySelector(`input[name="${prefix}Ville"]`);
+                    } else {
+                        cityField = document.querySelector(`input[name="city"]`) || document.querySelector(`input[name="ville"]`);
+                    }
+
+                    if (cityField) cityField.value = options[i].dataset.city;
+                    break;
+                }
+            }
         });
     }
 
-    const allCPs = [
-        ...document.querySelectorAll('input[name$="_cp"]'),
-        ...document.querySelectorAll('input[name$="CP"]')
+    const CP_SELECTORS = [
+        'input[name$="_cp"]', 'input[name$="CP"]', 'input[name="cp"]', 'input[name$="_zip"]', 'input[name$="zip"]', 'input[name="postal_code"]'
     ];
-    allCPs.forEach(setupCityAutocomplete);
+    document.querySelectorAll(CP_SELECTORS.join(',')).forEach(setupCityAutocomplete);
 
-    const allAddrs = [
-        ...document.querySelectorAll('input[name$="_adresse"]'),
-        ...document.querySelectorAll('input[name$="Address"]')
+    const ADDR_SELECTORS = [
+        'input[name$="_adresse"]', 'input[name$="Address"]', 'input[name="adresse"]', 'input[name="address"]'
     ];
-    allAddrs.forEach(setupAddressAutocomplete);
+    document.querySelectorAll(ADDR_SELECTORS.join(',')).forEach(setupAddressAutocomplete);
 
     function setupDynamicValidation() {
         if (!document.getElementById('dynamic-validation-style')) {
             const style = document.createElement('style');
             style.id = 'dynamic-validation-style';
             style.innerHTML = `
-                .validation-error-msg {
-                    color: #ff4444;
-                    font-size: 0.8rem;
-                    margin-top: 4px;
-                    display: block;
-                }
-                input.input-invalid {
-                    border-color: #ff4444 !important;
-                }
+                .validation-error-msg { color: #ff4444; font-size: 0.8rem; margin-top: 4px; display: block; font-weight: 500; }
+                input.input-invalid, select.input-invalid { border-color: #ff4444 !important; box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.1) !important; }
             `;
             document.head.appendChild(style);
         }
 
-        const inputs = document.querySelectorAll('input[required], input[pattern], input[type="email"], input[type="tel"], input[min], input[max]');
+        const selector = 'input[required], select[required], input[pattern], input[type="email"], input[type="tel"], input[min], input[max]';
+        const inputs = document.querySelectorAll(selector);
 
         inputs.forEach(input => {
             function validateField() {
@@ -238,16 +284,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     errorSpan.textContent = input.validationMessage;
                 } else {
                     input.classList.remove('input-invalid');
-                    if (errorSpan) {
-                        errorSpan.remove();
-                    }
+                    if (errorSpan) errorSpan.remove();
                 }
             }
 
             input.addEventListener('input', () => {
-                if (input.classList.contains('input-invalid')) {
-                    validateField();
-                }
+                if (input.classList.contains('input-invalid')) validateField();
             });
             input.addEventListener('blur', validateField);
             input.addEventListener('change', validateField);

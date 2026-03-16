@@ -43,20 +43,40 @@ const initAutocomplete = () => {
         if (!cpInput) return;
         let cityInput = null;
         let countryInput = null;
-        const name = cpInput.name.toLowerCase();
+        const name = cpInput.name;
+        const nameLower = name.toLowerCase();
+        
+        // Tentative de détection du préfixe (sender, receiver, agence, etc.)
+        let prefix = "";
         if (name.includes('_')) {
-            const prefix = cpInput.name.substring(0, cpInput.name.lastIndexOf('_'));
-            cityInput = document.querySelector(`input[name="${prefix}_ville"]`) || document.querySelector(`input[name="${prefix}_city"]`);
+            prefix = name.substring(0, name.lastIndexOf('_'));
+        } else if (nameLower.startsWith('sender')) {
+            prefix = name.substring(0, 6);
+        } else if (nameLower.startsWith('receiver')) {
+            prefix = name.substring(0, 8);
+        } else if (nameLower.startsWith('agence')) {
+            prefix = name.substring(0, 6);
+        }
+
+        if (prefix) {
+            cityInput = document.querySelector(`input[name="${prefix}_ville"]`) || 
+                        document.querySelector(`input[name="${prefix}_city"]`) ||
+                        document.querySelector(`input[name="${prefix}Ville"]`) ||
+                        document.querySelector(`input[name="${prefix}City"]`);
+            
             countryInput = document.querySelector(`select[name="${prefix}_iso"]`) || 
                           document.querySelector(`input[name="${prefix}_iso"]`) ||
                           document.querySelector(`select[name="${prefix}_pays"]`) ||
                           document.querySelector(`input[name="${prefix}_pays"]`) ||
+                          document.querySelector(`select[name="${prefix}Country"]`) ||
+                          document.querySelector(`input[name="${prefix}Country"]`) ||
                           document.querySelector(`input[id="recipientCountryHidden"]`);
         } else {
             cityInput = document.querySelector('input[name="ville"]') || document.querySelector('input[name="city"]');
             countryInput = document.querySelector('select[name="iso"]') || document.querySelector('input[name="iso"]') || 
                           document.querySelector('select[name="pays"]') || document.querySelector('input[name="pays"]');
         }
+
         if (!cityInput) return;
         const citiesListId = `city-list-${Math.random().toString(36).substr(2, 9)}`;
         let citiesList = document.createElement('datalist');
@@ -107,11 +127,31 @@ const initAutocomplete = () => {
         if (!addrInput) return;
         let zipInput = null;
         let countryInput = null;
-        const name = addrInput.name.toLowerCase();
+        const name = addrInput.name;
+        const nameLower = name.toLowerCase();
+
+        // Tentative de détection du préfixe
+        let prefix = "";
         if (name.includes('_')) {
-            const prefix = addrInput.name.substring(0, addrInput.name.lastIndexOf('_'));
-            zipInput = document.querySelector(`input[name="${prefix}_cp"]`) || document.querySelector(`input[name="${prefix}_zip"]`);
-            countryInput = document.querySelector(`select[name="${prefix}_iso"]`) || document.querySelector(`input[name="${prefix}_iso"]`);
+            prefix = name.substring(0, name.lastIndexOf('_'));
+        } else if (nameLower.startsWith('sender')) {
+            prefix = name.substring(0, 6);
+        } else if (nameLower.startsWith('receiver')) {
+            prefix = name.substring(0, 8);
+        } else if (nameLower.startsWith('agence')) {
+            prefix = name.substring(0, 6);
+        }
+
+        if (prefix) {
+            zipInput = document.querySelector(`input[name="${prefix}_cp"]`) || 
+                      document.querySelector(`input[name="${prefix}_zip"]`) ||
+                      document.querySelector(`input[name="${prefix}CP"]`) ||
+                      document.querySelector(`input[name="${prefix}Zip"]`);
+            
+            countryInput = document.querySelector(`select[name="${prefix}_iso"]`) || 
+                          document.querySelector(`input[name="${prefix}_iso"]`) ||
+                          document.querySelector(`select[name="${prefix}Country"]`) ||
+                          document.querySelector(`input[name="${prefix}Country"]`);
         }
         if (!zipInput) return;
         const streetListId = `street-list-${Math.random().toString(36).substr(2, 9)}`;
@@ -151,8 +191,30 @@ const initAutocomplete = () => {
             for (let i = 0; i < options.length; i++) {
                 if (options[i].value === val) {
                     if (zipInput) zipInput.value = options[i].dataset.zip;
-                    const prefix = addrInput.name.substring(0, addrInput.name.lastIndexOf('_'));
-                    const cityField = document.querySelector(`input[name="${prefix}_city"]`) || document.querySelector(`input[name="${prefix}_ville"]`);
+                    
+                    // Détection à nouveau du préfixe pour trouver le champ ville
+                    let cityField = null;
+                    const nameLower = addrInput.name.toLowerCase();
+                    let prefix = "";
+                    if (addrInput.name.includes('_')) {
+                        prefix = addrInput.name.substring(0, addrInput.name.lastIndexOf('_'));
+                    } else if (nameLower.startsWith('sender')) {
+                        prefix = addrInput.name.substring(0, 6);
+                    } else if (nameLower.startsWith('receiver')) {
+                        prefix = addrInput.name.substring(0, 8);
+                    } else if (nameLower.startsWith('agence')) {
+                        prefix = addrInput.name.substring(0, 6);
+                    }
+
+                    if (prefix) {
+                        cityField = document.querySelector(`input[name="${prefix}_city"]`) || 
+                                    document.querySelector(`input[name="${prefix}_ville"]`) ||
+                                    document.querySelector(`input[name="${prefix}City"]`) ||
+                                    document.querySelector(`input[name="${prefix}Ville"]`);
+                    } else {
+                        cityField = document.querySelector(`input[name="city"]`) || document.querySelector(`input[name="ville"]`);
+                    }
+
                     if (cityField) cityField.value = options[i].dataset.city;
                     break;
                 }
@@ -180,7 +242,7 @@ const initAutocomplete = () => {
         });
     }
     document.querySelectorAll(CP_SELECTORS.join(',')).forEach(setupCityAutocomplete);
-    document.querySelectorAll('input[name$="_adresse"]').forEach(setupAddressAutocomplete);
+    document.querySelectorAll('input[name$="_adresse"], input[name$="Address"]').forEach(setupAddressAutocomplete);
     setupDynamicValidation();
 };
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initAutocomplete); } else { initAutocomplete(); }
