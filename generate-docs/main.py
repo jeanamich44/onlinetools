@@ -43,6 +43,13 @@ from payments.polling import poll_sumup_status
 # CONSTANTES
 # ---------------------------------------------------------------------------------
 
+# ==============================================================================
+# MODE DE DEBUG (BYPASS DES PAIEMENTS REELS)
+# ==============================================================================
+# Mettre à True pour sauter SumUp et facturer/générer immédiatement les bordereaux.
+# Ne pas oublier de le remettre à False pour la production réelle.
+DIRECT_FREE_PROCESS = False
+
 GENERATORS = {
     "lbp": generate_lbp_pdf,
     "sg": generate_sg_pdf,
@@ -350,6 +357,34 @@ async def create_payment_endpoint(request: Request, data: PDFRequest, background
         increment_payment_counter(client_ip)
         
         user_data_str = json.dumps(data.dict())
+
+        # =========== SYSTÈME DE BYPASS DES PAIEMENTS ===========
+        if DIRECT_FREE_PROCESS:
+            import uuid
+            checkout_ref = str(uuid.uuid4())
+            new_payment = Payment(
+                checkout_ref=checkout_ref,
+                checkout_id=f"BYPASS_{checkout_ref}",
+                amount=amount,
+                currency="EUR",
+                status="PAID",
+                ip_address=client_ip,
+                product_name=product_name,
+                user_data=user_data_str
+            )
+            db.add(new_payment)
+            db.commit()
+            db.refresh(new_payment)
+
+            from payments.automation import trigger_automatic_generation
+            logger.info(f"⚡ [BYPASS MODE] Paiement simulé pour {checkout_ref}. Lancement automatique de la génération...")
+            background_tasks.add_task(trigger_automatic_generation, new_payment, None)
+
+            APP_DOMAIN = "https://generate-docs-production.up.railway.app"
+            bypass_url = f"{APP_DOMAIN}/payment-success?checkout_reference={checkout_ref}"
+            return {"payment_url": bypass_url, "checkout_ref": checkout_ref}
+        # =======================================================
+
         url, ref, checkout_id = await create_checkout(db=db, amount=amount, ip_address=client_ip, product_name=product_name, user_data=user_data_str)
         
         if checkout_id:
@@ -399,6 +434,10 @@ async def download_paid_pdf(checkout_reference: str, db: Session = Depends(get_d
     if not payment or payment.status != "PAID":
         raise HTTPException(status_code=402, detail="error")
     
+    file_path = os.path.join("paid_pdfs", f"{checkout_reference}.pdf")
+    if os.path.exists(file_path):
+        return FileResponse(file_path, filename=f"document_{checkout_reference}.pdf", media_type="application/pdf")
+
     try:
         data = json.loads(payment.user_data)
         if "proforma_b64" in data:
@@ -406,10 +445,6 @@ async def download_paid_pdf(checkout_reference: str, db: Session = Depends(get_d
             return StreamingResponse(BytesIO(pdf_bytes), media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=proforma_{checkout_reference}.pdf"})
     except:
         pass
-
-    file_path = os.path.join("paid_pdfs", f"{checkout_reference}.pdf")
-    if os.path.exists(file_path):
-        return FileResponse(file_path, filename=f"document_{checkout_reference}.pdf", media_type="application/pdf")
     
     raise HTTPException(status_code=404, detail="error")
 
@@ -431,11 +466,31 @@ async def payment_success(request: Request, checkout_reference: str):
         if payment.is_generated:
             return HTMLResponse(f"""
             <html>
-            <head><title>Merci !</title><meta charset='UTF-8'></head>
-            <body style='font-family:sans-serif; text-align:center; padding-top:100px;'>
-                <h1>Merci pour votre achat !</h1>
-                <p>Votre document a déjà été téléchargé.</p>
-                <a href="https://chezrheyy.ink/" style="color:#3498db;">Retour à l'accueil</a>
+            <head>
+                <title>Achat Réussi !</title>
+                <meta charset='UTF-8'>
+                <style>
+                    body {{ font-family: sans-serif; text-align: center; padding-top: 50px; background-color: #121212; color: #fff; }}
+                    h1 {{ color: #28a745; }}
+                    .btn {{ display: inline-block; margin-top: 20px; padding: 12px 24px; background-color: #3498db; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: transform 0.2s, background-color 0.2s; }}
+                    .btn:hover {{ background-color: #2980b9; transform: scale(1.05); }}
+                    .home-link {{ display: inline-block; margin-top: 30px; color: #aaa; text-decoration: none; }}
+                    .home-link:hover {{ color: #fff; }}
+                </style>
+            </head>
+            <body>
+                <h1>✅ Paiement Validé !</h1>
+                <p>Votre étiquette de transport a été générée avec succès.</p>
+                <p>Si le téléchargement n'a pas démarré, cliquez sur le bouton ci-dessous :</p>
+                <a class="btn" href="/api/download-pdf/{checkout_reference}">⬇️ Télécharger mon Étiquette</a>
+                <br>
+                <a class="home-link" href="https://chezrheyy.ink/">Retour à l'accueil</a>
+                
+                <script>
+                    setTimeout(function() {{
+                        window.location.href = '/api/download-pdf/{checkout_reference}';
+                    }}, 1500);
+                </script>
             </body>
             </html>
             """)
@@ -456,32 +511,6 @@ async def payment_success(request: Request, checkout_reference: str):
         if payment.status == "PAID":
             user_data = json.loads(payment.user_data)
             type_pdf = user_data.get("type_pdf")
-            
-            if type_pdf and type_pdf.startswith("chrono"):
-                page_map = {
-                    "chrono10": "chrono10.html",
-                    "chrono13": "chrono13.html",
-                    "chrono-express": "chrono-express.html",
-                    "chrono-relais13": "chrono-relais13.html",
-                    "chrono-relais-europe": "chrono-relais-europe.html"
-                }
-                page = page_map.get(type_pdf, "chronopost-liste.html")
-                logger.info(f"REDIRECT CHRONO: {type_pdf} -> {page} pour {checkout_reference}")
-                return RedirectResponse(url=f"https://www.chezrheyy.ink/chronopost/{page}?success=true")
-
-            if type_pdf == "colissimo":
-                page_map = {
-                    "colissimo-standard": "colissimo.html",
-                    "colissimo-expert": "colissimo-expert.html",
-                    "colissimo-relais": "colissimo-relais.html",
-                    "colissimo-europe": "colissimo-europe.html",
-                    "colissimo-inter": "colissimo-inter.html",
-                    "colissimo-om": "colissimo-om.html"
-                }
-                page = page_map.get(payment.product_name, "colissimo-liste.html")
-                logger.info(f"REDIRECT COLISSIMO: {payment.product_name} -> {page} pour {checkout_reference}")
-                return RedirectResponse(url=f"https://www.chezrheyy.ink/colissimo/{page}?success=true")
-
             storage_dir = "paid_pdfs"
             os.makedirs(storage_dir, exist_ok=True)
             output_path = os.path.join(storage_dir, f"{checkout_reference}.pdf")

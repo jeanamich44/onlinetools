@@ -26,21 +26,50 @@ async def trigger_automatic_generation(payment, db=None):
                         if res_json.get("status") == "success":
                             logger.info(f"Génération automatique réussie pour {payment.checkout_ref}")
                             
-                            try:
-                                current_data = json.loads(payment.user_data)
-                                current_data["proforma_b64"] = res_json.get("proforma")
-                                payment.user_data = json.dumps(current_data)
-                            except:
-                                pass
+                            storage_dir = "paid_pdfs"
+                            os.makedirs(storage_dir, exist_ok=True)
+                            output_path = os.path.join(storage_dir, f"{payment.checkout_ref}.pdf")
+                            
+                            pdfs_to_merge = []
+                            import base64
+                            from io import BytesIO
+                            import PyPDF2
+                            
+                            for key in ["label", "proforma", "cn23"]:
+                                b64_str = res_json.get(key)
+                                if b64_str:
+                                    try:
+                                        pdfs_to_merge.append(BytesIO(base64.b64decode(b64_str)))
+                                    except Exception as e:
+                                        logger.error(f"Erreur décodage base64 pour {key}: {e}")
+
+                            if pdfs_to_merge:
+                                try:
+                                    if len(pdfs_to_merge) == 1:
+                                        with open(output_path, "wb") as f:
+                                            f.write(pdfs_to_merge[0].getvalue())
+                                    else:
+                                        merger = PyPDF2.PdfMerger()
+                                        for pdf in pdfs_to_merge:
+                                            try:
+                                                merger.append(pdf)
+                                            except Exception as append_err:
+                                                logger.error(f"Erreur fusion PDF partiel: {append_err}")
+                                        with open(output_path, "wb") as f:
+                                            merger.write(f)
+                                        merger.close()
+                                    logger.info(f"PDF sauvegardé pour {payment.checkout_ref} dans {output_path}")
+                                except Exception as e:
+                                    logger.error(f"Erreur de sauvegarde finale du PDF: {e}")
 
                             payment.is_generated = 1
                             if db: db.commit()
                             return True
                         else:
-                            logger.error(f"Echec génération automatique Chronopost: {res_json.get('message')}")
+                            logger.error(f"Echec génération automatique ({type_pdf}): {res_json.get('message')}")
                     else:
                         text = await response.text()
-                        logger.error(f"Erreur API Chronopost ({response.status}): {text}")
+                        logger.error(f"Erreur API Externe ({response.status}): {text}")
         
         elif type_pdf:
             logger.info(f"Déclenchement génération automatique (Arrière-plan) pour {type_pdf} - Ref: {payment.checkout_ref}")
