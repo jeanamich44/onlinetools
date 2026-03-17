@@ -6,4 +6,5 @@ requests
 sqlalchemy
 psycopg2-binary
 aiohttp
-pillow
+pillow
+PyPDF2
