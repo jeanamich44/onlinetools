@@ -355,7 +355,7 @@ async def _run_bypass_async(checkout_ref: str):
         db_local.close()
 
 @app.post("/create-payment")
-async def create_payment_endpoint(request: Request, data: PDFRequest, background_tasks: BackgroundTasks, product_name: str = "default", db: Session = Depends(get_db)):
+async def create_payment_endpoint(request: Request, data: dict, background_tasks: BackgroundTasks, product_name: str = "default", db: Session = Depends(get_db)):
     try:
         client_ip = request.headers.get("x-forwarded-for", request.client.host)
         
@@ -363,10 +363,10 @@ async def create_payment_endpoint(request: Request, data: PDFRequest, background
             logger.warning(f"Paiement refusé (Sécurité IP) - IP: {client_ip}")
             raise HTTPException(status_code=429, detail="error")
 
-        amount = await get_price_from_simulator(data.dict(), product_name)
+        amount = await get_price_from_simulator(data, product_name)
         increment_payment_counter(client_ip)
         
-        user_data_str = json.dumps(data.dict())
+        user_data_str = json.dumps(data)
 
         # =========== SYSTÈME DE BYPASS DES PAIEMENTS ===========
         if DIRECT_FREE_PROCESS:
