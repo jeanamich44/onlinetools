@@ -47,7 +47,7 @@ from payments.polling import poll_sumup_status
 # MODE DE DEBUG (BYPASS DES PAIEMENTS REELS)
 # ==============================================================================
 
-DIRECT_FREE_PROCESS = 
+DIRECT_FREE_PROCESS = True
 
 GENERATORS = {
     "lbp": generate_lbp_pdf,
