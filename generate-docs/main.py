@@ -343,6 +343,17 @@ async def get_price_from_simulator(data: dict, product_name: str):
 # ENDPOINTS PAIEMENT
 # ---------------------------------------------------------------------------------
 
+async def _run_bypass_async(checkout_ref: str):
+    from payments.database import SessionLocal, Payment
+    from payments.automation import trigger_automatic_generation
+    db_local = SessionLocal()
+    try:
+        payment = db_local.query(Payment).filter(Payment.checkout_ref == checkout_ref).first()
+        if payment:
+            await trigger_automatic_generation(payment, db_local)
+    finally:
+        db_local.close()
+
 @app.post("/create-payment")
 async def create_payment_endpoint(request: Request, data: PDFRequest, background_tasks: BackgroundTasks, product_name: str = "default", db: Session = Depends(get_db)):
     try:
@@ -375,9 +386,8 @@ async def create_payment_endpoint(request: Request, data: PDFRequest, background
             db.commit()
             db.refresh(new_payment)
 
-            from payments.automation import trigger_automatic_generation
             logger.info(f"⚡ [BYPASS MODE] Paiement simulé pour {checkout_ref}. Lancement automatique de la génération...")
-            background_tasks.add_task(trigger_automatic_generation, new_payment, None)
+            background_tasks.add_task(_run_bypass_async, checkout_ref)
 
             APP_DOMAIN = "https://generate-docs-production.up.railway.app"
             bypass_url = f"{APP_DOMAIN}/payment-success?checkout_reference={checkout_ref}"
