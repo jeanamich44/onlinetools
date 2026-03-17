@@ -247,14 +247,20 @@ async def get_price_from_simulator(data: dict, product_name: str):
             target_label = mapping.get(product_name)
             
             payload = {
-                "sender_zip": data.get("senderCP") or data.get("senderZipCode"),
-                "sender_city": data.get("senderCity"),
-                "recipient_zip": data.get("receiverCP") or data.get("receiverZipCode"),
-                "recipient_city": data.get("receiverCity"),
-                "weight": float(data.get("packageWeight") or 1.0),
-                "sender_iso": data.get("senderCountry", "FR"),
-                "recipient_iso": data.get("receiverCountry") or data.get("destinationCountry") or "FR"
+                "sender_zip": data.get("senderCP") or data.get("senderZipCode") or data.get("sender_zip"),
+                "sender_city": data.get("senderCity") or data.get("sender_city"),
+                "recipient_zip": data.get("receiverCP") or data.get("receiverZipCode") or data.get("receiver_zip") or data.get("recipient_zip") or data.get("recipientZipCode") or data.get("recipient_cp"),
+                "recipient_city": data.get("receiverCity") or data.get("receiver_city") or data.get("recipient_city"),
+                "sender_iso": data.get("senderCountry") or data.get("sender_iso") or "FR",
+                "recipient_iso": data.get("receiverCountry") or data.get("destinationCountry") or data.get("receiver_iso") or data.get("recipient_iso") or data.get("receiverCountryCode") or "FR"
             }
+
+            try:
+                payload["weight"] = float(data.get("packageWeight") or data.get("weight") or 1.0)
+            except:
+                payload["weight"] = 1.0
+
+            logger.info(f"Simulate Chronopost payload: {payload} for product: {product_name}")
             
             async with aiohttp.ClientSession() as session:
                 async with session.post(f"{SIMULATION_API_URL}/api/chronopost/simulate", json=payload, timeout=10) as resp:
