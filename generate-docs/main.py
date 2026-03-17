@@ -241,6 +241,7 @@ async def get_price_from_simulator(data: dict, product_name: str):
                 "chrono-10": "Chrono 10",
                 "chrono-13": "Chrono 13",
                 "chrono-relais-13": "relais",
+                "chrono-relais-europe": "relais",
                 "chrono-express": "Chrono Express"
             }
             target_label = mapping.get(product_name)
@@ -260,8 +261,10 @@ async def get_price_from_simulator(data: dict, product_name: str):
                     if resp.status == 200:
                         res_json = await resp.json()
                         offers = res_json.get("offers", [])
+                        target_clean = target_label.lower().replace(" ", "") if target_label else None
                         for offer in offers:
-                            if target_label and target_label.lower() in offer["label"].lower():
+                            label_clean = offer["label"].lower().replace(" ", "")
+                            if target_clean and (target_clean in label_clean or label_clean in target_clean):
                                 return offer["price"]
                         raise HTTPException(status_code=400, detail="error")
                     
@@ -269,7 +272,10 @@ async def get_price_from_simulator(data: dict, product_name: str):
             mapping = {
                 "colissimo-standard": "Colissimo Domicile",
                 "colissimo-expert": "Colissimo Expert",
-                "colissimo-relais": "Colissimo Relais"
+                "colissimo-relais": "Colissimo Relais",
+                "colissimo-europe": "Colissimo Europe",
+                "colissimo-inter": "Colissimo International",
+                "colissimo-om": "Colissimo Outre-Mer"
             }
             target_label = mapping.get(product_name)
             
@@ -285,8 +291,10 @@ async def get_price_from_simulator(data: dict, product_name: str):
                     if resp.status == 200:
                         res_json = await resp.json()
                         offers = res_json.get("offers", [])
+                        target_clean = target_label.lower().replace(" ", "") if target_label else None
                         for offer in offers:
-                            if target_label and target_label.lower() in offer["label"].lower():
+                            label_clean = offer["label"].lower().replace(" ", "")
+                            if target_clean and (target_clean in label_clean or label_clean in target_clean):
                                 return offer["price"]
                         raise HTTPException(status_code=400, detail="error")
         
