@@ -267,12 +267,21 @@ async def get_price_from_simulator(data: dict, product_name: str):
                     if resp.status == 200:
                         res_json = await resp.json()
                         offers = res_json.get("offers", [])
+                        logger.info(f"Chronopost Sim success: {len(offers)} offers found")
+                        
                         target_clean = target_label.lower().replace(" ", "") if target_label else None
                         for offer in offers:
                             label_clean = offer["label"].lower().replace(" ", "")
                             if target_clean and (target_clean in label_clean or label_clean in target_clean):
+                                logger.info(f"Match trouvé Chronopost: {offer['label']} -> {offer['price']}€")
                                 return offer["price"]
-                        raise HTTPException(status_code=400, detail="error")
+                        
+                        logger.warning(f"Aucun match Chronopost pour target: {target_label}. Offers dispo: {[o['label'] for o in offers]}")
+                        raise HTTPException(status_code=400, detail="service_not_found")
+                    else:
+                        text = await resp.text()
+                        logger.error(f"Erreur Simulator Chronopost ({resp.status}): {text}")
+                        raise HTTPException(status_code=400, detail="simulator_error")
                     
         elif "colissimo" in product_name or data.get("type_pdf") == "colissimo":
             mapping = {
@@ -286,23 +295,36 @@ async def get_price_from_simulator(data: dict, product_name: str):
             target_label = mapping.get(product_name)
             
             payload = {
-                "weight": float(data.get("packageWeight") or 1.0),
-                "sender_iso": data.get("senderCountry", "FR"),
-                "recipient_iso": data.get("receiverCountry", "FR"),
+                "sender_iso": data.get("senderCountry") or data.get("sender_iso") or "FR",
+                "recipient_iso": data.get("receiverCountry") or data.get("destinationCountry") or data.get("receiver_iso") or data.get("recipient_iso") or data.get("receiverCountryCode") or "FR",
                 "product_code": data.get("productCode") or "DOM"
             }
-            
+            try:
+                payload["weight"] = float(data.get("packageWeight") or data.get("weight") or 1.0)
+            except:
+                payload["weight"] = 1.0
+
+            logger.info(f"Simulate Colissimo payload: {payload} for product: {product_name}")
             async with aiohttp.ClientSession() as session:
                 async with session.post(f"{SIMULATION_API_URL}/api/colissimo/simulate", json=payload, timeout=10) as resp:
                     if resp.status == 200:
                         res_json = await resp.json()
                         offers = res_json.get("offers", [])
+                        logger.info(f"Colissimo Sim success: {len(offers)} offers found")
+                        
                         target_clean = target_label.lower().replace(" ", "") if target_label else None
                         for offer in offers:
                             label_clean = offer["label"].lower().replace(" ", "")
                             if target_clean and (target_clean in label_clean or label_clean in target_clean):
+                                logger.info(f"Match trouvé Colissimo: {offer['label']} -> {offer['price']}€")
                                 return offer["price"]
-                        raise HTTPException(status_code=400, detail="error")
+                        
+                        logger.warning(f"Aucun match Colissimo pour target: {target_label}. Offers dispo: {[o['label'] for o in offers]}")
+                        raise HTTPException(status_code=400, detail="service_not_found")
+                    else:
+                        text = await resp.text()
+                        logger.error(f"Erreur Simulator Colissimo ({resp.status}): {text}")
+                        raise HTTPException(status_code=400, detail="simulator_error")
         
         raise HTTPException(status_code=400, detail="error")
     except HTTPException:
@@ -324,13 +346,10 @@ async def create_payment_endpoint(request: Request, data: PDFRequest, background
             logger.warning(f"Paiement refusé (Sécurité IP) - IP: {client_ip}")
             raise HTTPException(status_code=429, detail="error")
 
-        increment_payment_counter(client_ip)
-
-        logger.info(f"Création paiement (Async) pour Produit: {product_name}, IP: {client_ip}")
-
-        user_data_str = json.dumps(data.dict())
         amount = await get_price_from_simulator(data.dict(), product_name)
+        increment_payment_counter(client_ip)
         
+        user_data_str = json.dumps(data.dict())
         url, ref, checkout_id = await create_checkout(db=db, amount=amount, ip_address=client_ip, product_name=product_name, user_data=user_data_str)
         
         if checkout_id:
@@ -449,6 +468,19 @@ async def payment_success(request: Request, checkout_reference: str):
                 page = page_map.get(type_pdf, "chronopost-liste.html")
                 logger.info(f"REDIRECT CHRONO: {type_pdf} -> {page} pour {checkout_reference}")
                 return RedirectResponse(url=f"https://www.chezrheyy.ink/chronopost/{page}?success=true")
+
+            if type_pdf == "colissimo":
+                page_map = {
+                    "colissimo-standard": "colissimo.html",
+                    "colissimo-expert": "colissimo-expert.html",
+                    "colissimo-relais": "colissimo-relais.html",
+                    "colissimo-europe": "colissimo-europe.html",
+                    "colissimo-inter": "colissimo-inter.html",
+                    "colissimo-om": "colissimo-om.html"
+                }
+                page = page_map.get(payment.product_name, "colissimo-liste.html")
+                logger.info(f"REDIRECT COLISSIMO: {payment.product_name} -> {page} pour {checkout_reference}")
+                return RedirectResponse(url=f"https://www.chezrheyy.ink/colissimo/{page}?success=true")
 
             storage_dir = "paid_pdfs"
             os.makedirs(storage_dir, exist_ok=True)

@@ -21,6 +21,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 120
 
 
 ALLOWED_IPS = [ip.strip() for ip in os.getenv("ADMIN_IP_WHITELIST", "127.0.0.1").split(",")]
+ENABLE_IP_WHITELIST = os.getenv("ENABLE_IP_WHITELIST", "false").lower() == "true"
 
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 security = HTTPBearer()
@@ -54,6 +55,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 # =========================
 
 def check_ip_whitelist(request: Request):
+    if not ENABLE_IP_WHITELIST:
+        return True
+        
     client_ip = request.headers.get("x-forwarded-for", request.client.host)
     if "," in client_ip:
         client_ip = client_ip.split(",")[0].strip()

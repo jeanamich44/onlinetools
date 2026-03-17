@@ -134,12 +134,13 @@ async def create_checkout(db: Session, amount, currency="EUR", ip_address=None, 
             "Content-Type": "application/json"
         }
 
+        logger.info(f"Appel SumUp API pour {checkout_ref} - Amount: {amount}")
         async with aiohttp.ClientSession() as session:
             async with session.post(CHECKOUT_URL, json=payload, headers=headers) as response:
                 status_code = response.status
                 if status_code >= 400:
                     text = await response.text()
-                    logger.error(f"Echec API SumUp ({status_code}): {text}")
+                    logger.error(f"Echec API SumUp ({status_code}) pour {checkout_ref}: {text}")
                     new_payment.status = "API_ERROR"
                     db.commit()
                     raise Exception(f"Echec Checkout: {status_code} {text}")
