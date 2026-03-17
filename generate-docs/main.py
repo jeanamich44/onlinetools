@@ -46,9 +46,8 @@ from payments.polling import poll_sumup_status
 # ==============================================================================
 # MODE DE DEBUG (BYPASS DES PAIEMENTS REELS)
 # ==============================================================================
-# Mettre à True pour sauter SumUp et facturer/générer immédiatement les bordereaux.
-# Ne pas oublier de le remettre à False pour la production réelle.
-DIRECT_FREE_PROCESS = False
+
+DIRECT_FREE_PROCESS = True
 
 GENERATORS = {
     "lbp": generate_lbp_pdf,
