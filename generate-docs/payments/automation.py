@@ -49,6 +49,7 @@ async def trigger_automatic_generation(payment, db=None):
                                         with open(output_path, "wb") as f:
                                             f.write(pdfs_to_merge[0].getvalue())
                                     else:
+                                        import PyPDF2
                                         merger = PyPDF2.PdfMerger()
                                         for pdf in pdfs_to_merge:
                                             try:
@@ -58,13 +59,17 @@ async def trigger_automatic_generation(payment, db=None):
                                         with open(output_path, "wb") as f:
                                             merger.write(f)
                                         merger.close()
+                                    
+                                    payment.is_generated = 1
+                                    if db: db.commit()
                                     logger.info(f"PDF sauvegardé pour {payment.checkout_ref} dans {output_path}")
+                                    return True
                                 except Exception as e:
                                     logger.error(f"Erreur de sauvegarde finale du PDF: {e}")
-
-                            payment.is_generated = 1
-                            if db: db.commit()
-                            return True
+                            else:
+                                logger.error(f"API Transporteur SUCCESS mais aucun PDF (label/proforma) reçu pour {payment.checkout_ref}")
+                            
+                            return False
                         else:
                             logger.error(f"Echec génération automatique ({type_pdf}): {res_json.get('message')}")
                     else:

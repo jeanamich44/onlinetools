@@ -366,6 +366,17 @@ async def create_payment_endpoint(request: Request, data: dict, background_tasks
         amount = await get_price_from_simulator(data, product_name)
         increment_payment_counter(client_ip)
         
+        # Enrichissement des données pour le transporteur
+        if "chrono" in product_name:
+            if "10" in product_name: data["valeurproduct"] = "10"
+            elif "relais" in product_name: data["valeurproduct"] = "relais"
+            else: data["valeurproduct"] = "13"
+            
+            # Détection pays si manquant
+            if not data.get("destinationCountry"):
+                if "europe" in product_name: data["destinationCountry"] = "BE" # Défaut Europe
+                else: data["destinationCountry"] = "FR"
+
         user_data_str = json.dumps(data)
 
         # =========== SYSTÈME DE BYPASS DES PAIEMENTS ===========

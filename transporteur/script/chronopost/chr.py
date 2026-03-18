@@ -113,9 +113,14 @@ def run_chronopost(payload_data=None):
             pass
 
         if final_response and final_response.status_code == 200:
-            content = final_response.text
             proforma_b64 = None
+            label_b64 = None
 
+            # Si le contenu est directement un PDF (cas classique typeImpression=PDF)
+            if final_response.content.startswith(b"%PDF"):
+                 label_b64 = base64.b64encode(final_response.content).decode('utf-8')
+            
+            content = final_response.text
             if valeur_product == "monde":
                 try:
                     nlabel = None
@@ -143,6 +148,7 @@ def run_chronopost(payload_data=None):
             return {
                 "status": "success",
                 "duration": duration,
+                "label": label_b64,
                 "proforma": proforma_b64
             }
 
