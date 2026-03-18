@@ -103,9 +103,3 @@ def raise_429():
 
 def raise_500():
     raise HTTPException(status_code=500, detail="error")
-
-def raise_service_not_found():
-    raise HTTPException(status_code=400, detail="service_not_found")
-
-def raise_simulator_error():
-    raise HTTPException(status_code=400, detail="simulator_error")

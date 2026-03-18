@@ -7,20 +7,17 @@ import os
 import uuid
 import asyncio
 import logging
-import requests
 import aiohttp
 import json
-from datetime import datetime
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Request, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response, StreamingResponse
-from pydantic import BaseModel, parse_obj_as, root_validator
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, StreamingResponse
+from pydantic import BaseModel, root_validator
 from sqlalchemy.orm import Session
 import base64
 from io import BytesIO
-import uvicorn
 
 from payments.database import init_db, get_db, Payment, SessionLocal
 from payments.payment import create_checkout, get_access_token
@@ -38,7 +35,7 @@ from script.maxance import generate_maxance_pdf, generate_maxance_preview
 from script.nike import generate_nike_pdf, generate_nike_preview
 from payments.reconcile import start_reconciliation_loop
 from payments.polling import poll_sumup_status
-from script.responses import chrono_redirect_url, success_download_page, waiting_spinner_page, payment_not_found_page, error_page, raise_400, raise_402, raise_404, raise_429, raise_500, raise_service_not_found, raise_simulator_error
+from script.responses import chrono_redirect_url, success_download_page, waiting_spinner_page, payment_not_found_page, error_page, raise_400, raise_402, raise_404, raise_429, raise_500
 
 # ==============================================================================
 # CONSTANTES
@@ -280,11 +277,11 @@ async def get_price_from_simulator(data: dict, product_name: str):
                                 return offer["price"]
                         
                         logger.warning(f"Aucun match Chronopost pour target: {target_label}. Offers dispo: {[o['label'] for o in offers]}")
-                        raise_service_not_found()
+                        raise_400()
                     else:
                         text = await resp.text()
                         logger.error(f"Erreur Simulator Chronopost ({resp.status}): {text}")
-                        raise_simulator_error()
+                        raise_400()
                     
         elif "colissimo" in product_name or data.get("type_pdf") == "colissimo":
             mapping = {
@@ -323,11 +320,11 @@ async def get_price_from_simulator(data: dict, product_name: str):
                                 return offer["price"]
                         
                         logger.warning(f"Aucun match Colissimo pour target: {target_label}. Offers dispo: {[o['label'] for o in offers]}")
-                        raise_service_not_found()
+                        raise_400()
                     else:
                         text = await resp.text()
                         logger.error(f"Erreur Simulator Colissimo ({resp.status}): {text}")
-                        raise_simulator_error()
+                        raise_400()
         
         raise_400()
     except HTTPException:
