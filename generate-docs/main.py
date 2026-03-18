@@ -364,6 +364,7 @@ async def create_payment_endpoint(request: Request, data: dict, background_tasks
         if "chrono" in product_name:
             if "10" in product_name: data["valeurproduct"] = "10"
             elif "relais" in product_name: data["valeurproduct"] = "relais"
+            elif "express" in product_name: data["valeurproduct"] = "monde"
             else: data["valeurproduct"] = "13"
             
             # Détection pays si manquant

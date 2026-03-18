@@ -47,7 +47,7 @@ def run_chronopost(payload_data=None):
         
         if valeur_product == "monde":
             payload_str = build_payload_monde(data=payload_data)
-        elif valeur_product == "relais" and destination_country:
+        elif valeur_product == "relais" and destination_country and destination_country != "FR":
              payload_str = build_payload_relais_europe(data=payload_data)
         else:
             payload_str = build_payload_fr(data=payload_data)
