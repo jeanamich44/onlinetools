@@ -38,11 +38,8 @@ def retry_post(url, headers, data, session=None):
     return r
 
 def run_chronopost(payload_data=None):
-    logger = logging.getLogger(__name__)
     start_time = time.time()
     session = cffi_requests.Session(impersonate="chrome120")
-    
-    logger.info("--- NOUVEAU RUN CHRONOPOST ---")
 
     try:
         valeur_product = payload_data.get("valeurproduct")
@@ -143,7 +140,7 @@ def run_chronopost(payload_data=None):
                         if r_pdf.status_code == 200 and r_pdf.content.startswith(b"%PDF"):
                             proforma_b64 = base64.b64encode(r_pdf.content).decode('utf-8')
                 except Exception as e:
-                    logger.error(f"Erreur lors de la récupération Proforma: {str(e)}")
+                    pass
 
             return {
                 "status": "success",

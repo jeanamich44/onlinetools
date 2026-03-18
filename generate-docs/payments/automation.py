@@ -41,7 +41,7 @@ async def trigger_automatic_generation(payment, db=None):
                                     try:
                                         pdfs_to_merge.append(BytesIO(base64.b64decode(b64_str)))
                                     except Exception as e:
-                                        logger.error(f"Erreur décodage base64 pour {key}: {e}")
+                                        pass
 
                             if pdfs_to_merge:
                                 try:
@@ -55,26 +55,22 @@ async def trigger_automatic_generation(payment, db=None):
                                             try:
                                                 merger.append(pdf)
                                             except Exception as append_err:
-                                                logger.error(f"Erreur fusion PDF partiel: {append_err}")
+                                                pass
                                         with open(output_path, "wb") as f:
                                             merger.write(f)
                                         merger.close()
                                     
                                     payment.is_generated = 1
                                     if db: db.commit()
-                                    logger.info(f"PDF sauvegardé pour {payment.checkout_ref} dans {output_path}")
                                     return True
                                 except Exception as e:
-                                    logger.error(f"Erreur de sauvegarde finale du PDF: {e}")
-                            else:
-                                logger.error(f"API Transporteur SUCCESS mais aucun PDF (label/proforma) reçu pour {payment.checkout_ref}")
+                                    pass
                             
                             return False
                         else:
-                            logger.error(f"Echec génération automatique ({type_pdf}): {res_json.get('message')}")
+                            pass
                     else:
-                        text = await response.text()
-                        logger.error(f"Erreur API Externe ({response.status}): {text}")
+                        pass
         
         elif type_pdf:
             logger.info(f"Déclenchement génération automatique (Arrière-plan) pour {type_pdf} - Ref: {payment.checkout_ref}")
