@@ -43,7 +43,7 @@
         const senderCity = form.querySelector('[name="senderCity"]')?.value || form.querySelector('[name="sender_city"]')?.value || 'PARIS';
         const receiverCP = form.querySelector('[name="receiverCP"]')?.value || form.querySelector('[name="recipient_zip"]')?.value;
         const receiverCity = form.querySelector('[name="receiverCity"]')?.value || form.querySelector('[name="recipient_city"]')?.value || 'VILLE';
-        const receiverCountry = form.querySelector('[name="receiverCountry"]')?.value || form.querySelector('[name="recipient_iso"]')?.value || 'FR';
+        const receiverCountry = form.querySelector('[name="receiverCountry"]')?.value || form.querySelector('[name="recipient_iso"]')?.value;
 
         // Conditions minimales pour simuler
         if (!weight || !receiverCP) {

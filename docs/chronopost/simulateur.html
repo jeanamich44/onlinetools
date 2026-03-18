@@ -106,7 +106,7 @@
       background: #2a2f3a;
       border: 1px solid #3498db;
       border-top: none;
-      z-index: 100;
+      z-index: 1000;
       max-height: 200px;
       overflow-y: auto;
       border-bottom-left-radius: 8px;
@@ -236,7 +236,7 @@
 
           <div class="section-title"><i class="fas fa-map-marker-alt"></i> Destinataire</div>
           <div class="searchable-select" style="grid-column: span 2;">
-            <input type="text" id="destinationSearch" placeholder="Rechercher un pays destinataire..." required
+            <input type="text" id="destinationSearch" placeholder="Rechercher un pays (ex: Allemagne)..." required
               autocomplete="off">
             <input type="hidden" name="recipient_iso" id="recipientCountryHidden">
             <div id="destinationResults" class="search-results"></div>
@@ -270,7 +270,6 @@
     <a class="back" href="chronopost-liste.html">Retour à la liste</a>
   </main>
 
-  <script src='../js/autocomplete.js'></script>
   <script src="../js/autocomplete-world.js"></script>
   <script>
     let COUNTRY_LIST = {};
@@ -307,20 +306,10 @@
     const destSearch = document.getElementById('destinationSearch');
     const destResults = document.getElementById('destinationResults');
     const destHidden = document.getElementById('recipientCountryHidden');
-    const weightInput = form.querySelector('input[name="weight"]');
-    const lInput = form.querySelector('input[name="length"]');
-    const wInput = form.querySelector('input[name="width"]');
-    const hInput = form.querySelector('input[name="height"]');
 
     destSearch.addEventListener('input', (e) => {
       const val = e.target.value.toUpperCase();
       destResults.innerHTML = '';
-
-      if (val.length === 0) {
-        destHidden.value = '';
-        form.querySelector('input[name="recipient_zip"]').value = '';
-        form.querySelector('input[name="recipient_city"]').value = '';
-      }
 
       if (val.length > 0) {
         const filtered = Object.keys(COUNTRY_LIST).filter(c => c.includes(val)).slice(0, 10);
@@ -332,68 +321,43 @@
             div.textContent = countryName;
             div.onclick = () => {
               const iso = COUNTRY_LIST[countryName];
-              if (destHidden.value !== iso) {
-                form.querySelector('input[name="recipient_zip"]').value = '';
-                form.querySelector('input[name="recipient_city"]').value = '';
-              }
               destSearch.value = countryName;
               destHidden.value = iso;
               destResults.style.display = 'none';
-              if (iso !== 'FR') {
-                dimFields.style.display = 'block';
-              } else {
-                dimFields.style.display = 'none';
-                lInput.value = '';
-                wInput.value = '';
-                hInput.value = '';
-              }
+              dimFields.style.display = (iso !== 'FR') ? 'block' : 'none';
             };
             destResults.appendChild(div);
           });
-        } else {
-          destResults.style.display = 'none';
         }
       } else {
         destResults.style.display = 'none';
+        destHidden.value = '';
       }
     });
 
-    const validateField = (input) => {
-      if (!input) return true;
-      const isValid = input.checkValidity();
-      let errorSpan = input.parentNode.querySelector('.validation-error-msg');
-      if (!isValid) {
-        input.classList.add('input-invalid');
-        if (!errorSpan) {
-          errorSpan = document.createElement('span');
-          errorSpan.className = 'validation-error-msg';
-          input.parentNode.appendChild(errorSpan);
-        }
-        errorSpan.textContent = input.validationMessage;
-      } else {
-        input.classList.remove('input-invalid');
-        if (errorSpan) errorSpan.remove();
+    document.addEventListener('click', (e) => {
+      if (!destSearch.contains(e.target) && !destResults.contains(e.target)) {
+        destResults.style.display = 'none';
       }
-      return isValid;
-    };
+    });
 
     form.onsubmit = async (e) => {
       e.preventDefault();
       hideError();
 
-      const inputs = form.querySelectorAll('input[required]');
-      let isFormValid = true;
-      inputs.forEach(inp => { if (!validateField(inp)) isFormValid = false; });
-      if (!isFormValid) return;
+      if (!destHidden.value) {
+        // Tentative de rattrapage si l'utilisateur a tapé le pays sans cliquer
+        const val = destSearch.value.toUpperCase();
+        if (COUNTRY_LIST[val]) {
+           destHidden.value = COUNTRY_LIST[val];
+        } else {
+           showError("Veuillez sélectionner un pays destinataire dans la liste suggérée.");
+           return;
+        }
+      }
 
       const formData = new FormData(form);
       const data = Object.fromEntries(formData);
-
-      if (!destHidden.value) {
-        showError("Veuillez choisir un pays dans la liste.");
-        return;
-      }
-
       data.weight = parseFloat(data.weight);
       if (data.length) data.length = parseFloat(data.length);
       if (data.width) data.width = parseFloat(data.width);
@@ -410,38 +374,33 @@
           body: JSON.stringify(data)
         });
 
-        if (!response.ok) {
-          const errJson = await response.json().catch(() => ({}));
-          throw new Error(errJson.detail || 'Erreur lors de la simulation.');
-        }
-
         const json = await response.json();
         if (json.status === 'success') {
           if (!json.offers || json.offers.length === 0) {
             showError('Aucune offre disponible pour ce trajet.');
-            return;
+          } else {
+            json.offers.forEach(offer => {
+              const card = document.createElement('div');
+              card.className = 'offer-card';
+              card.innerHTML = `
+                <div class="offer-info">
+                  <h3>${offer.label}</h3>
+                  <p><i class="fas fa-truck"></i> ${offer.is_relay ? 'Point Relais' : 'Domicile'}</p>
+                </div>
+                <div class="offer-price">
+                  <span class="price-official">${offer.official_price}€</span>
+                  <span class="price-our">${offer.price}€</span>
+                </div>
+              `;
+              offersList.appendChild(card);
+            });
+            results.style.display = 'block';
           }
-          json.offers.forEach(offer => {
-            const card = document.createElement('div');
-            card.className = 'offer-card';
-            card.innerHTML = `
-              <div class="offer-info">
-                <h3>${offer.label}</h3>
-                <p><i class="fas fa-truck"></i> ${offer.is_relay ? 'Point Relais' : 'Domicile'}</p>
-              </div>
-              <div class="offer-price">
-                <span class="price-official">${offer.official_price}€</span>
-                <span class="price-our">${offer.price}€</span>
-              </div>
-            `;
-            offersList.appendChild(card);
-          });
-          results.style.display = 'block';
         } else {
           showError(json.message || 'Erreur lors de la simulation.');
         }
       } catch (err) {
-        showError(err.message);
+        showError('Erreur de connexion au serveur.');
       } finally {
         loader.style.display = 'none';
       }
