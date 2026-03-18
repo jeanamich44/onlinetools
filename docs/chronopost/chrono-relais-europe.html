@@ -222,12 +222,15 @@
 
 
  <div class="form-section">
- <div class="section-header">
- <span><span class="section-number">2</span> Destinataire</span>
- <div style="display:flex; gap:10px; align-items:center;">
- <span>Pickup</span>
- </div>
- </div>
+  <div class="section-header">
+  <span><span class="section-number">2</span> Destinataire</span>
+  <div style="display:flex; gap:10px; align-items:center;">
+  <span class="country-eligible-btn" onclick="document.getElementById('countryModal').style.display='flex'" style="font-size: 0.9rem; cursor: pointer; text-decoration: underline;">
+  Pays éligible(s) <span class="info-icon" style="background:#fff; color:#007bff; border-radius:50%; padding:0 6px;">?</span>
+  </span>
+  <span>Pickup</span>
+  </div>
+  </div>
  <div class="section-content">
  <div class="relais-dest-grid">
 
@@ -492,13 +495,8 @@
 
  </form>
 
- <script>
-        window.PRICE_CONFIG = { carrier: 'chronopost', offerLabel: 'relais' };
-    </script>
-    <script src='../js/price-dynamic.js'></script>
-    <script src='../js/autocomplete.js'></script>
- <a class="back" href="./chronopost-liste.html">Retour</a>
- </main>
+  <a class="back" href="./chronopost-liste.html">Retour</a>
+  </main>
  <script>
   window.PRICE_CONFIG = { carrier: 'chronopost', offerLabel: 'relais' };
  </script>
@@ -662,15 +660,18 @@
  });
  });
 
- suggestionsList.forEach(li => {
- li.addEventListener('mouseenter', () => li.style.backgroundColor = '#2d333b');
- li.addEventListener('mouseleave', () => li.style.backgroundColor = 'transparent');
- li.addEventListener('click', () => {
- countryInput.value = li.textContent.trim();
- countryHidden.value = li.getAttribute('data-code');
- countrySuggestions.style.display = 'none';
- });
- });
+  suggestionsList.forEach(li => {
+    li.addEventListener('mouseenter', () => li.style.backgroundColor = '#2d333b');
+    li.addEventListener('mouseleave', () => li.style.backgroundColor = 'transparent');
+    li.addEventListener('click', () => {
+    countryInput.value = li.textContent.trim();
+    countryHidden.value = li.getAttribute('data-code');
+    countrySuggestions.style.display = 'none';
+    
+    // Déclencher le changement pour price-dynamic.js
+    countryHidden.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  });
  });
 
  function closeWeightModal() {
@@ -830,8 +831,51 @@
  }
 
  </script>
-</body>
+  <div id="countryModal" class="country-modal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
+    <div class="country-modal-content" style="background: #1c2128; padding: 20px; border: 1px solid #444c56; border-radius: 12px; width: 400px; max-height: 80vh; display: flex; flex-direction: column;">
+      <div style="display:flex; justify-content: space-between; margin-bottom: 15px;">
+        <h3 style="margin:0; color:#fff;">Pays éligibles Relais</h3>
+        <span style="cursor:pointer; color:#adbac7;" onclick="document.getElementById('countryModal').style.display='none'">X</span>
+      </div>
+      <input type="text" id="modalSearch" placeholder="Filtrer..." onkeyup="filterCountryList()" style="width:100%; padding:8px; background:#0d1117; border:1px solid #30363d; color:#fff; border-radius:4px; margin-bottom:10px;">
+      <ul id="countryZoneList" style="list-style:none; padding:0; margin:0; overflow-y:auto; flex:1;">
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">ALLEMAGNE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">AUTRICHE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">BELGIQUE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">CROATIE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">DANEMARK</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">ESPAGNE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">ESTONIE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">FINLANDE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">GRÈCE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">HONGRIE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">IRLANDE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">ITALIE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">LETTONIE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">LITUANIE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">LUXEMBOURG</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">PAYS-BAS</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">POLOGNE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">PORTUGAL</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">RÉPUBLIQUE TCHÈQUE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">ROUMANIE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">SLOVAQUIE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">SLOVÉNIE</li>
+        <li style="padding:8px 0; border-bottom:1px solid #30363d; color:#adbac7;">SUÈDE</li>
+      </ul>
+    </div>
+  </div>
 
+  <script>
+    function filterCountryList() {
+      const val = document.getElementById('modalSearch').value.toUpperCase();
+      const items = document.querySelectorAll('#countryZoneList li');
+      items.forEach(li => {
+        li.style.display = li.textContent.toUpperCase().includes(val) ? 'block' : 'none';
+      });
+    }
+  </script>
+</body>
 </html>
 
 
