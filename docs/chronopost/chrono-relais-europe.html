@@ -511,14 +511,21 @@
  const urlParams = new URLSearchParams(window.location.search);
  if (urlParams.has('success_mail')) {
    const mailInfo = urlParams.get('success_mail');
-   const statusDiv = document.getElementById('message');
-   if (statusDiv) {
-     statusDiv.textContent = "✅ Génération réussie ! Le bordereau a été envoyé sur la boîte e-mail : " + mailInfo + ". Pensez à vérifier vos spams.";
-     statusDiv.className = "success-message";
-     statusDiv.style.boxShadow = "0 0 20px rgba(34, 197, 94, 0.5)";
-     // Effacer le storage pour éviter des regénérations fantômes
-     localStorage.removeItem('chronoData');
+   const banner = document.createElement('div');
+   banner.innerHTML = "<strong>✅ Génération réussie !</strong> Le bordereau a été envoyé sur la boîte e-mail : " + mailInfo + ". Pensez à vérifier vos spams.";
+   banner.className = "success-message";
+   banner.style.boxShadow = "0 0 20px rgba(34, 197, 94, 0.5)";
+   banner.style.margin = "20px auto";
+   banner.style.maxWidth = "800px";
+   
+   const mainContainer = document.querySelector('.content.form-container');
+   if (mainContainer) {
+       mainContainer.insertBefore(banner, mainContainer.firstChild);
+   } else {
+       document.body.prepend(banner);
    }
+   localStorage.removeItem('chronoData');
+   window.scrollTo(0, 0);
  } else if (urlParams.has('success')) {
  const savedData = localStorage.getItem('chronoData');
  if (savedData) {
