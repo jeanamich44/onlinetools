@@ -31,14 +31,15 @@ def get_chronopost_price(data):
     if not all([s_zip, r_zip, s_city, r_city]):
         return {"status": "error"}
     
+    # Nettoyage et normalisation
+    s_city = s_city.strip().upper()
+    r_city = r_city.strip().upper()
+    
     if s_iso == "FR" and (not s_zip.isdigit() or len(s_zip) != 5):
         return {"status": "error"}
     if r_iso == "FR" and (not r_zip.isdigit() or len(r_zip) != 5):
         return {"status": "error"}
     
-    if len(s_city) < 2 or len(r_city) < 2:
-        return {"status": "error"}
-
     if weight < 0.5 or weight > 30:
         return {"status": "error"}
     
@@ -107,12 +108,16 @@ def get_chronopost_price(data):
             if attempt < max_retries - 1:
                 time.sleep(1)
             else:
-                logger.error(f"Chronopost API Final Error (Code: {r.status_code}): {r.text}")
-                return {"status": "error"}
+                try:
+                    err_msg = r.json().get("message", r.text)
+                except:
+                    err_msg = r.text
+                logger.error(f"Chronopost API Final Error (Code: {r.status_code}): {err_msg}")
+                return {"status": "error", "message": f"Erreur Chronopost ({r.status_code}): {err_msg[:100]}"}
 
         except Exception as e:
             logger.error(f"Chronopost Exception on attempt {attempt + 1}: {str(e)}")
             if attempt < max_retries - 1:
                 time.sleep(1)
             else:
-                return {"status": "error"}
+                return {"status": "error", "message": f"Exception: {str(e)}"}

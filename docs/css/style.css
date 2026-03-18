@@ -569,6 +569,10 @@ h3 {
     background-color: #4b5563;
 }
 
+.delai[data-tag-color="vert"] {
+    background-color: #22c55e;
+}
+
 .wrapper-delais-destination li {
     font-size: 0.85rem;
     color: #9ca3af;
@@ -655,7 +659,7 @@ h3 {
 }
 
 .section-header {
-    background-color: #005BBB;
+    background-color: #22c55e;
     color: white;
     padding: 10px 15px;
     font-weight: 700;

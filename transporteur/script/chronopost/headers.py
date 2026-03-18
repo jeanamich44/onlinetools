@@ -77,7 +77,7 @@ SIMULATEUR_HEADERS = {
     "accept-encoding": "gzip, deflate, br, zstd",
     "accept-language": "fr-FR,fr;q=0.9",
     "content-type": "application/json",
-    "cookie": "lang=fr_FR; JSESSIONID_WSREST=.tc-mchronoweb-NODE7; parcours=Particulier; parcoursId=2;",
+    "cookie": "lang=fr_FR; parcours=Particulier; parcoursId=2;",
     "origin": "https://www.chronopost.fr",
     "priority": "u=1, i",
     "referer": "https://www.chronopost.fr/small-webapp/",
