@@ -498,11 +498,11 @@ async def payment_success(request: Request, checkout_reference: str):
                 email = user_data_parsed.get("sendToThirdPersonInfo", "")
                 
                 page_map = {
-                    "chrono_13": "chrono13.html",
-                    "chrono_10": "chrono10.html",
-                    "chrono_relais13": "chrono-relais13.html",
-                    "chrono_relais_europe": "chrono-relais-europe.html",
-                    "chrono_express": "chrono-express.html"
+                    "chrono13": "chrono13.html",
+                    "chrono10": "chrono10.html",
+                    "chrono-relais13": "chrono-relais13.html",
+                    "chrono-relais-europe": "chrono-relais-europe.html",
+                    "chrono-express": "chrono-express.html"
                 }
                 
                 target_page = page_map.get(type_pdf, "chrono13.html") # par défaut le 13
