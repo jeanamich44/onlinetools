@@ -1,7 +1,7 @@
 
-# ---------------------------------------------------------------------------------
+# =================================================================================
 # IMPORTS
-# ---------------------------------------------------------------------------------
+# =================================================================================
 
 import os
 import uuid
@@ -38,13 +38,10 @@ from script.maxance import generate_maxance_pdf, generate_maxance_preview
 from script.nike import generate_nike_pdf, generate_nike_preview
 from payments.reconcile import start_reconciliation_loop
 from payments.polling import poll_sumup_status
-
-# ---------------------------------------------------------------------------------
-# CONSTANTES
-# ---------------------------------------------------------------------------------
+from script.responses import chrono_redirect_url, success_download_page, waiting_spinner_page, payment_not_found_page, error_page
 
 # ==============================================================================
-# MODE DE DEBUG (BYPASS DES PAIEMENTS REELS)
+# CONSTANTES
 # ==============================================================================
 
 DIRECT_FREE_PROCESS = True
@@ -75,9 +72,9 @@ PREVIEWS = {
     "nike": generate_nike_preview
 }
 
-# ---------------------------------------------------------------------------------
+# =================================================================================
 # CONFIGURATION APP
-# ---------------------------------------------------------------------------------
+# =================================================================================
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -104,9 +101,9 @@ app.add_middleware(
     allow_credentials=False,
 )
 
-# ---------------------------------------------------------------------------------
+# =================================================================================
 # MODÈLES
-# ---------------------------------------------------------------------------------
+# =================================================================================
 
 class PDFRequest(BaseModel):
     type_pdf: str 
@@ -234,9 +231,9 @@ class PDFRequest(BaseModel):
 
 
 
-# ---------------------------------------------------------------------------------
+# =================================================================================
 # SIMULATION DE PRIX
-# ---------------------------------------------------------------------------------
+# =================================================================================
 
 SIMULATION_API_URL = "https://transporteur.up.railway.app"
 
@@ -339,9 +336,9 @@ async def get_price_from_simulator(data: dict, product_name: str):
         logger.error(f"Error: {e}")
         raise HTTPException(status_code=400, detail="error")
 
-# ---------------------------------------------------------------------------------
+# =================================================================================
 # ENDPOINTS PAIEMENT
-# ---------------------------------------------------------------------------------
+# =================================================================================
 
 async def _run_bypass_async(checkout_ref: str):
     from payments.database import SessionLocal, Payment
@@ -417,9 +414,9 @@ async def create_payment_endpoint(request: Request, data: dict, background_tasks
         logger.error(f"Error: {e}")
         raise HTTPException(status_code=500, detail="error")
 
-# ---------------------------------------------------------------------------------
+# =================================================================================
 # STATUS PAIEMENT
-# ---------------------------------------------------------------------------------
+# =================================================================================
 
 @app.get("/api/payment-status/{checkout_reference}")
 async def get_payment_status(checkout_reference: str, db: Session = Depends(get_db)):
@@ -444,9 +441,9 @@ async def wait_for_success(checkout_reference: str, db: Session = Depends(get_db
         await asyncio.sleep(1.5)
     return {"status": "TIMEOUT"}
 
-# ---------------------------------------------------------------------------------
+# =================================================================================
 # TÉLÉCHARGEMENT PDF
-# ---------------------------------------------------------------------------------
+# =================================================================================
 
 @app.get("/api/download-pdf/{checkout_reference}")
 async def download_paid_pdf(checkout_reference: str, db: Session = Depends(get_db)):
@@ -468,9 +465,9 @@ async def download_paid_pdf(checkout_reference: str, db: Session = Depends(get_d
     
     raise HTTPException(status_code=404, detail="error")
 
-# ---------------------------------------------------------------------------------
+# =================================================================================
 # SUCCESS PAIEMENT
-# ---------------------------------------------------------------------------------
+# =================================================================================
 
 @app.get("/payment-success")
 @app.get("/payment-success/")
@@ -481,7 +478,7 @@ async def payment_success(request: Request, checkout_reference: str):
     try:
         payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
         if not payment:
-            return HTMLResponse("<h1>Paiement non trouvé</h1><p>Veuillez contacter le support.</p>")
+            return HTMLResponse(payment_not_found_page())
 
         if payment.is_generated:
             user_data_parsed = {}
@@ -494,53 +491,10 @@ async def payment_success(request: Request, checkout_reference: str):
             type_pdf = user_data_parsed.get("type_pdf", "")
             
             if type_pdf.startswith("chrono"):
-                from urllib.parse import quote_plus
                 email = user_data_parsed.get("sendToThirdPersonInfo", "")
-                
-                page_map = {
-                    "chrono13": "chrono13.html",
-                    "chrono10": "chrono10.html",
-                    "chrono-relais13": "chrono-relais13.html",
-                    "chrono-relais-europe": "chrono-relais-europe.html",
-                    "chrono-express": "chrono-express.html"
-                }
-                
-                target_page = page_map.get(type_pdf, "chrono13.html") # par défaut le 13
-                # Redirige le client en Option Silencieuse vers le Front
-                return RedirectResponse(
-                    url=f"https://chezrheyy.ink/chronopost/{target_page}?success_mail={quote_plus(email)}"
-                )
+                return RedirectResponse(url=chrono_redirect_url(type_pdf, email))
 
-            return HTMLResponse(f"""
-            <html>
-            <head>
-                <title>Achat Réussi !</title>
-                <meta charset='UTF-8'>
-                <style>
-                    body {{ font-family: sans-serif; text-align: center; padding-top: 50px; background-color: #121212; color: #fff; }}
-                    h1 {{ color: #28a745; }}
-                    .btn {{ display: inline-block; margin-top: 20px; padding: 12px 24px; background-color: #3498db; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: transform 0.2s, background-color 0.2s; }}
-                    .btn:hover {{ background-color: #2980b9; transform: scale(1.05); }}
-                    .home-link {{ display: inline-block; margin-top: 30px; color: #aaa; text-decoration: none; }}
-                    .home-link:hover {{ color: #fff; }}
-                </style>
-            </head>
-            <body>
-                <h1>✅ Paiement Validé !</h1>
-                <p>Votre étiquette de transport a été générée avec succès.</p>
-                <p>Si le téléchargement n'a pas démarré, cliquez sur le bouton ci-dessous :</p>
-                <a class="btn" href="/api/download-pdf/{checkout_reference}">⬇️ Télécharger mon Étiquette</a>
-                <br>
-                <a class="home-link" href="https://chezrheyy.ink/">Retour à l'accueil</a>
-                
-                <script>
-                    setTimeout(function() {{
-                        window.location.href = '/api/download-pdf/{checkout_reference}';
-                    }}, 1500);
-                </script>
-            </body>
-            </html>
-            """)
+            return HTMLResponse(success_download_page(checkout_reference))
 
         token = await get_access_token()
         headers = {"Authorization": f"Bearer {token}"}
@@ -574,38 +528,17 @@ async def payment_success(request: Request, checkout_reference: str):
                 logger.info(f"SERVICE DIRECT PDF (Permanent): {type_pdf} pour {checkout_reference}")
                 return FileResponse(output_path, filename=f"document_{checkout_reference}.pdf", media_type="application/pdf")
         
-        return HTMLResponse(f"""
-        <!DOCTYPE html>
-        <html lang="fr">
-        <head>
-          <meta charset="UTF-8">
-          <meta http-equiv="refresh" content="5">
-          <title>Validation du paiement...</title>
-          <style>
-            body {{ font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8f9fa; }}
-            .spinner {{ width: 60px; height: 60px; border: 6px solid #e9ecef; border-top: 6px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 30px; }}
-            @keyframes spin {{ 0% {{ transform: rotate(0deg); }} 100% {{ transform: rotate(360deg); }} }}
-            .text {{ font-size: 1.2rem; color: #495057; text-align: center; }}
-            .subtext {{ margin-top: 10px; font-size: 0.9rem; color: #6c757d; }}
-          </style>
-        </head>
-        <body>
-          <div class="spinner"></div>
-          <div class="text">Validation de votre paiement par SumUp...</div>
-          <div class="subtext">Le téléchargement débutera automatiquement dès la confirmation.<br>N'actualisez pas manuellement la page.</div>
-        </body>
-        </html>
-        """)
+        return HTMLResponse(waiting_spinner_page())
 
     except Exception as e:
         logger.error(f"Erreur Success Direct: {e}")
-        return HTMLResponse(f"<h1>Erreur Système</h1><p>{str(e)}</p>")
+        return HTMLResponse(error_page(str(e)))
     finally:
         db.close()
 
-# ---------------------------------------------------------------------------------
+# =================================================================================
 # ENDPOINT GÉNÉRATION PDF
-# ---------------------------------------------------------------------------------
+# =================================================================================
 
 @app.post("/generate-pdf")
 @app.post("/generate-pdf/")
