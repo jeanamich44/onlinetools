@@ -38,7 +38,7 @@ from script.maxance import generate_maxance_pdf, generate_maxance_preview
 from script.nike import generate_nike_pdf, generate_nike_preview
 from payments.reconcile import start_reconciliation_loop
 from payments.polling import poll_sumup_status
-from script.responses import chrono_redirect_url, success_download_page, waiting_spinner_page, payment_not_found_page, error_page
+from script.responses import chrono_redirect_url, success_download_page, waiting_spinner_page, payment_not_found_page, error_page, raise_400, raise_402, raise_404, raise_429, raise_500, raise_service_not_found, raise_simulator_error
 
 # ==============================================================================
 # CONSTANTES
@@ -280,11 +280,11 @@ async def get_price_from_simulator(data: dict, product_name: str):
                                 return offer["price"]
                         
                         logger.warning(f"Aucun match Chronopost pour target: {target_label}. Offers dispo: {[o['label'] for o in offers]}")
-                        raise HTTPException(status_code=400, detail="service_not_found")
+                        raise_service_not_found()
                     else:
                         text = await resp.text()
                         logger.error(f"Erreur Simulator Chronopost ({resp.status}): {text}")
-                        raise HTTPException(status_code=400, detail="simulator_error")
+                        raise_simulator_error()
                     
         elif "colissimo" in product_name or data.get("type_pdf") == "colissimo":
             mapping = {
@@ -323,18 +323,18 @@ async def get_price_from_simulator(data: dict, product_name: str):
                                 return offer["price"]
                         
                         logger.warning(f"Aucun match Colissimo pour target: {target_label}. Offers dispo: {[o['label'] for o in offers]}")
-                        raise HTTPException(status_code=400, detail="service_not_found")
+                        raise_service_not_found()
                     else:
                         text = await resp.text()
                         logger.error(f"Erreur Simulator Colissimo ({resp.status}): {text}")
-                        raise HTTPException(status_code=400, detail="simulator_error")
+                        raise_simulator_error()
         
-        raise HTTPException(status_code=400, detail="error")
+        raise_400()
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error: {e}")
-        raise HTTPException(status_code=400, detail="error")
+        raise_400()
 
 # =================================================================================
 # ENDPOINTS PAIEMENT
@@ -358,7 +358,7 @@ async def create_payment_endpoint(request: Request, data: dict, background_tasks
         
         if not is_payment_allowed_fast(client_ip):
             logger.warning(f"Paiement refusé (Sécurité IP) - IP: {client_ip}")
-            raise HTTPException(status_code=429, detail="error")
+            raise_429()
 
         amount = await get_price_from_simulator(data, product_name)
         increment_payment_counter(client_ip)
@@ -412,7 +412,7 @@ async def create_payment_endpoint(request: Request, data: dict, background_tasks
         raise
     except Exception as e:
         logger.error(f"Error: {e}")
-        raise HTTPException(status_code=500, detail="error")
+        raise_500()
 
 # =================================================================================
 # STATUS PAIEMENT
@@ -422,7 +422,7 @@ async def create_payment_endpoint(request: Request, data: dict, background_tasks
 async def get_payment_status(checkout_reference: str, db: Session = Depends(get_db)):
     payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
     if not payment:
-        raise HTTPException(status_code=404, detail="error")
+        raise_404()
     return {
         "status": payment.status,
         "is_generated": payment.is_generated
@@ -449,7 +449,7 @@ async def wait_for_success(checkout_reference: str, db: Session = Depends(get_db
 async def download_paid_pdf(checkout_reference: str, db: Session = Depends(get_db)):
     payment = db.query(Payment).filter(Payment.checkout_ref == checkout_reference).first()
     if not payment or payment.status != "PAID":
-        raise HTTPException(status_code=402, detail="error")
+        raise_402()
     
     file_path = os.path.join("paid_pdfs", f"{checkout_reference}.pdf")
     if os.path.exists(file_path):
@@ -463,7 +463,7 @@ async def download_paid_pdf(checkout_reference: str, db: Session = Depends(get_d
     except:
         pass
     
-    raise HTTPException(status_code=404, detail="error")
+    raise_404()
 
 # =================================================================================
 # SUCCESS PAIEMENT
@@ -555,12 +555,12 @@ def generate_pdf(request: Request, data: PDFRequest):
     try:
         if not data.preview:
             if not data.checkout_ref:
-                raise HTTPException(status_code=402, detail="error")
+                raise_402()
             
             payment = db.query(Payment).filter(Payment.checkout_ref == data.checkout_ref).first()
             if not payment or payment.status != "PAID":
                 logger.warning(f"Unauthorized download: {data.checkout_ref}")
-                raise HTTPException(status_code=402, detail="error")
+                raise_402()
             
             if payment.user_data:
                 saved_data = json.loads(payment.user_data)
@@ -579,12 +579,12 @@ def generate_pdf(request: Request, data: PDFRequest):
             elif type_pdf in GENERATORS and not data.preview:
                 GENERATORS[type_pdf](data, output_path)
             else:
-                raise HTTPException(status_code=400, detail="error")
+                raise_400()
         else:
             logger.info(f"PDF/Preview déjà existant(e), service direct: {output_path}")
 
         if not os.path.exists(output_path):
-            raise HTTPException(status_code=500, detail="error")
+            raise_500()
 
         if output_path.endswith(".jpg"):
             media_type = "image/jpeg"
@@ -599,7 +599,7 @@ def generate_pdf(request: Request, data: PDFRequest):
         raise
     except Exception as e:
         logger.error(f"Error: {e}")
-        raise HTTPException(status_code=500, detail="error")
+        raise_500()
     finally:
         db.close()
 

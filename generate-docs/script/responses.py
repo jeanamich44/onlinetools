@@ -1,4 +1,5 @@
 from urllib.parse import quote_plus
+from fastapi import HTTPException
 
 FRONT_DOMAIN = "https://chezrheyy.ink"
 
@@ -83,3 +84,28 @@ def payment_not_found_page():
 
 def error_page(message):
     return f"<h1>Erreur Système</h1><p>{message}</p>"
+
+# ==============================================================================
+# HTTP EXCEPTIONS
+# ==============================================================================
+
+def raise_400():
+    raise HTTPException(status_code=400, detail="error")
+
+def raise_402():
+    raise HTTPException(status_code=402, detail="error")
+
+def raise_404():
+    raise HTTPException(status_code=404, detail="error")
+
+def raise_429():
+    raise HTTPException(status_code=429, detail="error")
+
+def raise_500():
+    raise HTTPException(status_code=500, detail="error")
+
+def raise_service_not_found():
+    raise HTTPException(status_code=400, detail="service_not_found")
+
+def raise_simulator_error():
+    raise HTTPException(status_code=400, detail="simulator_error")
