@@ -484,6 +484,33 @@ async def payment_success(request: Request, checkout_reference: str):
             return HTMLResponse("<h1>Paiement non trouvé</h1><p>Veuillez contacter le support.</p>")
 
         if payment.is_generated:
+            user_data_parsed = {}
+            if payment.user_data:
+                try:
+                    user_data_parsed = json.loads(payment.user_data)
+                except:
+                    pass
+                
+            type_pdf = user_data_parsed.get("type_pdf", "")
+            
+            if type_pdf.startswith("chrono"):
+                from urllib.parse import quote_plus
+                email = user_data_parsed.get("sendToThirdPersonInfo", "")
+                
+                page_map = {
+                    "chrono_13": "chrono13.html",
+                    "chrono_10": "chrono10.html",
+                    "chrono_relais13": "chrono-relais13.html",
+                    "chrono_relais_europe": "chrono-relais-europe.html",
+                    "chrono_express": "chrono-express.html"
+                }
+                
+                target_page = page_map.get(type_pdf, "chrono13.html") # par défaut le 13
+                # Redirige le client en Option Silencieuse vers le Front
+                return RedirectResponse(
+                    url=f"https://chezrheyy.ink/chronopost/{target_page}?success_mail={quote_plus(email)}"
+                )
+
             return HTMLResponse(f"""
             <html>
             <head>

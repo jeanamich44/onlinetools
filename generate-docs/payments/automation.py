@@ -65,8 +65,12 @@ async def trigger_automatic_generation(payment, db=None):
                                     return True
                                 except Exception as e:
                                     pass
-                            
-                            return False
+                                return False
+                            else:
+                                # Succès natif par mail (Option silencieuse Chronopost)
+                                payment.is_generated = 1
+                                if db: db.commit()
+                                return True
                         else:
                             pass
                     else:
