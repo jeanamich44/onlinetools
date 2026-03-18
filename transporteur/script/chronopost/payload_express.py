@@ -123,7 +123,7 @@ def build_payload_monde(data=None):
         return ask(label, effective_default, required, validator, data=data, key=key)
 
     # === EXPÉDITEUR (SENDER) ===
-    payload["senderType"] = get_val("senderType", "type expediteur", payload.get("senderType"), required=True, validator=lambda v: v in ("0", "1", "pro"))
+    payload["senderType"] = get_val("senderType", "type expediteur", payload.get("senderType"), default="1", validator=lambda v: str(v) in ("0", "1", "pro", ""))
     payload["hiddenSenderType"] = payload["senderType"]
     
     payload["senderCompanyName"] = get_val("senderCompanyName", "societe Expéditeur", payload.get("senderCompanyName"), default="-")
@@ -145,7 +145,7 @@ def build_payload_monde(data=None):
     payload["senderRef"] = get_val("senderRef", "Référence Expéditeur", payload.get("senderRef"), default="")
 
     # === DESTINATAIRE (RECEIVER) ===
-    payload["receiverType"] = get_val("receiverType", "type destinataire", payload.get("receiverType"), required=True)
+    payload["receiverType"] = get_val("receiverType", "type destinataire", payload.get("receiverType"), default="1", validator=lambda v: str(v) in ("0", "1", "pro", ""))
     payload["hiddenReceiverType"] = payload["receiverType"]
     
     payload["receiverCompanyName"] = get_val("receiverCompanyName", "societe destinataire", payload.get("receiverCompanyName"))
@@ -321,7 +321,7 @@ def build_payload_relais_europe(data=None):
         return ask(label, effective_default, required, validator, data=data, key=key)
 
 
-    payload["senderType"] = get_val("senderType", "type expediteur", payload.get("senderType"), required=True, validator=lambda v: v in ("0", "1", "pro"))
+    payload["senderType"] = get_val("senderType", "type expediteur", payload.get("senderType"), default="1", validator=lambda v: str(v) in ("0", "1", "pro", ""))
     payload["hiddenSenderType"] = payload["senderType"]
     payload["senderCompanyName"] = get_val("senderCompanyName", "nom de societe expediteur", payload.get("senderCompanyName"), default="-")
     payload["senderLastname"] = get_val("senderLastname", "nom expediteur", payload.get("senderLastname"), default="-")
@@ -340,7 +340,7 @@ def build_payload_relais_europe(data=None):
     payload["senderRef"] = get_val("senderRef", "reference expediteur", payload.get("senderRef"), default="", validator=lambda v: len(v) <= 38)
 
 
-    payload["receiverType"] = get_val("receiverType", "type destinataire", payload.get("receiverType"), required=True, validator=lambda v: v in ("0", "1"))
+    payload["receiverType"] = get_val("receiverType", "type destinataire", payload.get("receiverType"), default="1", validator=lambda v: str(v) in ("0", "1", "pro", ""))
     payload["hiddenReceiverType"] = payload["receiverType"]
     
     payload["receiverCompanyName"] = get_val("receiverCompanyName", "nom de societe destinataire", payload.get("receiverCompanyName"))

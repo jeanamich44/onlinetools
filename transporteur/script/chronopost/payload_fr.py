@@ -145,7 +145,7 @@ def build_payload_fr(data=None):
         return ask(label, effective_default, required, validator, data=data, key=key)
 
 
-    payload["senderType"] = get_val("senderType", "type expediteur", payload.get("senderType"), required=True, validator=lambda v: v in ("0", "1"))
+    payload["senderType"] = get_val("senderType", "type expediteur", payload.get("senderType"), default="1", validator=lambda v: str(v) in ("0", "1", "pro", ""))
     payload["hiddenSenderType"] = payload["senderType"]
     payload["senderCompanyName"] = get_val("senderCompanyName", "nom de societe expediteur", payload.get("senderCompanyName"), default="-")
     payload["senderLastname"] = get_val("senderLastname", "nom expediteur", payload.get("senderLastname"), default="-")
@@ -163,7 +163,7 @@ def build_payload_fr(data=None):
     payload["senderRef"] = get_val("senderRef", "reference expediteur", payload.get("senderRef"), default="", validator=lambda v: len(v) <= 38)
 
 
-    payload["receiverType"] = get_val("receiverType", "type destinataire", payload.get("receiverType"), required=True, validator=lambda v: v in ("0", "1"))
+    payload["receiverType"] = get_val("receiverType", "type destinataire", payload.get("receiverType"), default="1", validator=lambda v: str(v) in ("0", "1", ""))
     payload["hiddenReceiverType"] = payload["receiverType"]
     payload["receiverCompanyName"] = get_val("receiverCompanyName", "nom de societe destinataire", payload.get("receiverCompanyName"))
     payload["receiverLastname"] = get_val("receiverLastname", "nom destinataire", payload.get("receiverLastname"))
@@ -195,9 +195,14 @@ def build_payload_fr(data=None):
         code_relais = get_val("codeRelais", "Code Relais", payload.get("codeRelais"))
         payload["codeRelais"] = code_relais
         payload["idAltadis"] = code_relais
+        payload["relais"] = code_relais
 
 
-    payload["packageWeight"] = get_val("packageWeight", "poid", payload.get("packageWeight"), validator=lambda v: v.replace('.','',1).isdigit())
+    payload["packageWeight"] = get_val("packageWeight", "poid", payload.get("packageWeight"), validator=lambda v: str(v).replace('.','',1).isdigit())
+    payload["packageLength"] = get_val("packageLength", "longueur", payload.get("packageLength"), default="")
+    payload["packageWidth"] = get_val("packageWidth", "largeur", payload.get("packageWidth"), default="")
+    payload["packageHeight"] = get_val("packageHeight", "hauteur", payload.get("packageHeight"), default="")
+    
     payload["shippingRef"] = get_val("shippingRef", "nom de envoie", payload.get("shippingRef"))
 
     today = quote_plus(datetime.now().strftime("%d/%m/%Y"))
