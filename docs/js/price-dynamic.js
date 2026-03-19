@@ -32,9 +32,8 @@
         
         const now = Date.now();
         const timeSinceLast = now - lastRequestCompleteTime;
-        if (timeSinceLast < 3000) {
-            // Trop tôt, on attend le reliquat du sleep de 3 secondes
-            setTimeout(debouncedCalculate, 3000 - timeSinceLast);
+        if (timeSinceLast < 2000) { // Changement 3s -> 2s
+            setTimeout(debouncedCalculate, 2000 - timeSinceLast);
             return;
         }
 
@@ -45,122 +44,116 @@
         const form = document.querySelector('form');
         if (!form) return;
 
-        isCalculating = true;
         const btn = document.getElementById(config.btnSubmit);
-        if (btn) {
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-            btn.style.cursor = 'not-allowed';
+        const updateStatus = (text) => {
+            if (!btn) return;
             const span = btn.querySelector('span');
-            const statusText = 'Calcul du prix...';
-            if (span) span.textContent = statusText;
-            else btn.textContent = statusText;
-        }
+            if (span) span.textContent = text;
+            else btn.textContent = text;
+        };
 
         // Détection flexible des champs
         const weight = form.querySelector('[name="packageWeight"]')?.value || form.querySelector('[name="weight"]')?.value;
-        const senderCP = form.querySelector('[name="senderCP"]')?.value || form.querySelector('[name="sender_zip"]')?.value;
-        const senderCity = form.querySelector('[name="senderCity"]')?.value || form.querySelector('[name="sender_city"]')?.value || 'PARIS';
         const receiverCP = form.querySelector('[name="receiverCP"]')?.value || form.querySelector('[name="recipient_zip"]')?.value;
-        const receiverCity = form.querySelector('[name="receiverCity"]')?.value || form.querySelector('[name="recipient_city"]')?.value || 'VILLE';
         const receiverCountry = form.querySelector('[name="receiverCountry"]')?.value || 
                                form.querySelector('[name="destinationCountry"]')?.value || 
                                form.querySelector('[name="recipient_country"]')?.value || 
                                form.querySelector('[name="recipient_iso"]')?.value;
 
-        // Dimensions (Crucial pour Express)
+        // Dimensions
         const length = form.querySelector('[name="packageLength"]')?.value || form.querySelector('[name="length"]')?.value;
         const width = form.querySelector('[name="packageWidth"]')?.value || form.querySelector('[name="width"]')?.value;
         const height = form.querySelector('[name="packageHeight"]')?.value || form.querySelector('[name="height"]')?.value;
 
         const labelLower = config.offerLabel.toLowerCase();
         const isExpress = labelLower.includes('express');
-        const isRelaisEurope = labelLower.includes('relais') && receiverCountry !== 'FR';
+        const isRelaisEurope = labelLower.includes('relais') && (receiverCountry && receiverCountry !== 'FR');
         const dimsRequired = isExpress || isRelaisEurope;
 
-        // Conditions minimales pour simuler
-        // Pour Express et Relais Europe, on exige aussi les dimensions
-        if (!weight || !receiverCP || (dimsRequired && (!length || !width || !height))) {
+        // --- Logique du message dynamique du bouton ---
+        if (!weight && !receiverCP && !receiverCountry) {
+            updateStatus('Remplir informations...');
+        } else if (!weight) {
+            updateStatus('Poids requis...');
+        } else if (!receiverCP || !receiverCountry) {
+            updateStatus('Destination requise...');
+        } else if (dimsRequired && (!length || !width || !height)) {
+            updateStatus('Dimensions requises...');
+        } else {
+            // Toutes les infos sont là, on peut calculer
+            if (isCalculating) return; // Déjà en cours
+            
+            isCalculating = true;
             if (btn) {
-                const labelElement = btn.querySelector('span') || btn;
-                labelElement.textContent = dimsRequired && (!length || !width || !height) ? 'Dimensions requises...' : 'Veuillez remplir les champs...';
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+                updateStatus('Calcul du prix...');
             }
-            isCalculating = false;
-            lastRequestCompleteTime = Date.now();
+
+            try {
+                const data = {
+                    sender_iso: 'FR',
+                    sender_zip: (form.querySelector('[name="senderCP"]')?.value || form.querySelector('[name="sender_zip"]')?.value) || '75001',
+                    sender_city: (form.querySelector('[name="senderCity"]')?.value || form.querySelector('[name="sender_city"]')?.value) || 'PARIS',
+                    recipient_iso: receiverCountry || 'FR',
+                    recipient_zip: receiverCP,
+                    recipient_city: (form.querySelector('[name="receiverCity"]')?.value || form.querySelector('[name="recipient_city"]')?.value) || 'VILLE',
+                    weight: parseFloat(weight),
+                    length: length ? parseFloat(length) : 0,
+                    width: width ? parseFloat(width) : 0,
+                    height: height ? parseFloat(height) : 0
+                };
+
+                const response = await fetch(config.apiSimulate, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) throw new Error("API Error");
+
+                const result = await response.json();
+                if (result.status === 'success' && result.offers) {
+                    const target = config.offerLabel.toLowerCase().replace(/\s+/g, '');
+                    const offer = result.offers.find(o => {
+                        const label = o.label.toLowerCase().replace(/\s+/g, '');
+                        return label.includes(target) || target.includes(label);
+                    });
+                    
+                    if (offer) {
+                        const originalBtnText = `Valider et Payer le Bordereau (${offer.price.toFixed(2)}€)`;
+                        updateStatus(originalBtnText);
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                            btn.style.cursor = 'pointer';
+                        }
+                    } else {
+                        updateStatus('Service non disponible');
+                    }
+                }
+            } catch (err) {
+                console.error("Erreur simulation:", err);
+                updateStatus('Indisponible (Réessayez)');
+            } finally {
+                isCalculating = false;
+                lastRequestCompleteTime = Date.now();
+                if (nextRequestQueued) {
+                    nextRequestQueued = false;
+                    setTimeout(debouncedCalculate, 2000);
+                }
+            }
             return;
         }
 
-        try {
-            const data = {
-                sender_iso: 'FR',
-                sender_zip: senderCP || '75001',
-                sender_city: senderCity,
-                recipient_iso: receiverCountry || 'FR',
-                recipient_zip: receiverCP,
-                recipient_city: receiverCity,
-                weight: parseFloat(weight),
-                length: length ? parseFloat(length) : 0,
-                width: width ? parseFloat(width) : 0,
-                height: height ? parseFloat(height) : 0
-            };
-
-            const response = await fetch(config.apiSimulate, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-
-            if (!response.ok) throw new Error("API Error");
-
-            const result = await response.json();
-            if (result.status === 'success' && result.offers) {
-                const target = config.offerLabel.toLowerCase().replace(/\s+/g, '');
-                
-                const offer = result.offers.find(o => {
-                    const label = o.label.toLowerCase().replace(/\s+/g, '');
-                    return label.includes(target) || target.includes(label);
-                });
-                
-                if (offer) {
-                    updateButton(offer.price);
-                    if (btn) {
-                        btn.disabled = false;
-                        btn.style.opacity = '1';
-                        btn.style.cursor = 'pointer';
-                    }
-                } else {
-                    if (btn) {
-                        const label = btn.querySelector('span') || btn;
-                        label.textContent = 'Service non disponible';
-                    }
-                }
-            }
-        } catch (err) {
-            console.error("Erreur simulation:", err);
-            if (btn) {
-                const label = btn.querySelector('span') || btn;
-                label.textContent = 'Indisponible (Réessayez)';
-            }
-        } finally {
-            isCalculating = false;
-            lastRequestCompleteTime = Date.now();
-            
-            // Si une requête a été mise en attente pendant le calcul actuel
-            if (nextRequestQueued) {
-                nextRequestQueued = false;
-                setTimeout(debouncedCalculate, 3000); // On force le sleep de 3s demandé
-            }
-        }
-    }
-
-    function updateButton(price) {
-        const btn = document.getElementById(config.btnSubmit);
+        // Si on est dans un cas où il manque des infos, on s'assure que le bouton reste bloqué
         if (btn) {
-            const span = btn.querySelector('span');
-            const text = `Valider et Payer le Bordereau (${price.toFixed(2)}€)`;
-            if (span) span.textContent = text;
-            else btn.textContent = text;
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.style.cursor = 'not-allowed';
         }
+        isCalculating = false;
     }
 
     // Écouter les changements
@@ -177,7 +170,7 @@
             'senderCity', 'sender_city',
             'receiverCP', 'recipient_zip',
             'receiverCity', 'recipient_city',
-            'receiverCountry', 'recipient_iso'
+            'receiverCountry', 'destinationCountry', 'recipient_country', 'recipient_iso'
         ];
         
         watchFields.forEach(name => {
@@ -188,8 +181,8 @@
             }
         });
 
-        // Premier calcul
-        debouncedCalculate();
+        // Premier calcul / mise à jour du bouton
+        calculatePrice();
     });
 
 })();
