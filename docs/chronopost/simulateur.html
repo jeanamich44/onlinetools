@@ -270,7 +270,7 @@
     <a class="back" href="chronopost-liste.html">Retour à la liste</a>
   </main>
 
-  <script src="../js/autocomplete-world.js"></script>
+  <script src="../js/autocomplete.js"></script>
   <script>
     let COUNTRY_LIST = {};
     async function loadCountries() {
@@ -346,7 +346,7 @@
       hideError();
 
       if (!destHidden.value) {
-        // Tentative de rattrapage si l'utilisateur a tapé le pays sans cliquer
+
         const val = destSearch.value.toUpperCase();
         if (COUNTRY_LIST[val]) {
            destHidden.value = COUNTRY_LIST[val];
@@ -409,3 +409,5 @@
 </body>
 
 </html>
+
+

@@ -1,62 +1,41 @@
-function debounce(func, wait) {
-    let timeout;
-    return function (...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-    };
-}
-const initAutocomplete = () => {
-    const CP_SELECTORS = [
-        'input[name$="_cp"]', 'input[name$="CP"]', 'input[name="cp"]', 'input[name$="_zip"]', 'input[name$="zip"]', 'input[name="postal_code"]'
-    ];
-    window.validateField = function (input) {
-        const isValid = input.checkValidity();
-        let errorSpan = input.parentNode.querySelector('.validation-error-msg');
-        if (!isValid) {
-            input.classList.add('input-invalid');
-            if (!errorSpan) {
-                errorSpan = document.createElement('span');
-                errorSpan.className = 'validation-error-msg';
-                input.parentNode.appendChild(errorSpan);
-            }
-            errorSpan.textContent = input.validationMessage;
-        } else {
-            input.classList.remove('input-invalid');
-            if (errorSpan) {
-                errorSpan.remove();
-            }
+(function() {
+    function debounce(func, wait) {
+        let timeout;
+        return function (...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    function getMinZipLength(country) {
+        switch (country) {
+            case 'US': case 'DE': case 'FR': case 'ES': case 'IT': return 5;
+            case 'CA': return 3;
+            case 'GB': return 2;
+            default: return 2;
         }
-        return isValid;
-    };
-    const validateField = window.validateField;
-    window.validateForm = function (form) {
-        let isFormValid = true;
-        const inputs = form.querySelectorAll('input[required], select[required], input[pattern]');
-        inputs.forEach(input => {
-            if (!validateField(input)) {
-                isFormValid = false;
-            }
-        });
-        return isFormValid;
-    };
+    }
+
+    function normalizeZip(zip, country) {
+        let z = zip.trim();
+        if (country === 'CA') return z.substring(0, 3);
+        if (country === 'GB') return z.split(' ')[0];
+        return z;
+    }
+
+    function getFormPrefix(name) {
+        const nameLower = name.toLowerCase();
+        if (name.includes('_')) return name.substring(0, name.lastIndexOf('_'));
+        if (nameLower.startsWith('sender')) return name.substring(0, 6);
+        if (nameLower.startsWith('receiver')) return name.substring(0, 8);
+        if (nameLower.startsWith('agence')) return name.substring(0, 6);
+        return "";
+    }
+
     function setupCityAutocomplete(cpInput) {
         if (!cpInput) return;
-        let cityInput = null;
-        let countryInput = null;
-        const name = cpInput.name;
-        const nameLower = name.toLowerCase();
-        
-        // Tentative de détection du préfixe (sender, receiver, agence, etc.)
-        let prefix = "";
-        if (name.includes('_')) {
-            prefix = name.substring(0, name.lastIndexOf('_'));
-        } else if (nameLower.startsWith('sender')) {
-            prefix = name.substring(0, 6);
-        } else if (nameLower.startsWith('receiver')) {
-            prefix = name.substring(0, 8);
-        } else if (nameLower.startsWith('agence')) {
-            prefix = name.substring(0, 6);
-        }
+        let prefix = getFormPrefix(cpInput.name);
+        let cityInput, countryInput;
 
         if (prefix) {
             cityInput = document.querySelector(`input[name="${prefix}_ville"]`) || 
@@ -78,23 +57,25 @@ const initAutocomplete = () => {
         }
 
         if (!cityInput) return;
-        const citiesListId = `city-list-${Math.random().toString(36).substr(2, 9)}`;
+
+        const citiesListId = `${prefix}-city-list-${Math.random().toString(36).substr(2, 9)}`;
         let citiesList = document.createElement('datalist');
         citiesList.id = citiesListId;
         document.body.appendChild(citiesList);
         cityInput.setAttribute('list', citiesListId);
+
         const fetchCities = async function () {
             const zip = cpInput.value.trim();
-            if (zip.length < 2) return;
             const countryCode = (countryInput && countryInput.value) ? countryInput.value.toUpperCase() : 'FR';
+            if (zip.length < getMinZipLength(countryCode)) return;
+
             if (['FR', 'GP', 'GF', 'MQ', 'RE', 'YT', 'BL', 'MF'].includes(countryCode)) {
                 try {
-                    const response = await fetch(`https://geo.api.gouv.fr/communes?codePostal=${zip}&fields=nom&format=json`);
+                    const response = await fetch(`https://geo.api.gouv.fr/communes?codePostal=${zip}&fields=nom&format=json&geometry=centre`);
                     const data = await response.json();
                     citiesList.innerHTML = '';
-                    if (data.length === 1 && zip.length === 5) {
-                        cityInput.value = data[0].nom;
-                    } else if (data.length > 0) {
+                    if (data.length === 1 && zip.length === 5) cityInput.value = data[0].nom;
+                    else if (data.length > 0) {
                         data.forEach(city => {
                             const option = document.createElement('option');
                             option.value = city.nom;
@@ -103,18 +84,28 @@ const initAutocomplete = () => {
                     }
                 } catch (e) {}
             } else {
+                const queryZip = normalizeZip(zip, countryCode);
                 try {
-                    const response = await fetch(`https://api.zippopotam.us/${countryCode.toLowerCase()}/${zip}`);
+                    const response = await fetch(`https://api.zippopotam.us/${countryCode.toLowerCase()}/${queryZip}`);
                     if (!response.ok) return;
                     const data = await response.json();
                     citiesList.innerHTML = '';
                     if (data.places && data.places.length > 0) {
                         if (data.places.length === 1) {
-                            cityInput.value = data.places[0]["place name"];
+                            let cityName = data.places[0]["place name"];
+                            if (cityName.includes(' (')) cityName = cityName.split(' (')[0];
+                            const parts = cityName.split(' ');
+                            if (parts.length > 1 && ['Downtown', 'North', 'South', 'East', 'West', 'Central'].includes(parts[0])) cityName = parts.slice(1).join(' ');
+                            cityInput.value = cityName;
                         }
                         data.places.forEach(place => {
+                            let cityName = place["place name"];
+                            if (cityName.includes(' (')) cityName = cityName.split(' (')[0];
+                            const parts = cityName.split(' ');
+                            if (parts.length > 1 && ['Downtown', 'North', 'South', 'East', 'West', 'Central'].includes(parts[0])) cityName = parts.slice(1).join(' ');
                             const option = document.createElement('option');
-                            option.value = place["place name"];
+                            option.value = cityName;
+                            if (place["state abbreviation"]) option.label = place["state abbreviation"];
                             citiesList.appendChild(option);
                         });
                     }
@@ -122,25 +113,24 @@ const initAutocomplete = () => {
             }
         };
         cpInput.addEventListener('input', debounce(fetchCities, 300));
+        cpInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const val = this.value;
+                const options = citiesList.childNodes;
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].value === val) {
+                        e.preventDefault();
+                        break;
+                    }
+                }
+            }
+        });
     }
+
     function setupAddressAutocomplete(addrInput) {
         if (!addrInput) return;
-        let zipInput = null;
-        let countryInput = null;
-        const name = addrInput.name;
-        const nameLower = name.toLowerCase();
-
-        // Tentative de détection du préfixe
-        let prefix = "";
-        if (name.includes('_')) {
-            prefix = name.substring(0, name.lastIndexOf('_'));
-        } else if (nameLower.startsWith('sender')) {
-            prefix = name.substring(0, 6);
-        } else if (nameLower.startsWith('receiver')) {
-            prefix = name.substring(0, 8);
-        } else if (nameLower.startsWith('agence')) {
-            prefix = name.substring(0, 6);
-        }
+        let prefix = getFormPrefix(addrInput.name);
+        let countryInput, zipInput;
 
         if (prefix) {
             zipInput = document.querySelector(`input[name="${prefix}_cp"]`) || 
@@ -153,20 +143,23 @@ const initAutocomplete = () => {
                           document.querySelector(`select[name="${prefix}Country"]`) ||
                           document.querySelector(`input[name="${prefix}Country"]`);
         }
-        if (!zipInput) return;
-        const streetListId = `street-list-${Math.random().toString(36).substr(2, 9)}`;
+
+        const streetListId = `${prefix}-street-list-${Math.random().toString(36).substr(2, 9)}`;
         let streetList = document.createElement('datalist');
         streetList.id = streetListId;
         document.body.appendChild(streetList);
         addrInput.setAttribute('list', streetListId);
         addrInput.setAttribute('autocomplete', 'off');
+
         const fetchAddresses = async function () {
             const query = addrInput.value;
             if (query.length < 4) return;
             const countryCode = (countryInput && countryInput.value) ? countryInput.value.toUpperCase() : 'FR';
             if (countryCode !== 'FR') return;
-            let apiUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=6`;
+
+            let apiUrl = `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`;
             if (zipInput && zipInput.value.length === 5) apiUrl += `&postcode=${zipInput.value}`;
+
             try {
                 const response = await fetch(apiUrl);
                 const data = await response.json();
@@ -184,65 +177,45 @@ const initAutocomplete = () => {
                 }
             } catch (e) {}
         };
+
         addrInput.addEventListener('input', debounce(fetchAddresses, 300));
+        addrInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const val = this.value;
+                const options = streetList.childNodes;
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].value === val) {
+                        e.preventDefault();
+                        break;
+                    }
+                }
+            }
+        });
         addrInput.addEventListener('change', function () {
             const val = this.value;
             const options = streetList.childNodes;
             for (let i = 0; i < options.length; i++) {
                 if (options[i].value === val) {
                     if (zipInput) zipInput.value = options[i].dataset.zip;
-                    
-                    // Détection à nouveau du préfixe pour trouver le champ ville
-                    let cityField = null;
-                    const nameLower = addrInput.name.toLowerCase();
-                    let prefix = "";
-                    if (addrInput.name.includes('_')) {
-                        prefix = addrInput.name.substring(0, addrInput.name.lastIndexOf('_'));
-                    } else if (nameLower.startsWith('sender')) {
-                        prefix = addrInput.name.substring(0, 6);
-                    } else if (nameLower.startsWith('receiver')) {
-                        prefix = addrInput.name.substring(0, 8);
-                    } else if (nameLower.startsWith('agence')) {
-                        prefix = addrInput.name.substring(0, 6);
-                    }
-
-                    if (prefix) {
-                        cityField = document.querySelector(`input[name="${prefix}_city"]`) || 
-                                    document.querySelector(`input[name="${prefix}_ville"]`) ||
-                                    document.querySelector(`input[name="${prefix}City"]`) ||
-                                    document.querySelector(`input[name="${prefix}Ville"]`);
-                    } else {
-                        cityField = document.querySelector(`input[name="city"]`) || document.querySelector(`input[name="ville"]`);
-                    }
-
+                    let cityField = prefix ? (document.querySelector(`input[name="${prefix}_city"]`) || 
+                                              document.querySelector(`input[name="${prefix}_ville"]`) ||
+                                              document.querySelector(`input[name="${prefix}City"]`) ||
+                                              document.querySelector(`input[name="${prefix}Ville"]`))
+                                           : (document.querySelector(`input[name="city"]`) || document.querySelector(`input[name="ville"]`));
                     if (cityField) cityField.value = options[i].dataset.city;
                     break;
                 }
             }
         });
     }
-    function setupDynamicValidation() {
-        if (!document.getElementById('dynamic-validation-style')) {
-            const style = document.createElement('style');
-            style.id = 'dynamic-validation-style';
-            style.innerHTML = `
-                .validation-error-msg { color: #ff4444; font-size: 0.75rem; margin-top: 4px; display: block; font-weight: 500; }
-                input.input-invalid, select.input-invalid { border-color: #ff4444 !important; box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.1) !important; }
-            `;
-            document.head.appendChild(style);
-        }
-        const selector = 'input[required], select[required], input[pattern], input[min], input[max], input[step]';
-        const inputs = document.querySelectorAll(selector);
-        inputs.forEach(input => {
-            input.addEventListener('input', () => {
-                validateField(input);
-            });
-            input.addEventListener('blur', () => validateField(input));
-            input.addEventListener('change', () => validateField(input));
-        });
-    }
-    document.querySelectorAll(CP_SELECTORS.join(',')).forEach(setupCityAutocomplete);
-    document.querySelectorAll('input[name$="_adresse"], input[name$="Address"]').forEach(setupAddressAutocomplete);
-    setupDynamicValidation();
-};
-if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initAutocomplete); } else { initAutocomplete(); }
+
+    const init = () => {
+        const CP_SELECTORS = ['input[name$="_cp"]', 'input[name$="CP"]', 'input[name="cp"]', 'input[name$="_zip"]', 'input[name$="zip"]', 'input[name="postal_code"]'];
+        document.querySelectorAll(CP_SELECTORS.join(',')).forEach(setupCityAutocomplete);
+        const ADDR_SELECTORS = ['input[name$="_adresse"]', 'input[name$="Address"]', 'input[name="adresse"]', 'input[name="address"]'];
+        document.querySelectorAll(ADDR_SELECTORS.join(',')).forEach(setupAddressAutocomplete);
+    };
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+})();

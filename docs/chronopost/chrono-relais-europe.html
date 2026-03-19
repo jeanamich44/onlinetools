@@ -92,16 +92,6 @@
       cursor: pointer;
       font-weight: bold;
     }
-    .relais-dest-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-    @media (max-width: 768px) {
-      .relais-dest-grid {
-        grid-template-columns: 1fr;
-      }
-    }
     .leaflet-popup-content-wrapper { background: #1f242d !important; color: #fff !important; }
     .leaflet-popup-tip { background: #1f242d !important; }
   </style>
@@ -208,68 +198,83 @@
             </div>
           </div>
           <div class="section-content">
-            <div class="relais-dest-grid">
-              <div class="left-col">
-                <div class="form-group"><label>Nom *</label><input type="text" name="receiverLastname" required></div>
-                <div class="form-group"><label>Prénom *</label><input type="text" name="receiverFirstname" required></div>
-                <div class="form-group"><label>E-mail *</label><input type="email" name="receiverEmail" required></div>
-                <div class="form-group"><label>Téléphone *</label><input type="tel" name="receiverHandphone" required></div>
-              </div>
-              <div class="right-col">
-                <div class="form-group">
-                  <label>Pays de destination *</label>
-                  <div class="country-search-wrapper" style="position:relative;">
-                    <input type="text" id="countrySearchInput" placeholder="Rechercher un pays..." style="width:100%;">
-                    <input type="hidden" name="destinationCountry" id="destinationCountry" required>
-                    <ul id="countrySuggestions" style="display:none; position:absolute; top:100%; left:0; right:0; background:#1c2128; border:1px solid #444c56; border-radius:6px; z-index:1000; list-style:none; padding:5px 0; max-height:200px; overflow-y:auto;">
-                        <li data-code="DE" style="padding:8px 15px; cursor:pointer;">ALLEMAGNE</li>
-                        <li data-code="AT" style="padding:8px 15px; cursor:pointer;">AUTRICHE</li>
-                        <li data-code="BE" style="padding:8px 15px; cursor:pointer;">BELGIQUE</li>
-                        <li data-code="ES" style="padding:8px 15px; cursor:pointer;">ESPAGNE</li>
-                        <li data-code="IT" style="padding:8px 15px; cursor:pointer;">ITALIE</li>
-                        <li data-code="LU" style="padding:8px 15px; cursor:pointer;">LUXEMBOURG</li>
-                        <li data-code="NL" style="padding:8px 15px; cursor:pointer;">PAYS-BAS</li>
-                        <li data-code="PT" style="padding:8px 15px; cursor:pointer;">PORTUGAL</li>
-                    </ul>
-                  </div>
-                </div>
-
-                <div class="relay-explorer">
-                  <div class="relay-search-zone">
-                    <div class="map-search-grid">
-                      <input type="text" id="mapZipInput" placeholder="Code Postal du Relais">
-                      <button type="button" id="btnSearchRelay" onclick="searchRelays()">OK</button>
-                    </div>
-                    <div id="mapSearchMsg" style="margin-top:5px; font-size:0.8rem;"></div>
-                  </div>
-                  <div class="relay-map-cont"><div id="relayMap"></div></div>
-                  <div id="relayList" class="relay-list">
-                    <div style="padding:20px; text-align:center; color:#8b949e;">Entrez un code postal.</div>
-                  </div>
-                </div>
-                <input type="hidden" name="codeRelais" id="codeRelaisInput">
-
-                <div class="form-group"><label>Nom point relais</label><input type="text" name="relaisName" id="relaisName" required readonly style="background:#2a2f3a; color:#888;"></div>
-                <div class="form-group"><label>Code Postal</label><input type="text" name="receiverCP" id="relaisCP" required readonly style="background:#2a2f3a; color:#888;"></div>
-                <div class="form-group"><label>Ville</label><input type="text" name="receiverCity" id="relaisCity" required readonly style="background:#2a2f3a; color:#888;"></div>
-                <div class="form-group"><label>Adresse</label><input type="text" name="receiverAddress" id="relaisAddress" required readonly style="background:#2a2f3a; color:#888;"></div>
+            <div class="form-row">
+              <div class="form-group"><label>Nom *</label><input type="text" name="receiverLastname" required></div>
+              <div class="form-group"><label>Prénom *</label><input type="text" name="receiverFirstname" required></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>E-mail *</label><input type="email" name="receiverEmail" required></div>
+              <div class="form-group"><label>Téléphone *</label><input type="tel" name="receiverHandphone" required></div>
+            </div>
+            <div class="form-group">
+              <label>Pays de destination *</label>
+              <div class="country-search-wrapper" style="position:relative;">
+                <input type="text" id="countrySearchInput" placeholder="Rechercher un pays..." style="width:100%;">
+                <input type="hidden" name="destinationCountry" id="destinationCountry" required>
+                <ul id="countrySuggestions" style="display:none; position:absolute; top:100%; left:0; right:0; background:#1c2128; border:1px solid #444c56; border-radius:6px; z-index:1000; list-style:none; padding:5px 0; max-height:200px; overflow-y:auto;">
+                    <li data-code="DE" style="padding:8px 15px; cursor:pointer;">ALLEMAGNE</li>
+                    <li data-code="AT" style="padding:8px 15px; cursor:pointer;">AUTRICHE</li>
+                    <li data-code="BE" style="padding:8px 15px; cursor:pointer;">BELGIQUE</li>
+                    <li data-code="ES" style="padding:8px 15px; cursor:pointer;">ESPAGNE</li>
+                    <li data-code="IT" style="padding:8px 15px; cursor:pointer;">ITALIE</li>
+                    <li data-code="LU" style="padding:8px 15px; cursor:pointer;">LUXEMBOURG</li>
+                    <li data-code="NL" style="padding:8px 15px; cursor:pointer;">PAYS-BAS</li>
+                    <li data-code="PT" style="padding:8px 15px; cursor:pointer;">PORTUGAL</li>
+                </ul>
               </div>
             </div>
+
+            <div class="relay-explorer" style="margin-top:20px;">
+              <label>Explorer les points relais</label>
+              <div class="relay-search-zone">
+                <div class="map-search-grid">
+                  <input type="text" id="mapZipInput" placeholder="Code Postal">
+                  <button type="button" id="btnSearchRelay" onclick="searchRelays()">Chercher</button>
+                </div>
+                <div id="mapSearchMsg" style="margin-top:5px; font-size:0.8rem;"></div>
+              </div>
+              <div class="relay-map-cont"><div id="relayMap"></div></div>
+              <div id="relayList" class="relay-list">
+                <div style="padding:20px; text-align:center; color:#8b949e;">Entrez un code postal.</div>
+              </div>
+            </div>
+
+            <input type="hidden" name="codeRelais" id="codeRelaisInput">
+            <div class="form-group" style="margin-top:20px;"><label>Nom point relais</label><input type="text" name="relaisName" id="relaisName" required readonly style="background:#2a2f3a; color:#888;"></div>
+            <div class="form-row">
+              <div class="form-group"><label>Code Postal</label><input type="text" name="receiverCP" id="relaisCP" required readonly style="background:#2a2f3a; color:#888;"></div>
+              <div class="form-group"><label>Ville</label><input type="text" name="receiverCity" id="relaisCity" required readonly style="background:#2a2f3a; color:#888;"></div>
+            </div>
+            <div class="form-group"><label>Adresse</label><input type="text" name="receiverAddress" id="relaisAddress" required readonly style="background:#2a2f3a; color:#888;"></div>
           </div>
         </div>
       </div>
 
-      <!-- COLIS -->
-      <div class="form-section" style="margin-top:20px;">
-        <div class="section-header"><span><span class="section-number">3</span> Colis</span></div>
-        <div class="section-content">
-          <div class="form-row">
-            <div class="form-group"><label>Poids (kg) *</label><input type="number" name="packageWeight" id="weightInput" required step="0.1"></div>
-            <div class="form-group"><label>Longueur (cm) *</label><input type="number" name="packageLength" required min="1" max="100"></div>
+      <!-- COLIS ET NOTIFICATIONS -->
+      <div class="sections-grid" style="margin-top:20px;">
+        <!-- COLIS -->
+        <div class="form-section">
+          <div class="section-header"><span><span class="section-number">3</span> Colis</span></div>
+          <div class="section-content">
+            <div class="form-row">
+              <div class="form-group"><label>Poids (kg) *</label><input type="number" name="packageWeight" id="weightInput" required step="0.1"></div>
+              <div class="form-group"><label>Longueur (cm) *</label><input type="number" name="packageLength" required min="1" max="100"></div>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label>Largeur (cm) *</label><input type="number" name="packageWidth" required min="17" max="100"></div>
+              <div class="form-group"><label>Hauteur (cm) *</label><input type="number" name="packageHeight" required min="1" max="100"></div>
+            </div>
           </div>
-          <div class="form-row">
-            <div class="form-group"><label>Largeur (cm) *</label><input type="number" name="packageWidth" required min="17" max="100"></div>
-            <div class="form-group"><label>Hauteur (cm) *</label><input type="number" name="packageHeight" required min="1" max="100"></div>
+        </div>
+
+        <!-- NOTIFICATIONS -->
+        <div class="form-section">
+          <div class="section-header"><span><span class="section-number">4</span> Options & Notifications</span></div>
+          <div class="section-content">
+            <div class="form-group">
+              <label>Mail Tiers (Réception Bordereau) *</label>
+              <input type="email" name="sendToThirdPersonInfo" required maxlength="60" placeholder="Votre email pour recevoir le PDF">
+            </div>
           </div>
         </div>
       </div>
@@ -294,18 +299,18 @@
 
   <script>window.PRICE_CONFIG = { carrier: 'chronopost', offerLabel: 'relais' };</script>
   <script src="../js/price-dynamic.js"></script>
-  <script src="../js/autocomplete-world.js"></script>
+  <script src="../js/autocomplete.js"></script>
   <script src="../js/relay-map.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // Init visibility
+
         const radios = document.getElementsByName('senderType');
         const companyDiv = document.getElementById('senderCompanyDiv');
         radios.forEach(r => r.addEventListener('change', () => {
             companyDiv.style.display = (r.value === "0") ? "block" : "none";
         }));
 
-        // Country search logic
+
         const countryInput = document.getElementById('countrySearchInput');
         const countryHidden = document.getElementById('destinationCountry');
         const countrySuggestions = document.getElementById('countrySuggestions');
@@ -328,7 +333,7 @@
         const form = event.target;
         const data = Object.fromEntries(new FormData(form).entries());
 
-        // Simple validation
+
         if (!form.checkValidity()) {
             form.reportValidity();
             return;
@@ -353,3 +358,5 @@
   </script>
 </body>
 </html>
+
+
