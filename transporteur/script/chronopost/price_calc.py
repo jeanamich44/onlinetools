@@ -74,7 +74,7 @@ def get_chronopost_price(data):
         ]
     }
 
-    max_retries = 5
+    max_retries = 10
     for attempt in range(max_retries):
         try:
             r = requests.post(

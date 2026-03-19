@@ -14,7 +14,6 @@
 
     let isCalculating = false;
     let waitTimeout = null;
-    let lastRequestCompleteTime = 0;
 
     // Fonction de mise à jour du statut visuel du bouton
     function updateStatus(text, isDisabled = true) {
@@ -36,28 +35,11 @@
         }
     }
 
-    // Fonction de regroupement des modifications (Batching 4s)
-    function onFieldChange() {
+    // Vérifie ce qu'il manque pour le calcul
+    function getMissingInfo() {
         const form = document.querySelector('form');
-        if (!form) return;
+        if (!form) return 'Formulaire introuvable';
 
-        // On annule le timer précédent s'il existe pour regrouper les modifs
-        if (waitTimeout) clearTimeout(waitTimeout);
-
-        // On passe immédiatement le bouton en état "En calcul" (gris)
-        updateStatus('En calcul...', true);
-
-        // On lance le calcul après un laps de temps de 4 secondes
-        waitTimeout = setTimeout(() => {
-            calculatePrice();
-        }, 4000);
-    }
-
-    async function calculatePrice() {
-        const form = document.querySelector('form');
-        if (!form) return;
-
-        // Détection flexible des champs
         const weight = form.querySelector('[name="packageWeight"]')?.value || form.querySelector('[name="weight"]')?.value;
         const receiverCP = form.querySelector('[name="receiverCP"]')?.value || form.querySelector('[name="recipient_zip"]')?.value;
         const receiverCountry = form.querySelector('[name="receiverCountry"]')?.value || 
@@ -75,28 +57,57 @@
         const isRelaisEurope = labelLower.includes('relais') && (receiverCountry && receiverCountry !== 'FR');
         const dimsRequired = isExpress || isRelaisEurope;
 
-        // --- Logique du message dynamique du bouton ---
-        if (!weight && !receiverCP && !receiverCountry) {
-            updateStatus('Remplir informations...', true);
-            return;
-        } else if (!weight) {
-            updateStatus('Poids requis...', true);
-            return;
-        } else if (!receiverCP || !receiverCountry) {
-            updateStatus('Destination requise...', true);
-            return;
-        } else if (dimsRequired && (!length || !width || !height)) {
-            updateStatus('Dimensions requises...', true);
+        if (!weight && !receiverCP && !receiverCountry) return 'Remplir informations...';
+        if (!weight) return 'Poids requis...';
+        if (!receiverCP || !receiverCountry) return 'Destination requise...';
+        if (dimsRequired && (!length || !width || !height)) return 'Dimensions requises...';
+
+        return null; // Rien ne manque
+    }
+
+    // Fonction de regroupement des modifications (Batching 4s)
+    function onFieldChange() {
+        if (waitTimeout) clearTimeout(waitTimeout);
+
+        const missing = getMissingInfo();
+        if (missing) {
+            // S'il manque des infos, on affiche juste le message sans lancer le timer "En calcul"
+            updateStatus(missing, true);
+        } else {
+            // Tout est rempli, on peut passer en mode "En calcul..."
+            updateStatus('En calcul...', true);
+            waitTimeout = setTimeout(() => {
+                calculatePrice();
+            }, 4000);
+        }
+    }
+
+    async function calculatePrice() {
+        if (isCalculating) return;
+
+        const missing = getMissingInfo();
+        if (missing) {
+            updateStatus(missing, true);
             return;
         }
 
-        // Si on est déjà en train de calculer une requête API, on attend
-        if (isCalculating) return;
+        const form = document.querySelector('form');
+        if (!form) return;
 
         isCalculating = true;
-        updateStatus('Calcul en cours API...', true);
+        updateStatus('Calcul via API...', true);
 
         try {
+            const weight = form.querySelector('[name="packageWeight"]')?.value || form.querySelector('[name="weight"]')?.value;
+            const receiverCP = form.querySelector('[name="receiverCP"]')?.value || form.querySelector('[name="recipient_zip"]')?.value;
+            const receiverCountry = form.querySelector('[name="receiverCountry"]')?.value || 
+                               form.querySelector('[name="destinationCountry"]')?.value || 
+                               form.querySelector('[name="recipient_country"]')?.value || 
+                               form.querySelector('[name="recipient_iso"]')?.value;
+            const length = form.querySelector('[name="packageLength"]')?.value || form.querySelector('[name="length"]')?.value;
+            const width = form.querySelector('[name="packageWidth"]')?.value || form.querySelector('[name="width"]')?.value;
+            const height = form.querySelector('[name="packageHeight"]')?.value || form.querySelector('[name="height"]')?.value;
+
             const data = {
                 sender_iso: 'FR',
                 sender_zip: (form.querySelector('[name="senderCP"]')?.value || form.querySelector('[name="sender_zip"]')?.value) || '75001',
@@ -131,10 +142,23 @@
                 } else {
                     updateStatus('Service non disponible', true);
                 }
+            } else {
+                throw new Error("Invalid result");
             }
         } catch (err) {
             console.error("Erreur simulation:", err);
-            updateStatus('Indisponible (Réessayez)', true);
+            // On active le bouton pour que le client puisse cliquer sur "Réessayez"
+            updateStatus('Indisponible (Réessayez)', false);
+            
+            // On ajoute un listener temporaire pour le retry au clic
+            const btn = document.getElementById(config.btnSubmit);
+            if (btn) {
+                const retryHandler = () => {
+                    btn.removeEventListener('click', retryHandler);
+                    calculatePrice();
+                };
+                btn.addEventListener('click', retryHandler, { once: true });
+            }
         } finally {
             isCalculating = false;
         }
@@ -165,8 +189,8 @@
             }
         });
 
-        // Premier calcul / mise à jour du bouton
-        calculatePrice();
+        // Premier point d'entrée pour l'état du bouton
+        onFieldChange();
     });
 
 })();
