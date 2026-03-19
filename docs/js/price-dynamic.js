@@ -35,10 +35,24 @@
         }
     }
 
-    // Vérifie ce qu'il manque pour le calcul
-    function getMissingInfo() {
+    // Vérifie ce qu'il manque pour le calcul ou si des données sont invalides
+    function getFormStatus() {
         const form = document.querySelector('form');
-        if (!form) return 'Formulaire introuvable';
+        if (!form) return { error: 'Formulaire introuvable' };
+
+        // 1. Vérification de la validité HTML (min/max/required)
+        const invalidFields = form.querySelectorAll(':invalid');
+        if (invalidFields.length > 0) {
+            // On vérifie si ce sont des champs obligatoires vides ou des valeurs hors limites
+            for (let f of invalidFields) {
+                if (f.value === "") {
+                    // C'est juste vide, on continue avec la logique "Remplir..."
+                } else {
+                    // C'est rempli mais invalide (ex: poids > 30 ou dimensions < min)
+                    return { error: 'Données non conformes...' };
+                }
+            }
+        }
 
         const weight = form.querySelector('[name="packageWeight"]')?.value || form.querySelector('[name="weight"]')?.value;
         const receiverCP = form.querySelector('[name="receiverCP"]')?.value || form.querySelector('[name="recipient_zip"]')?.value;
@@ -57,37 +71,38 @@
         const isRelaisEurope = labelLower.includes('relais') && (receiverCountry && receiverCountry !== 'FR');
         const dimsRequired = isExpress || isRelaisEurope;
 
-        if (!weight && !receiverCP && !receiverCountry) return 'Remplir informations...';
-        if (!weight) return 'Poids requis...';
-        if (!receiverCP || !receiverCountry) return 'Destination requise...';
-        if (dimsRequired && (!length || !width || !height)) return 'Dimensions requises...';
+        if (!weight && !receiverCP && !receiverCountry) return { error: 'Remplir informations...' };
+        if (!weight) return { error: 'Poids requis...' };
+        if (!receiverCP || !receiverCountry) return { error: 'Destination requise...' };
+        if (dimsRequired && (!length || !width || !height)) return { error: 'Dimensions requises...' };
 
-        return null; // Rien ne manque
+        // Si des champs sont invalides (remplis mais hors limites), on bloque ici aussi par sécurité
+        if (invalidFields.length > 0) return { error: 'Données hors limites...' };
+
+        return { error: null }; // Tout est OK
     }
 
     // Fonction de regroupement des modifications (Batching 4s)
     function onFieldChange() {
         if (waitTimeout) clearTimeout(waitTimeout);
 
-        const missing = getMissingInfo();
-        if (missing) {
-            // S'il manque des infos, on affiche juste le message sans lancer le timer "En calcul"
-            updateStatus(missing, true);
+        const status = getFormStatus();
+        if (status.error) {
+            updateStatus(status.error, true);
         } else {
-            // Tout est rempli, on peut passer en mode "En calcul..."
             updateStatus('En calcul...', true);
             waitTimeout = setTimeout(() => {
                 calculatePrice();
-            }, 4000);
+            }, 3000);
         }
     }
 
     async function calculatePrice() {
         if (isCalculating) return;
 
-        const missing = getMissingInfo();
-        if (missing) {
-            updateStatus(missing, true);
+        const status = getFormStatus();
+        if (status.error) {
+            updateStatus(status.error, true);
             return;
         }
 
@@ -147,10 +162,7 @@
             }
         } catch (err) {
             console.error("Erreur simulation:", err);
-            // On active le bouton pour que le client puisse cliquer sur "Réessayez"
             updateStatus('Indisponible (Réessayez)', false);
-            
-            // On ajoute un listener temporaire pour le retry au clic
             const btn = document.getElementById(config.btnSubmit);
             if (btn) {
                 const retryHandler = () => {
@@ -189,7 +201,6 @@
             }
         });
 
-        // Premier point d'entrée pour l'état du bouton
         onFieldChange();
     });
 
