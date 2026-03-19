@@ -1,6 +1,7 @@
 let map;
 let markersLayer;
-let orangeIcon;
+let iconP;
+let iconB;
 
 const RElAY_API_BASE = "https://transporteur.up.railway.app/relay/search";
 
@@ -17,13 +18,18 @@ function initRelayMap(lat = 46.603354, lon = 1.888334, zoom = 5) {
 
     markersLayer = L.layerGroup().addTo(map);
 
-    orangeIcon = L.icon({
-        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-orange.png',
-        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
-        popupAnchor: [1, -34],
-        shadowSize: [41, 41]
+    iconP = L.icon({
+        iconUrl: 'https://www.chronopost.fr/expeditionAvanceeSec/images/maps/picto-point_P.png?version=3.30.2',
+        iconSize: [32, 44],
+        iconAnchor: [16, 44],
+        popupAnchor: [0, -40]
+    });
+
+    iconB = L.icon({
+        iconUrl: 'https://www.chronopost.fr/expeditionAvanceeSec/images/maps/picto-point_B.png?version=3.30.2',
+        iconSize: [32, 44],
+        iconAnchor: [16, 44],
+        popupAnchor: [0, -40]
     });
     
     const zipInput = document.getElementById('mapZipInput');
@@ -73,7 +79,8 @@ async function searchRelays() {
             if (msgDiv) msgDiv.innerHTML = `<span style='color:#28a745;'>✅ ${data.relays.length} points trouvés.</span>`;
             
             data.relays.forEach(relay => {
-                const marker = L.marker([relay.lat, relay.lng], { icon: orangeIcon });
+                const markerIcon = relay.type === 'B' ? iconB : iconP;
+                const marker = L.marker([relay.lat, relay.lng], { icon: markerIcon });
                 const popupContent = `
                     <div style="color:#000; min-width:150px;">
                         <b style="color:#0099ff;">${relay.name}</b><br>
@@ -91,8 +98,12 @@ async function searchRelays() {
                 if (listDiv) {
                     const card = document.createElement('div');
                     card.className = 'relay-card';
+                    const logoUrl = relay.type === 'B' ? iconB.options.iconUrl : iconP.options.iconUrl;
                     card.innerHTML = `
-                        <div class="relay-card-title">${relay.name}</div>
+                        <div class="relay-card-title">
+                            <span>${relay.name}</span>
+                            <img src="${logoUrl}" style="height:24px; vertical-align:middle;">
+                        </div>
                         <div class="relay-card-address">${relay.address}<br>${relay.zip} ${relay.city}</div>
                         <button class="relay-select-btn" onclick="selectChronopostRelay('${relay.id.replace(/'/g, "\\'").replace(/"/g, '&quot;')}', '${relay.name.replace(/'/g, "\\'")}', '${relay.address.replace(/'/g, "\\'")}', '${relay.zip}', '${relay.city.replace(/'/g, "\\'")}')">Choisir</button>
                     `;
