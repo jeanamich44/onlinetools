@@ -9,6 +9,7 @@ import logging
 
 from script.chronopost.chr import run_chronopost, get_relay_detail
 from script.chronopost.price_calc import get_chronopost_price
+from script.chronopost.relay_search import search_relays_chronopost
 from script.colissimo.colissimo import run_colissimo, search_relays_colissimo
 from script.colissimo.price_calc_colissimo import get_colissimo_price
 
@@ -123,13 +124,22 @@ def generate_colissimo_endpoint(req: ColissimoRequest):
 # ==============================================================================
 
 @app.get("/relay/search")
-def search_relays_endpoint(zip: str, type: str = "colissimo"):
+def search_relays_endpoint(
+    zip: str, 
+    type: str = "colissimo", 
+    lat: float = None, 
+    lon: float = None, 
+    country: str = "FR"
+):
     try:
         if type == "colissimo":
             result = search_relays_colissimo(zip, COLISSIMO_CONFIG)
             return result
+        elif type == "chronopost":
+            result = search_relays_chronopost(lat, lon, zip, country)
+            return result
         else:
-            return {"status": "error"}
+            return {"status": "error", "message": "Type inconnu"}
     except Exception as e:
         logger.error(f"Erreur recherche relais: {str(e)}")
         raise HTTPException(status_code=500, detail="error")
