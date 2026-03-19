@@ -19,14 +19,14 @@ function initRelayMap(lat = 46.603354, lon = 1.888334, zoom = 5) {
     markersLayer = L.layerGroup().addTo(map);
 
     iconP = L.icon({
-        iconUrl: 'https://www.chronopost.fr/expeditionAvanceeSec/images/maps/picto-point_P.png?version=3.30.2',
+        iconUrl: '../img/picto-point_P.png',
         iconSize: [32, 44],
         iconAnchor: [16, 44],
         popupAnchor: [0, -40]
     });
 
     iconB = L.icon({
-        iconUrl: 'https://www.chronopost.fr/expeditionAvanceeSec/images/maps/picto-point_B.png?version=3.30.2',
+        iconUrl: '../img/picto-point_B.png',
         iconSize: [32, 44],
         iconAnchor: [16, 44],
         popupAnchor: [0, -40]
@@ -69,8 +69,26 @@ async function searchRelays() {
         } catch (e) { }
 
         const url = `${RElAY_API_BASE}?zip=${zip}&type=chronopost&lat=${lat}&lon=${lon}&country=${country}`;
-        const resp = await fetch(url);
-        const data = await resp.json();
+        let data = null;
+        let attempts = 0;
+        const maxAttempts = 10;
+
+        while (attempts < maxAttempts) {
+            attempts++;
+            try {
+                const resp = await fetch(url);
+                if (resp.ok) {
+                    data = await resp.json();
+                    break;
+                }
+                if (attempts < maxAttempts) await new Promise(r => setTimeout(r, 1000));
+            } catch (err) {
+                if (attempts === maxAttempts) throw err;
+                await new Promise(r => setTimeout(r, 1000));
+            }
+        }
+
+        if (!data) throw new Error("API Failure");
 
         markersLayer.clearLayers();
         if (listDiv) listDiv.innerHTML = "";
