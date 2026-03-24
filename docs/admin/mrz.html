@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur MRZ | ChezRheyy Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .result-box {
+            background: #0b0f19;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #1f2937;
+            font-family: monospace;
+            color: #3b82f6;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: pre-wrap;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <i data-lucide="shield"></i> ChezRheyy <span>Admin</span>
+        </div>
+        <nav>
+            <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+            <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> Paiements</a>
+            <a href="tools.html" class="nav-item active"><i data-lucide="tool"></i> Outils</a>
+            <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> Analyse Audio</a>
+        </nav>
+    </div>
+
+    <div class="main">
+        <header>
+            <div>
+                <h1>Générateur MRZ</h1>
+                <p>Création des lignes de code machine pour documents d'identité.</p>
+            </div>
+            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        </header>
+
+        <div class="service-card" style="max-width: 600px;">
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>Nom de famille</label>
+                <input type="text" id="mrzNom" placeholder="Ex: DUPONT" class="form-input">
+            </div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>Prénom</label>
+                <input type="text" id="mrzPrenom" placeholder="Ex: JEAN" class="form-input">
+            </div>
+            <button onclick="generateMRZ()" id="genBtn" class="btn-action">Générer les lignes MRZ</button>
+            
+            <div id="result" class="result-box">Les lignes générées s'afficheront ici...</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
+        const API_BASE = "https://rheyy-services.up.railway.app";
+        const token = localStorage.getItem('adminToken');
+        if (!token) window.location.href = 'index.html';
+
+        async function generateMRZ() {
+            const nom = document.getElementById('mrzNom').value;
+            const prenom = document.getElementById('mrzPrenom').value;
+            if (!nom || !prenom) { alert("Veuillez remplir les champs"); return; }
+            
+            const btn = document.getElementById('genBtn');
+            btn.innerText = "Génération...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/generate-mrz`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: 'manuel', nom, prenom })
+                });
+                const data = await res.json();
+                document.getElementById('result').innerText = data.mrz[0];
+            } catch (err) {
+                alert("Erreur serveur");
+            } finally {
+                btn.innerText = "Générer les lignes MRZ";
+                btn.disabled = false;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+
+</html>

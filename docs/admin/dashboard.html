@@ -4,30 +4,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administration | ChezRheyy</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.294.0/dist/umd/lucide.min.js"></script>
+    <title>Dashboard Admin | ChezRheyy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <!-- On charge Lucide avec un script qui attend le chargement du DOM -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="../css/admin.css">
 </head>
 
 <body>
     <div class="sidebar">
         <div class="logo">
-            <i data-lucide="shield"></i> ChezRheyy Admin
+            <i data-lucide="shield"></i> ChezRheyy <span>Admin</span>
         </div>
         <nav>
             <a href="dashboard.html" class="nav-item active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-            <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> Payments</a>
-            <a href="tools.html" class="nav-item"><i data-lucide="tool"></i> Tools</a>
-            <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> Audio Analyse</a>
+            <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> Paiements</a>
+            <a href="tools.html" class="nav-item"><i data-lucide="tool"></i> Outils</a>
+            <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> Analyse Audio</a>
         </nav>
     </div>
 
     <div class="main">
         <header>
-            <div>
-                <h1 style="margin:0;">Tableau de Bord Administration</h1>
-                <p style="color: var(--text-muted); margin-top: 5px;">Bienvenue dans votre espace de gestion des services.</p>
+            <div class="header-content">
+                <h1>Tableau de Bord</h1>
+                <p>Gérez vos services et outils depuis une plateforme centralisée.</p>
             </div>
             <button class="btn-logout" onclick="logout()">Déconnexion</button>
         </header>
@@ -35,32 +36,42 @@
         <div class="services-grid">
             <!-- PAIEMENTS -->
             <div class="service-card">
-                <div class="service-icon"><i data-lucide="credit-card"></i></div>
+                <div class="service-icon">
+                    <i data-lucide="banknote"></i>
+                </div>
                 <h3>Paiements & Stats</h3>
-                <p>Suivi des transactions, revenus totaux et validation des paiements clients en temps réel.</p>
+                <p>Suivez vos revenus, validez les transactions et analysez les performances de vos services en temps réel.</p>
                 <a class="btn-action" href="payments.html">Gérer les paiements</a>
             </div>
 
             <!-- OUTILS -->
             <div class="service-card">
-                <div class="service-icon"><i data-lucide="wrench"></i></div>
+                <div class="service-icon">
+                    <i data-lucide="box"></i>
+                </div>
                 <h3>Tous les Outils</h3>
-                <p>Accès complet aux générateurs MRZ, QR Codes et tous les services de génération clients.</p>
+                <p>Accédez à la liste complète de tous les générateurs (RIB, Facture, assurance...) et les outils administratifs.</p>
                 <a class="btn-action" href="tools.html">Ouvrir la liste</a>
             </div>
 
             <!-- AUDIO -->
             <div class="service-card">
-                <div class="service-icon"><i data-lucide="mic-2"></i></div>
+                <div class="service-icon">
+                    <i data-lucide="audio-lines"></i>
+                </div>
                 <h3>Analyse AI Audio</h3>
-                <p>Outil professionnel de nettoyage de bruit et transcription intelligente (Whisper AI).</p>
+                <p>Nettoyez vos enregistrements et transcrivez vos fichiers audio avec la puissance de l'IA Whisper.</p>
                 <a class="btn-action" href="audio_analyse.html">Lancer l'analyse</a>
             </div>
         </div>
     </div>
 
     <script>
-        lucide.createIcons();
+        // On initialise les icônes après le chargement du DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+
         const token = localStorage.getItem('adminToken');
         if (!token) window.location.href = 'index.html';
 

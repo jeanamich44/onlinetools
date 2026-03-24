@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur QR ZIP | ChezRheyy Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <i data-lucide="shield"></i> ChezRheyy <span>Admin</span>
+        </div>
+        <nav>
+            <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+            <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> Paiements</a>
+            <a href="tools.html" class="nav-item active"><i data-lucide="tool"></i> Outils</a>
+            <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> Analyse Audio</a>
+        </nav>
+    </div>
+
+    <div class="main">
+        <header>
+            <div>
+                <h1>Générateur QR ZIP</h1>
+                <p>Création d'une archive contenant des codes QR personnalisés à la volée.</p>
+            </div>
+            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        </header>
+
+        <div class="service-card" style="max-width: 600px;">
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Une ligne par code QR à générer (Ex: lien, texte, etc.).</p>
+            <textarea id="qrLines" placeholder="https://google.fr&#10;https://youtube.com&#10;RH-123456" class="form-input" rows="8" style="margin-bottom: 20px; font-family: monospace;"></textarea>
+            <button onclick="generateQR()" id="genBtn" class="btn-action">Générer l'archive ZIP</button>
+            <p id="msg" style="margin-top: 15px; color: #10B981; font-weight: 600; text-align: center; display: none;"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
+        const API_BASE = "https://rheyy-services.up.railway.app";
+        const token = localStorage.getItem('adminToken');
+        if (!token) window.location.href = 'index.html';
+
+        async function generateQR() {
+            const lines = document.getElementById('qrLines').value.split('\n').filter(l => l.trim());
+            if (lines.length === 0) { alert("Veuillez entrer des données"); return; }
+            
+            const btn = document.getElementById('genBtn');
+            const msg = document.getElementById('msg');
+            btn.innerText = "Compression...";
+            btn.disabled = true;
+            msg.style.display = 'none';
+
+            try {
+                const res = await fetch(`${API_BASE}/generate-zip`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lines })
+                });
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = "qr_codes.zip";
+                    a.click();
+                    msg.innerText = "L'archive a été générée avec succès.";
+                    msg.style.display = 'block';
+                } else {
+                    throw new Error();
+                }
+            } catch (err) {
+                alert("Erreur serveur lors du ZIP");
+            } finally {
+                btn.innerText = "Générer l'archive ZIP";
+                btn.disabled = false;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+
+</html>

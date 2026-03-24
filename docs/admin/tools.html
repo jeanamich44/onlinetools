@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Outils Admin | ChezRheyy</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/lucide@0.294.0/dist/umd/lucide.min.js"></script>
+    <title>Liste des Outils | ChezRheyy Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="../css/admin.css">
     <style>
         .tools-grid {
@@ -88,53 +88,59 @@
 <body>
     <div class="sidebar">
         <div class="logo">
-            <i data-lucide="shield"></i> ChezRheyy Admin
+            <i data-lucide="shield"></i> ChezRheyy <span>Admin</span>
         </div>
         <nav>
             <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-            <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> Payments</a>
-            <a href="tools.html" class="nav-item active"><i data-lucide="tool"></i> Tools</a>
-            <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> Audio Analyse</a>
+            <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> Paiements</a>
+            <a href="tools.html" class="nav-item active"><i data-lucide="tool"></i> Outils</a>
+            <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> Analyse Audio</a>
         </nav>
     </div>
 
     <div class="main">
         <header>
-            <h1>Liste de tous les Outils</h1>
+            <div>
+                <h1>Catalogue des Outils</h1>
+                <p>Liste exhaustive des générateurs et outils disponibles.</p>
+            </div>
             <button class="btn-logout" onclick="logout()">Déconnexion</button>
         </header>
 
         <div class="tools-grid">
-            <!-- MRZ (Admin Native) -->
+            <!-- MRZ -->
             <div class="tool-card">
+                <img src="img/mrz_icon.svg" class="tool-img">
                 <div class="tool-content">
                     <span class="tool-tag">ADMIN</span>
                     <div class="tool-title">Générateur MRZ</div>
-                    <div class="tool-desc">Génère les lignes de code MRZ pour les documents d'identité nationaux.</div>
+                    <div class="tool-desc">Lignes de code OCR pour documents d'identité nationaux.</div>
                 </div>
                 <div class="tool-footer">
-                    <a href="#" class="btn-tool" onclick="showLegacyTool('mrz')">Ouvrir</a>
+                    <a href="mrz.html" class="btn-tool">Ouvrir</a>
                 </div>
             </div>
 
-            <!-- QR ZIP (Admin Native) -->
+            <!-- QR ZIP -->
             <div class="tool-card">
+                <img src="img/qrzip_icon.svg" class="tool-img">
                 <div class="tool-content">
                     <span class="tool-tag">ADMIN</span>
                     <div class="tool-title">Générateur QR ZIP</div>
-                    <div class="tool-desc">Crée une archive ZIP contenant plusieurs codes QR à la volée.</div>
+                    <div class="tool-desc">Compression de plusieurs codes QR dans une archive ZIP.</div>
                 </div>
                 <div class="tool-footer">
-                    <a href="#" class="btn-tool" onclick="showLegacyTool('qr')">Ouvrir</a>
+                    <a href="qr_zip.html" class="btn-tool">Ouvrir</a>
                 </div>
             </div>
 
             <!-- Audio Analyse -->
             <div class="tool-card">
+                <img src="img/audio_icon.svg" class="tool-img">
                 <div class="tool-content">
                     <span class="tool-tag">AI</span>
-                    <div class="tool-title">Analyse Audio</div>
-                    <div class="tool-desc">Nettoyage sonore et transcription Whisper avec double passage.</div>
+                    <div class="tool-title">Analyse AI Audio</div>
+                    <div class="tool-desc">Transcription et nettoyage sonore par intelligence artificielle.</div>
                 </div>
                 <div class="tool-footer">
                     <a href="audio_analyse.html" class="btn-tool">Ouvrir</a>
@@ -150,7 +156,7 @@
                     <div class="tool-desc">Générateur de RIB PDF (LBP, Société Générale, etc).</div>
                 </div>
                 <div class="tool-footer">
-                    <a href="../rib/rib-generator.html" class="btn-tool secondary">Voir Client</a>
+                    <a href="../rib/rib-generator.html" class="btn-tool secondary">Interface Client</a>
                 </div>
             </div>
 
@@ -160,10 +166,10 @@
                 <div class="tool-content">
                     <span class="tool-tag">AUTO</span>
                     <div class="tool-title">Assurance</div>
-                    <div class="tool-desc">Justificatifs d'assurance pour voiture et moto.</div>
+                    <div class="tool-desc">Cartes vertes et justificatifs d'assurance pour tous véhicules.</div>
                 </div>
                 <div class="tool-footer">
-                    <a href="../assurance/assurance-liste.html" class="btn-tool secondary">Voir Client</a>
+                    <a href="../assurance/assurance-liste.html" class="btn-tool secondary">Interface Client</a>
                 </div>
             </div>
 
@@ -173,10 +179,10 @@
                 <div class="tool-content">
                     <span class="tool-tag">ACHAT</span>
                     <div class="tool-title">Facture PDF</div>
-                    <div class="tool-desc">Plus de 20 enseignes disponibles pour création de factures.</div>
+                    <div class="tool-desc">Modèles de factures pour les plus grandes enseignes nationales.</div>
                 </div>
                 <div class="tool-footer">
-                    <a href="../facture/facture-liste.html" class="btn-tool secondary">Voir Client</a>
+                    <a href="../facture/facture-liste.html" class="btn-tool secondary">Interface Client</a>
                 </div>
             </div>
 
@@ -186,10 +192,10 @@
                 <div class="tool-content">
                     <span class="tool-tag">LIVRAISON</span>
                     <div class="tool-title">Chronopost -50%</div>
-                    <div class="tool-desc">Génération de bordereaux Chronopost avec tarifs réduits.</div>
+                    <div class="tool-desc">Création de bordereaux d'expédition officiels Chronopost.</div>
                 </div>
                 <div class="tool-footer">
-                    <a href="../chronopost/chronopost-liste.html" class="btn-tool secondary">Voir Client</a>
+                    <a href="../chronopost/chronopost-liste.html" class="btn-tool secondary">Interface Client</a>
                 </div>
             </div>
 
@@ -199,87 +205,19 @@
                 <div class="tool-content">
                     <span class="tool-tag">LIVRAISON</span>
                     <div class="tool-title">Colissimo -50%</div>
-                    <div class="tool-desc">Étiquettes officielles Colissimo à prix réduit.</div>
+                    <div class="tool-desc">Étiquettes d'envoi Colissimo pour la France et l'international.</div>
                 </div>
                 <div class="tool-footer">
-                    <a href="../colissimo/colissimo-liste.html" class="btn-tool secondary">Voir Client</a>
+                    <a href="../colissimo/colissimo-liste.html" class="btn-tool secondary">Interface Client</a>
                 </div>
             </div>
-        </div>
-
-        <!-- Popups pour les outils legacy mrz/qr si besoin, ou on peut les mettre en bas -->
-        <div id="legacyBox" style="display:none; margin-top: 30px; background: #161a22; padding: 30px; border-radius: 16px; border: 1px solid #3b82f6;">
-            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 id="legacyTitle" style="margin:0;">Outil</h2>
-                <button onclick="document.getElementById('legacyBox').style.display='none'" style="background:none; border:none; color:#ef4444; cursor:pointer;"><i data-lucide="x"></i> Fermer</button>
-            </div>
-            <div id="legacyContent"></div>
         </div>
     </div>
 
     <script>
-        lucide.createIcons();
-        const API_BASE = "https://rheyy-services.up.railway.app";
+        document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
         const token = localStorage.getItem('adminToken');
-
         if (!token) window.location.href = 'index.html';
-
-        function showLegacyTool(type) {
-            const box = document.getElementById('legacyBox');
-            const title = document.getElementById('legacyTitle');
-            const content = document.getElementById('legacyContent');
-            box.style.display = 'block';
-            box.scrollIntoView({ behavior: 'smooth' });
-
-            if (type === 'mrz') {
-                title.innerText = "Générateur MRZ";
-                content.innerHTML = `
-                    <div style="display:grid; gap:15px; max-width:400px;">
-                        <input type="text" id="mrzNom" placeholder="Nom" class="form-input">
-                        <input type="text" id="mrzPrenom" placeholder="Prénom" class="form-input">
-                        <button onclick="runMRZ()" class="btn-action">Générer</button>
-                        <pre id="mrzRes" style="background:#0f1115; padding:15px; border-radius:8px; border:1px solid #2a2f3a; color:#38bdf8; font-size:12px;"></pre>
-                    </div>
-                `;
-            } else if (type === 'qr') {
-                title.innerText = "Générateur QR ZIP";
-                content.innerHTML = `
-                    <div style="display:grid; gap:15px; max-width:600px;">
-                        <textarea id="qrLines" placeholder="Une ligne par QR" class="form-input" rows="5"></textarea>
-                        <button onclick="runQR()" class="btn-action">Générer ZIP</button>
-                    </div>
-                `;
-            }
-        }
-
-        async function runMRZ() {
-            const nom = document.getElementById('mrzNom').value;
-            const prenom = document.getElementById('mrzPrenom').value;
-            const res = await fetch(`${API_BASE}/generate-mrz`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mode: 'manuel', nom, prenom })
-            });
-            const data = await res.json();
-            document.getElementById('mrzRes').innerText = data.mrz[0];
-        }
-
-        async function runQR() {
-            const lines = document.getElementById('qrLines').value.split('\n').filter(l => l.trim());
-            const res = await fetch(`${API_BASE}/generate-zip`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ lines })
-            });
-            if (res.ok) {
-                const blob = await res.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "qr_codes.zip";
-                a.click();
-            }
-        }
 
         function logout() {
             localStorage.removeItem('adminToken');
