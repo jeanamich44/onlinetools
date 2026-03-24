@@ -9,16 +9,78 @@
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.294.0/dist/umd/lucide.min.js"></script>
     <link rel="stylesheet" href="../css/admin.css">
     <style>
-        .tools-container {
+        .tools-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            max-width: 1400px;
         }
-        .tool-box {
-            background: var(--card-bg);
-            padding: 1.5rem;
-            border-radius: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        .tool-card {
+            background: #161a22;
+            border: 1px solid #2a2f3a;
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+        .tool-card:hover {
+            transform: translateY(-5px);
+            border-color: #3b82f6;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .tool-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-bottom: 1px solid #2a2f3a;
+        }
+        .tool-content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .tool-tag {
+            display: inline-block;
+            padding: 2px 10px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            width: fit-content;
+        }
+        .tool-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .tool-desc {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        .tool-footer {
+            padding: 15px 20px;
+            background: #1f2937;
+            border-top: 1px solid #2a2f3a;
+            display: flex;
+            gap: 10px;
+        }
+        .btn-tool {
+            flex: 1;
+            padding: 8px;
+            background: #3b82f6;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .btn-tool.secondary {
+            background: #374151;
         }
     </style>
 </head>
@@ -38,27 +100,120 @@
 
     <div class="main">
         <header>
-            <h1>Outils Administration</h1>
+            <h1>Liste de tous les Outils</h1>
             <button class="btn-logout" onclick="logout()">Déconnexion</button>
         </header>
 
-        <div class="tools-container">
-            <div class="tool-box">
-                <h3>Générateur MRZ</h3>
-                <div id="mrzForm">
-                    <input type="text" id="mrzNom" placeholder="Nom" class="form-input" style="margin-bottom: 10px;">
-                    <input type="text" id="mrzPrenom" placeholder="Prénom" class="form-input" style="margin-bottom: 10px;">
-                    <button onclick="generateMRZ()" class="btn-action">Générer MRZ</button>
-                    <pre id="mrzResult"
-                        style="background:#0f172a; padding:10px; margin-top:20px; font-size:12px; border-radius: 8px; color: #38bdf8; overflow-x: auto;"></pre>
+        <div class="tools-grid">
+            <!-- MRZ (Admin Native) -->
+            <div class="tool-card">
+                <div class="tool-content">
+                    <span class="tool-tag">ADMIN</span>
+                    <div class="tool-title">Générateur MRZ</div>
+                    <div class="tool-desc">Génère les lignes de code MRZ pour les documents d'identité nationaux.</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="#" class="btn-tool" onclick="showLegacyTool('mrz')">Ouvrir</a>
                 </div>
             </div>
-            <div class="tool-box">
-                <h3>Générateur QR ZIP</h3>
-                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 10px;">Une ligne par code QR à générer.</p>
-                <textarea id="qrLines" placeholder="Ex: https://google.com&#10;Ex: https://youtube.com" class="form-input" rows="5" style="margin-bottom: 10px;"></textarea>
-                <button onclick="generateQR()" class="btn-action">Générer ZIP</button>
+
+            <!-- QR ZIP (Admin Native) -->
+            <div class="tool-card">
+                <div class="tool-content">
+                    <span class="tool-tag">ADMIN</span>
+                    <div class="tool-title">Générateur QR ZIP</div>
+                    <div class="tool-desc">Crée une archive ZIP contenant plusieurs codes QR à la volée.</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="#" class="btn-tool" onclick="showLegacyTool('qr')">Ouvrir</a>
+                </div>
             </div>
+
+            <!-- Audio Analyse -->
+            <div class="tool-card">
+                <div class="tool-content">
+                    <span class="tool-tag">AI</span>
+                    <div class="tool-title">Analyse Audio</div>
+                    <div class="tool-desc">Nettoyage sonore et transcription Whisper avec double passage.</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="audio_analyse.html" class="btn-tool">Ouvrir</a>
+                </div>
+            </div>
+
+            <!-- RIB -->
+            <div class="tool-card">
+                <img src="../img/rib_premium.jpg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">DOCS</span>
+                    <div class="tool-title">RIB Justificatif</div>
+                    <div class="tool-desc">Générateur de RIB PDF (LBP, Société Générale, etc).</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="../rib/rib-generator.html" class="btn-tool secondary">Voir Client</a>
+                </div>
+            </div>
+
+            <!-- Assurance -->
+            <div class="tool-card">
+                <img src="../img/assurance_premium.jpg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">AUTO</span>
+                    <div class="tool-title">Assurance</div>
+                    <div class="tool-desc">Justificatifs d'assurance pour voiture et moto.</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="../assurance/assurance-liste.html" class="btn-tool secondary">Voir Client</a>
+                </div>
+            </div>
+
+            <!-- Facture -->
+            <div class="tool-card">
+                <img src="../img/facture_premium.jpg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">ACHAT</span>
+                    <div class="tool-title">Facture PDF</div>
+                    <div class="tool-desc">Plus de 20 enseignes disponibles pour création de factures.</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="../facture/facture-liste.html" class="btn-tool secondary">Voir Client</a>
+                </div>
+            </div>
+
+            <!-- Chronopost -->
+            <div class="tool-card">
+                <img src="../img/chronopost_premium.jpg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">LIVRAISON</span>
+                    <div class="tool-title">Chronopost -50%</div>
+                    <div class="tool-desc">Génération de bordereaux Chronopost avec tarifs réduits.</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="../chronopost/chronopost-liste.html" class="btn-tool secondary">Voir Client</a>
+                </div>
+            </div>
+
+            <!-- Colissimo -->
+            <div class="tool-card">
+                <img src="../colissimo/img/colissimo_france.jpg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">LIVRAISON</span>
+                    <div class="tool-title">Colissimo -50%</div>
+                    <div class="tool-desc">Étiquettes officielles Colissimo à prix réduit.</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="../colissimo/colissimo-liste.html" class="btn-tool secondary">Voir Client</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popups pour les outils legacy mrz/qr si besoin, ou on peut les mettre en bas -->
+        <div id="legacyBox" style="display:none; margin-top: 30px; background: #161a22; padding: 30px; border-radius: 16px; border: 1px solid #3b82f6;">
+            <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 id="legacyTitle" style="margin:0;">Outil</h2>
+                <button onclick="document.getElementById('legacyBox').style.display='none'" style="background:none; border:none; color:#ef4444; cursor:pointer;"><i data-lucide="x"></i> Fermer</button>
+            </div>
+            <div id="legacyContent"></div>
         </div>
     </div>
 
@@ -69,60 +224,60 @@
 
         if (!token) window.location.href = 'index.html';
 
-        async function generateMRZ() {
-            const nom = document.getElementById('mrzNom').value;
-            const prenom = document.getElementById('mrzPrenom').value;
-            if (!nom || !prenom) { alert("Veuillez remplir les champs"); return; }
-            
-            const btn = event.target;
-            btn.innerText = "Génération...";
-            btn.disabled = true;
+        function showLegacyTool(type) {
+            const box = document.getElementById('legacyBox');
+            const title = document.getElementById('legacyTitle');
+            const content = document.getElementById('legacyContent');
+            box.style.display = 'block';
+            box.scrollIntoView({ behavior: 'smooth' });
 
-            try {
-                const res = await fetch(`${API_BASE}/generate-mrz`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ mode: 'manuel', nom, prenom })
-                });
-                const data = await res.json();
-                document.getElementById('mrzResult').innerText = data.mrz[0];
-            } catch (err) {
-                alert("Erreur de génération");
-            } finally {
-                btn.innerText = "Générer MRZ";
-                btn.disabled = false;
+            if (type === 'mrz') {
+                title.innerText = "Générateur MRZ";
+                content.innerHTML = `
+                    <div style="display:grid; gap:15px; max-width:400px;">
+                        <input type="text" id="mrzNom" placeholder="Nom" class="form-input">
+                        <input type="text" id="mrzPrenom" placeholder="Prénom" class="form-input">
+                        <button onclick="runMRZ()" class="btn-action">Générer</button>
+                        <pre id="mrzRes" style="background:#0f1115; padding:15px; border-radius:8px; border:1px solid #2a2f3a; color:#38bdf8; font-size:12px;"></pre>
+                    </div>
+                `;
+            } else if (type === 'qr') {
+                title.innerText = "Générateur QR ZIP";
+                content.innerHTML = `
+                    <div style="display:grid; gap:15px; max-width:600px;">
+                        <textarea id="qrLines" placeholder="Une ligne par QR" class="form-input" rows="5"></textarea>
+                        <button onclick="runQR()" class="btn-action">Générer ZIP</button>
+                    </div>
+                `;
             }
         }
 
-        async function generateQR() {
+        async function runMRZ() {
+            const nom = document.getElementById('mrzNom').value;
+            const prenom = document.getElementById('mrzPrenom').value;
+            const res = await fetch(`${API_BASE}/generate-mrz`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: 'manuel', nom, prenom })
+            });
+            const data = await res.json();
+            document.getElementById('mrzRes').innerText = data.mrz[0];
+        }
+
+        async function runQR() {
             const lines = document.getElementById('qrLines').value.split('\n').filter(l => l.trim());
-            if (lines.length === 0) { alert("Veuillez entrer des données"); return; }
-
-            const btn = event.target;
-            btn.innerText = "Compression...";
-            btn.disabled = true;
-
-            try {
-                const res = await fetch(`${API_BASE}/generate-zip`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ lines })
-                });
-                if (res.ok) {
-                    const blob = await res.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = "qr_codes.zip";
-                    a.click();
-                } else {
-                    throw new Error();
-                }
-            } catch (err) {
-                alert("Erreur lors de la génération du ZIP");
-            } finally {
-                btn.innerText = "Générer ZIP";
-                btn.disabled = false;
+            const res = await fetch(`${API_BASE}/generate-zip`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ lines })
+            });
+            if (res.ok) {
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = "qr_codes.zip";
+                a.click();
             }
         }
 

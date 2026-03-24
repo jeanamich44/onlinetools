@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tableau de Bord | ChezRheyy Admin</title>
+    <title>Administration | ChezRheyy</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.294.0/dist/umd/lucide.min.js"></script>
     <link rel="stylesheet" href="../css/admin.css">
@@ -25,52 +25,43 @@
 
     <div class="main">
         <header>
-            <h1>Administration des Services</h1>
+            <div>
+                <h1 style="margin:0;">Tableau de Bord Administration</h1>
+                <p style="color: var(--text-muted); margin-top: 5px;">Bienvenue dans votre espace de gestion des services.</p>
+            </div>
             <button class="btn-logout" onclick="logout()">Déconnexion</button>
         </header>
-
-        <section class="intro" style="margin-bottom: 40px;">
-            <p style="color: var(--text-muted); font-size: 1.1rem;">Sélectionnez un service pour accéder à ses outils de gestion.</p>
-        </section>
 
         <div class="services-grid">
             <!-- PAIEMENTS -->
             <div class="service-card">
                 <div class="service-icon"><i data-lucide="credit-card"></i></div>
-                <h3>Gestion des Paiements</h3>
-                <p>Visualisez les transactions, vérifiez les revenus et suivez le statut des commandes clients en temps réel.</p>
-                <div class="wrapper-link-offer" style="margin-top: auto;">
-                    <a class="btn-action" href="payments.html" style="display: block; text-decoration: none; text-align: center;">Accéder</a>
-                </div>
+                <h3>Paiements & Stats</h3>
+                <p>Suivi des transactions, revenus totaux et validation des paiements clients en temps réel.</p>
+                <a class="btn-action" href="payments.html">Gérer les paiements</a>
             </div>
 
             <!-- OUTILS -->
             <div class="service-card">
-                <div class="service-icon"><i data-lucide="tool"></i></div>
-                <h3>Outils Générateurs</h3>
-                <p>Gérez les outils spécialisés : Générateur MRZ (Documents) et création de archives QR Codes ZIP.</p>
-                <div class="wrapper-link-offer" style="margin-top: auto;">
-                    <a class="btn-action" href="tools.html" style="display: block; text-decoration: none; text-align: center;">Accéder</a>
-                </div>
+                <div class="service-icon"><i data-lucide="wrench"></i></div>
+                <h3>Tous les Outils</h3>
+                <p>Accès complet aux générateurs MRZ, QR Codes et tous les services de génération clients.</p>
+                <a class="btn-action" href="tools.html">Ouvrir la liste</a>
             </div>
 
             <!-- AUDIO -->
             <div class="service-card">
-                <div class="service-icon"><i data-lucide="mic"></i></div>
-                <h3>Analyse Audio AI</h3>
-                <p>Outil avancé de nettoyage sonore et transcription vocale intelligente avec comparaison de passages.</p>
-                <div class="wrapper-link-offer" style="margin-top: auto;">
-                    <a class="btn-action" href="audio_analyse.html" style="display: block; text-decoration: none; text-align: center;">Accéder</a>
-                </div>
+                <div class="service-icon"><i data-lucide="mic-2"></i></div>
+                <h3>Analyse AI Audio</h3>
+                <p>Outil professionnel de nettoyage de bruit et transcription intelligente (Whisper AI).</p>
+                <a class="btn-action" href="audio_analyse.html">Lancer l'analyse</a>
             </div>
         </div>
-
     </div>
 
     <script>
         lucide.createIcons();
         const token = localStorage.getItem('adminToken');
-
         if (!token) window.location.href = 'index.html';
 
         function logout() {
