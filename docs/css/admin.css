@@ -23,6 +23,81 @@ body {
     overflow-x: hidden;
 }
 
+/* LOGIN PAGE */
+.login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.login-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 3rem;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.login-card h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    color: #fff;
+}
+
+.login-card p {
+    color: var(--text-muted);
+    margin-bottom: 2.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.btn-login {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
+    box-shadow: 0 4px 15px var(--primary-glow);
+}
+
+.btn-login:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+}
+
+.error-msg {
+    margin-top: 1.5rem;
+    color: #ef4444;
+    font-size: 0.9rem;
+    padding: 10px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 8px;
+    display: none;
+}
+
 /* SIDEBAR */
 .sidebar {
     width: 280px;
@@ -241,15 +316,23 @@ td { padding: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-siz
 .status-paid { background: rgba(16, 185, 129, 0.1); color: #10b981; }
 .status-pending { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
 
-/* TOOLS FORMS */
-.form-input {
+.form-input, 
+input[type="text"],
+input[type="password"],
+input[type="number"],
+input[type="email"] {
     background: var(--bg-color);
     border: 1px solid var(--border);
-    padding: 12px 16px;
+    padding: 14px 16px;
     border-radius: 12px;
     color: #fff;
     font-size: 1rem;
     width: 100%;
+    transition: border-color 0.2s;
 }
 
-.form-input:focus { outline: none; border-color: var(--primary); }
+.form-input:focus,
+input:focus { 
+    outline: none; 
+    border-color: var(--primary); 
+}

@@ -13,4 +13,5 @@ av
 numpy
 faster-whisper
 noisereduce
+paramiko
 colorama
