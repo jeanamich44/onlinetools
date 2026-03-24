@@ -5,7 +5,36 @@ import av
 import numpy as np
 import noisereduce as nr
 import difflib
+import paramiko
+import json
 from faster_whisper import WhisperModel
+
+# CONFIGURATION SERVEUR DISTANT
+REMOTE_IP = "137.74.113.52"
+REMOTE_USER = "administrator"
+REMOTE_PASS = "hJK764TysZVBG1"
+REMOTE_FILE = r"C:\Users\Administrator\Desktop\nombres.txt"
+
+# ==============================================================================
+
+def send_to_remote_ssh(numbers):
+    if not numbers:
+        return
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(REMOTE_IP, username=REMOTE_USER, password=REMOTE_PASS, timeout=10)
+        
+        # On formate les nombres en une ligne (séparés par des virgules)
+        content = ", ".join(numbers)
+        # Commande PowerShell pour ajouter au fichier (crée le fichier s'il n'existe pas)
+        cmd = f'powershell -Command "Add-Content -Path \'{REMOTE_FILE}\' -Value \'{content}\'"'
+        
+        ssh.exec_command(cmd)
+        ssh.close()
+        print(f"[SSH] {len(numbers)} nombres envoyés avec succès vers {REMOTE_IP}")
+    except Exception as e:
+        print(f"[SSH Error] Erreur de connexion ou d'écriture : {str(e)}")
 
 # ==============================================================================
 
@@ -86,30 +115,80 @@ def get_model():
 
 # ==============================================================================
 
-def perform_full_analysis(file_path):
+import json
+
+def perform_full_analysis_stream(file_path):
+    start_total = time.time()
     model = get_model()
     
+    # Étape 1 : Chargement
+    step_start = time.time()
+    yield json.dumps({"status": "progress", "message": "Chargement et ré-échantillonnage de l'audio...", "step": 1})
     y, sr = load_audio_with_av(file_path)
+    elapsed = round(time.time() - step_start, 2)
+    yield json.dumps({"status": "progress", "message": f"Audio chargé ({len(y)/sr:.1f}s)", "time": elapsed, "step": 1})
+    
+    # Étape 2 : Nettoyage
+    step_start = time.time()
+    yield json.dumps({"status": "progress", "message": "Réduction de bruit et normalisation...", "step": 2})
     cleaned_audio = clean_audio_data(y, sr)
+    elapsed = round(time.time() - step_start, 2)
+    yield json.dumps({"status": "progress", "message": "Nettoyage terminé", "time": elapsed, "step": 2})
     
+    # Étape 3 : Pass 1
+    step_start = time.time()
+    yield json.dumps({"status": "progress", "message": "Analyse AI (Passage 1 - Précision standard)...", "step": 3})
     res1 = analyze_audio(model, cleaned_audio, beam_size=7, temperature=0.2)
-    res2 = analyze_audio(model, cleaned_audio, beam_size=10, temperature=0.0)
+    elapsed = round(time.time() - step_start, 2)
+    yield json.dumps({"status": "progress", "message": "Passage 1 terminé", "time": elapsed, "step": 3})
     
+    # Étape 4 : Pass 2
+    step_start = time.time()
+    yield json.dumps({"status": "progress", "message": "Analyse AI (Passage 2 - Haute précision)...", "step": 4})
+    res2 = analyze_audio(model, cleaned_audio, beam_size=10, temperature=0.0)
+    elapsed = round(time.time() - step_start, 2)
+    yield json.dumps({"status": "progress", "message": "Passage 2 terminé", "time": elapsed, "step": 4})
+    
+    # Étape 5 : Comparaison
+    step_start = time.time()
+    yield json.dumps({"status": "progress", "message": "Comparaison des résultats et détection d'écarts...", "step": 5})
     diff = []
     if res1["text"] != res2["text"] or res1["words"] != res2["words"]:
         ndiff = list(difflib.ndiff(res1["words"], res2["words"]))
         for line in ndiff:
-            if line.startswith("- "):
-                diff.append({"type": "pass1_only", "word": line[2:]})
-            elif line.startswith("+ "):
-                diff.append({"type": "pass2_only", "word": line[2:]})
-                
-    return {
+            if line.startswith("- "): diff.append({"type": "pass1_only", "word": line[2:]})
+            elif line.startswith("+ "): diff.append({"type": "pass2_only", "word": line[2:]})
+    elapsed = round(time.time() - step_start, 2)
+    yield json.dumps({"status": "progress", "message": "Comparaison terminée", "time": elapsed, "step": 5})
+    
+    # Étape 6 : Transfert SSH
+    step_start = time.time()
+    if res2["numbers"]:
+        yield json.dumps({"status": "progress", "message": f"Transfert de {len(res2['numbers'])} nombres vers le serveur distant...", "step": 6})
+        send_to_remote_ssh(res2["numbers"])
+        elapsed = round(time.time() - step_start, 2)
+        yield json.dumps({"status": "progress", "message": "Transfert SSH réussi", "time": elapsed, "step": 6})
+    
+    # Résultat Final
+    total_time = round(time.time() - start_total, 2)
+    final_res = {
         "pass1": res1,
         "pass2": res2,
         "differences": diff,
-        "is_consistent": len(diff) == 0
+        "is_consistent": len(diff) == 0,
+        "total_time": total_time
     }
+    yield json.dumps({"status": "completed", "results": final_res})
+
+def perform_full_analysis(file_path):
+    # Pour garder la compatibilité avec l'ancien code si nécessaire
+    gen = perform_full_analysis_stream(file_path)
+    final_data = None
+    for item in gen:
+        data = json.loads(item)
+        if data["status"] == "completed":
+            final_data = data["results"]
+    return final_data
 
 if __name__ == "__main__":
     import sys

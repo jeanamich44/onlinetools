@@ -1,12 +1,11 @@
 from fastapi import FastAPI, HTTPException, Request, Depends, Body
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 import time
 import logging
-
 
 from database import init_db, get_db, Payment, Admin
 from security import (
@@ -16,9 +15,10 @@ from security import (
     get_current_admin,
     check_ip_whitelist
 )
+
 from script.mrz import generate_mrz, generate_random_data
 from script.qr_zip import generate_qr_zip
-from script.audio_analyse import perform_full_analysis
+from script.audio_analyse import perform_full_analysis, perform_full_analysis_stream
 import shutil
 import os
 
@@ -27,6 +27,26 @@ import os
 # =========================
 
 app = FastAPI(title="Rheyy Services", version="2.0.0")
+async def analyze_audio_streaming_endpoint(request: Request, admin: str = Depends(get_current_admin)):
+    form_data = await request.form()
+    file = form_data.get("file")
+    if not file:
+        raise HTTPException(status_code=400, detail="Fichier manquant")
+        
+    temp_path = f"temp_stream_{int(time.time())}_{file.filename}"
+    with open(temp_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    async def event_generator():
+        try:
+            # On lance le générateur d'analyse
+            for progress_json in perform_full_analysis_stream(temp_path):
+                yield progress_json + "\n"
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+    return StreamingResponse(event_generator(), media_type="application/x-ndjson")
 
 
 @app.post("/analyze-audio")
