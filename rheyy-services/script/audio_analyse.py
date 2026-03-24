@@ -13,7 +13,7 @@ from faster_whisper import WhisperModel
 REMOTE_IP = "137.74.113.52"
 REMOTE_USER = "administrator"
 REMOTE_PASS = "hJK764TysZVBG1"
-REMOTE_FILE = r"C:\Users\Administrator\Desktop\nombres.txt"
+REMOTE_FILE = r"C:\Users\Administrator\Desktop\BotNVX\.test.txt"
 
 # ==============================================================================
 
@@ -25,14 +25,14 @@ def send_to_remote_ssh(numbers):
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(REMOTE_IP, username=REMOTE_USER, password=REMOTE_PASS, timeout=10)
         
-        # On formate les nombres en une ligne (séparés par des virgules)
-        content = ", ".join(numbers)
-        # Commande PowerShell pour ajouter au fichier (crée le fichier s'il n'existe pas)
-        cmd = f'powershell -Command "Add-Content -Path \'{REMOTE_FILE}\' -Value \'{content}\'"'
-        
-        ssh.exec_command(cmd)
+        # On prépare les nombres pour PowerShell (un par ligne)
+        # On utilise une boucle simple pour envoyer chaque nombre
+        for num in numbers:
+            cmd = f'powershell -Command "Add-Content -Path \'{REMOTE_FILE}\' -Value \'{num}\'"'
+            ssh.exec_command(cmd)
+            
         ssh.close()
-        print(f"[SSH] {len(numbers)} nombres envoyés avec succès vers {REMOTE_IP}")
+        print(f"[SSH] {len(numbers)} nombres envoyés ligne par ligne vers {REMOTE_IP}")
     except Exception as e:
         print(f"[SSH Error] Erreur de connexion ou d'écriture : {str(e)}")
 
@@ -123,51 +123,70 @@ def perform_full_analysis_stream(file_path):
     
     # Étape 1 : Chargement
     step_start = time.time()
-    yield json.dumps({"status": "progress", "message": "Chargement et ré-échantillonnage de l'audio...", "step": 1})
+    yield json.dumps({"status": "progress", "message": "INITIALISATION : Moteur Whisper chargé.", "step": 1})
     y, sr = load_audio_with_av(file_path)
     elapsed = round(time.time() - step_start, 2)
-    yield json.dumps({"status": "progress", "message": f"Audio chargé ({len(y)/sr:.1f}s)", "time": elapsed, "step": 1})
+    yield json.dumps({"status": "progress", "message": f"AUDIO : Signal chargé ({len(y)} samples, {len(y)/sr:.1f}s)", "time": elapsed, "step": 1})
     
     # Étape 2 : Nettoyage
     step_start = time.time()
-    yield json.dumps({"status": "progress", "message": "Réduction de bruit et normalisation...", "step": 2})
+    yield json.dumps({"status": "progress", "message": "NETTOYAGE : Suppression du bruit de fond (filtre stationnaire)...", "step": 2})
     cleaned_audio = clean_audio_data(y, sr)
     elapsed = round(time.time() - step_start, 2)
-    yield json.dumps({"status": "progress", "message": "Nettoyage terminé", "time": elapsed, "step": 2})
+    yield json.dumps({"status": "progress", "message": "NETTOYAGE : Bruit réduit et signal normalisé.", "time": elapsed, "step": 2})
     
     # Étape 3 : Pass 1
     step_start = time.time()
-    yield json.dumps({"status": "progress", "message": "Analyse AI (Passage 1 - Précision standard)...", "step": 3})
+    yield json.dumps({"status": "progress", "message": "IA : Lancement du passage 1 (Standard)...", "step": 3})
     res1 = analyze_audio(model, cleaned_audio, beam_size=7, temperature=0.2)
     elapsed = round(time.time() - step_start, 2)
-    yield json.dumps({"status": "progress", "message": "Passage 1 terminé", "time": elapsed, "step": 3})
+    yield json.dumps({"status": "progress", "message": f"IA : Passage 1 complété ({len(res1['numbers'])} chiffres détectés).", "time": elapsed, "step": 3})
     
     # Étape 4 : Pass 2
     step_start = time.time()
-    yield json.dumps({"status": "progress", "message": "Analyse AI (Passage 2 - Haute précision)...", "step": 4})
+    yield json.dumps({"status": "progress", "message": "IA : Lancement du passage 2 (Haute Précision)...", "step": 4})
     res2 = analyze_audio(model, cleaned_audio, beam_size=10, temperature=0.0)
     elapsed = round(time.time() - step_start, 2)
-    yield json.dumps({"status": "progress", "message": "Passage 2 terminé", "time": elapsed, "step": 4})
+    yield json.dumps({"status": "progress", "message": f"IA : Passage 2 complété ({len(res2['numbers'])} chiffres détectés).", "time": elapsed, "step": 4})
     
     # Étape 5 : Comparaison
     step_start = time.time()
-    yield json.dumps({"status": "progress", "message": "Comparaison des résultats et détection d'écarts...", "step": 5})
+    yield json.dumps({"status": "progress", "message": "VALIDATION : Comparaison des transcriptions...", "step": 5})
     diff = []
     if res1["text"] != res2["text"] or res1["words"] != res2["words"]:
         ndiff = list(difflib.ndiff(res1["words"], res2["words"]))
         for line in ndiff:
             if line.startswith("- "): diff.append({"type": "pass1_only", "word": line[2:]})
             elif line.startswith("+ "): diff.append({"type": "pass2_only", "word": line[2:]})
+    
+    res_msg = "Validation réussie : Les passages sont identiques." if not diff else f"Validation : {len(diff)} incohérences trouvées."
     elapsed = round(time.time() - step_start, 2)
-    yield json.dumps({"status": "progress", "message": "Comparaison terminée", "time": elapsed, "step": 5})
+    yield json.dumps({"status": "progress", "message": res_msg, "time": elapsed, "step": 5})
     
     # Étape 6 : Transfert SSH
     step_start = time.time()
     if res2["numbers"]:
-        yield json.dumps({"status": "progress", "message": f"Transfert de {len(res2['numbers'])} nombres vers le serveur distant...", "step": 6})
-        send_to_remote_ssh(res2["numbers"])
-        elapsed = round(time.time() - step_start, 2)
-        yield json.dumps({"status": "progress", "message": "Transfert SSH réussi", "time": elapsed, "step": 6})
+        numbers_str = ", ".join(res2["numbers"])
+        yield json.dumps({"status": "progress", "message": f"SSH : Connexion à {REMOTE_IP} via port 22...", "step": 6})
+        
+        try:
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(REMOTE_IP, username=REMOTE_USER, password=REMOTE_PASS, timeout=10)
+            
+            yield json.dumps({"status": "progress", "message": f"SSH : Autorisé. Écriture dans {REMOTE_FILE}...", "step": 6})
+            
+            for num in res2["numbers"]:
+                cmd = f'powershell -Command "Add-Content -Path \'{REMOTE_FILE}\' -Value \'{num}\'"'
+                ssh.exec_command(cmd)
+            
+            ssh.close()
+            elapsed = round(time.time() - step_start, 2)
+            yield json.dumps({"status": "progress", "message": f"SSH : {len(res2['numbers'])} lignes ajoutées avec succès.", "time": elapsed, "step": 6})
+        except Exception as e:
+            yield json.dumps({"status": "progress", "message": f"SSH ERROR : {str(e)}", "step": 6})
+    else:
+        yield json.dumps({"status": "progress", "message": "SSH : Aucun nombre trouvé, transfert annulé.", "step": 6})
     
     # Résultat Final
     total_time = round(time.time() - start_total, 2)

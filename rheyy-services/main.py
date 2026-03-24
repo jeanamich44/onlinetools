@@ -7,8 +7,8 @@ from datetime import datetime, timedelta
 import time
 import logging
 
-from database import init_db, get_db, Payment, Admin
-from security import (
+from script.database import init_db, get_db, Payment, Admin
+from script.security import (
     get_password_hash, 
     verify_password, 
     create_access_token, 
