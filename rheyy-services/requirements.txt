@@ -9,3 +9,8 @@ passlib[bcrypt]
 python-dotenv
 qrcode
 pillow
+av
+numpy
+faster-whisper
+noisereduce
+colorama

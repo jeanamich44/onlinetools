@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Audio | ChezRheyy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.294.0/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .analysis-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .pass-box {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .pass-box h4 {
+            margin-top: 0;
+            color: #38bdf8;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+        }
+        .result-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #e2e8f0;
+            white-space: pre-wrap;
+        }
+        .diff-box {
+            grid-column: 1 / -1;
+            background: #450a0a;
+            border: 1px solid #991b1b;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        .diff-item.pass1 { color: #f87171; }
+        .diff-item.pass2 { color: #38bdf8; }
+        .loading {
+            display: none;
+            margin: 20px 0;
+            text-align: center;
+            color: #38bdf8;
+        }
+        .stat-meta {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <i data-lucide="shield"></i> ChezRheyy Admin
+        </div>
+        <nav>
+            <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+            <a href="#" class="nav-item"><i data-lucide="credit-card"></i> Payments</a>
+            <a href="audio_analyse.html" class="nav-item active"><i data-lucide="mic"></i> Audio Analyse</a>
+        </nav>
+    </div>
+
+    <div class="main">
+        <header>
+            <h1>Analyse Audio</h1>
+            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        </header>
+
+        <div class="tool-box" style="max-width: 600px;">
+            <h3>Télécharger un fichier audio</h3>
+            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 15px;">Le script va nettoyer le bruit et transcrire l'audio en deux passages pour vérifier la cohérence.</p>
+            <input type="file" id="audioFile" class="form-input" accept="audio/*">
+            <button onclick="startAnalysis()" id="btnStart" class="btn-action" style="margin-top: 10px;">Lancer l'analyse</button>
+            <div id="loader" class="loading">
+                <i data-lucide="loader-2" class="spin"></i> Analyse en cours (cela peut prendre 1-2 minutes)...
+            </div>
+        </div>
+
+        <div id="results" style="display: none;">
+            <div id="diffAlert" class="diff-box">
+                <h4 style="margin: 0 0 10px 0;"><i data-lucide="alert-triangle"></i> Incohérences détectées</h4>
+                <div id="diffContent"></div>
+            </div>
+
+            <div class="analysis-container">
+                <div class="pass-box">
+                    <h4>Passage #1 (Mode Exploration)</h4>
+                    <div id="text1" class="result-text"></div>
+                    <div id="meta1" class="stat-meta"></div>
+                </div>
+                <div class="pass-box">
+                    <h4>Passage #2 (Mode Brute)</h4>
+                    <div id="text2" class="result-text"></div>
+                    <div id="meta2" class="stat-meta"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const API_BASE = "https://rheyy-services.up.railway.app";
+        const token = localStorage.getItem('adminToken');
+
+        if (!token) window.location.href = 'index.html';
+
+        async function startAnalysis() {
+            const fileInput = document.getElementById('audioFile');
+            if (fileInput.files.length === 0) {
+                alert("Veuillez choisir un fichier.");
+                return;
+            }
+
+            const btn = document.getElementById('btnStart');
+            const loader = document.getElementById('loader');
+            const resultsDiv = document.getElementById('results');
+            
+            btn.disabled = true;
+            loader.style.display = 'block';
+            resultsDiv.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            try {
+                const res = await fetch(`${API_BASE}/analyze-audio`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || "Erreur serveur");
+                }
+
+                const data = await res.json();
+                displayResults(data);
+            } catch (err) {
+                alert("Erreur: " + err.message);
+                console.error(err);
+            } finally {
+                btn.disabled = false;
+                loader.style.display = 'none';
+            }
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+
+            document.getElementById('text1').innerText = data.pass1.text;
+            document.getElementById('meta1').innerText = `${data.pass1.word_count} mots détectés`;
+
+            document.getElementById('text2').innerText = data.pass2.text;
+            document.getElementById('meta2').innerText = `${data.pass2.word_count} mots détectés`;
+
+            const diffAlert = document.getElementById('diffAlert');
+            const diffContent = document.getElementById('diffContent');
+            
+            if (!data.is_consistent) {
+                diffAlert.style.display = 'block';
+                diffContent.innerHTML = data.differences.map(d => `
+                    <div class="diff-item ${d.type === 'pass1_only' ? 'pass1' : 'pass2'}">
+                        ${d.type === 'pass1_only' ? '[-] Pass 1 unique: ' : '[+] Pass 2 unique: '} ${d.word}
+                    </div>
+                `).join('');
+            } else {
+                diffAlert.style.display = 'none';
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+
+</html>

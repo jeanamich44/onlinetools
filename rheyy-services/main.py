@@ -18,12 +18,37 @@ from security import (
 )
 from script.mrz import generate_mrz, generate_random_data
 from script.qr_zip import generate_qr_zip
+from script.audio_analyse import perform_full_analysis
+import shutil
+import os
 
 # =========================
 # SETUP
 # =========================
 
 app = FastAPI(title="Rheyy Services", version="2.0.0")
+
+
+@app.post("/analyze-audio")
+async def analyze_audio_endpoint(request: Request, admin: str = Depends(get_current_admin)):
+    form_data = await request.form()
+    file = form_data.get("file")
+    if not file:
+        raise HTTPException(status_code=400, detail="Fichier manquant")
+        
+    temp_path = f"temp_{int(time.time())}_{file.filename}"
+    try:
+        with open(temp_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        results = perform_full_analysis(temp_path)
+        return results
+    except Exception as e:
+        logger.error(f"Erreur d'analyse: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
 
 app.add_middleware(
     CORSMiddleware,
