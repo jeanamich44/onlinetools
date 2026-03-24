@@ -27,6 +27,7 @@ import os
 # =========================
 
 app = FastAPI(title="Rheyy Services", version="2.0.0")
+@app.post("/analyze-audio-stream")
 async def analyze_audio_streaming_endpoint(request: Request, admin: str = Depends(get_current_admin)):
     form_data = await request.form()
     file = form_data.get("file")
