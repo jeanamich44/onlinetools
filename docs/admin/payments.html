@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Paiements | ChezRheyy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.294.0/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <i data-lucide="shield"></i> ChezRheyy Admin
+        </div>
+        <nav>
+            <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+            <a href="payments.html" class="nav-item active"><i data-lucide="credit-card"></i> Payments</a>
+            <a href="tools.html" class="nav-item"><i data-lucide="tool"></i> Tools</a>
+            <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> Audio Analyse</a>
+        </nav>
+    </div>
+
+    <div class="main">
+        <header>
+            <h1>Gestion des Paiements</h1>
+            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="label">Revenus Totaux</div>
+                <div class="value" id="revenue">0.00 €</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Paiements Validés</div>
+                <div class="value" id="paid_count">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">PDF Aujourd'hui</div>
+                <div class="value" id="pdf_today">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total Tentatives</div>
+                <div class="value" id="total_count">0</div>
+            </div>
+        </div>
+
+        <div class="table-card">
+            <h3>Dernières Transactions</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Référence</th>
+                        <th>Produit</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody id="paymentTable">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const API_BASE = "https://rheyy-services.up.railway.app";
+        const token = localStorage.getItem('adminToken');
+
+        if (!token) window.location.href = 'index.html';
+
+        async function loadPayments() {
+            try {
+                const [statsRes, paymentsRes] = await Promise.all([
+                    fetch(`${API_BASE}/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } }),
+                    fetch(`${API_BASE}/admin/payments`, { headers: { 'Authorization': `Bearer ${token}` } })
+                ]);
+
+                if (!statsRes.ok) throw new Error("Unauthorized");
+
+                const stats = await statsRes.json();
+                document.getElementById('revenue').innerText = `${stats.total_revenue} €`;
+                document.getElementById('paid_count').innerText = stats.paid_payments;
+                document.getElementById('pdf_today').innerText = stats.generated_today;
+                document.getElementById('total_count').innerText = stats.total_payments;
+
+                const payments = await paymentsRes.json();
+                const table = document.getElementById('paymentTable');
+                table.innerHTML = payments.map(p => `
+                    <tr>
+                        <td>${new Date(p.created_at).toLocaleDateString()}</td>
+                        <td>${p.checkout_ref.substring(0, 8)}...</td>
+                        <td>${p.product_name}</td>
+                        <td>${p.amount} €</td>
+                        <td><span class="status-badge ${p.status === 'PAID' ? 'status-paid' : 'status-pending'}">${p.status}</span></td>
+                    </tr>
+                `).join('');
+
+            } catch (err) {
+                console.error(err);
+                logout();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'index.html';
+        }
+
+        loadPayments();
+    </script>
+</body>
+
+</html>

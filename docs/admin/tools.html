@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Outils Admin | ChezRheyy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.294.0/dist/umd/lucide.min.js"></script>
+    <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .tools-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .tool-box {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <i data-lucide="shield"></i> ChezRheyy Admin
+        </div>
+        <nav>
+            <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+            <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> Payments</a>
+            <a href="tools.html" class="nav-item active"><i data-lucide="tool"></i> Tools</a>
+            <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> Audio Analyse</a>
+        </nav>
+    </div>
+
+    <div class="main">
+        <header>
+            <h1>Outils Administration</h1>
+            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        </header>
+
+        <div class="tools-container">
+            <div class="tool-box">
+                <h3>Générateur MRZ</h3>
+                <div id="mrzForm">
+                    <input type="text" id="mrzNom" placeholder="Nom" class="form-input" style="margin-bottom: 10px;">
+                    <input type="text" id="mrzPrenom" placeholder="Prénom" class="form-input" style="margin-bottom: 10px;">
+                    <button onclick="generateMRZ()" class="btn-action">Générer MRZ</button>
+                    <pre id="mrzResult"
+                        style="background:#0f172a; padding:10px; margin-top:20px; font-size:12px; border-radius: 8px; color: #38bdf8; overflow-x: auto;"></pre>
+                </div>
+            </div>
+            <div class="tool-box">
+                <h3>Générateur QR ZIP</h3>
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 10px;">Une ligne par code QR à générer.</p>
+                <textarea id="qrLines" placeholder="Ex: https://google.com&#10;Ex: https://youtube.com" class="form-input" rows="5" style="margin-bottom: 10px;"></textarea>
+                <button onclick="generateQR()" class="btn-action">Générer ZIP</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const API_BASE = "https://rheyy-services.up.railway.app";
+        const token = localStorage.getItem('adminToken');
+
+        if (!token) window.location.href = 'index.html';
+
+        async function generateMRZ() {
+            const nom = document.getElementById('mrzNom').value;
+            const prenom = document.getElementById('mrzPrenom').value;
+            if (!nom || !prenom) { alert("Veuillez remplir les champs"); return; }
+            
+            const btn = event.target;
+            btn.innerText = "Génération...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/generate-mrz`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: 'manuel', nom, prenom })
+                });
+                const data = await res.json();
+                document.getElementById('mrzResult').innerText = data.mrz[0];
+            } catch (err) {
+                alert("Erreur de génération");
+            } finally {
+                btn.innerText = "Générer MRZ";
+                btn.disabled = false;
+            }
+        }
+
+        async function generateQR() {
+            const lines = document.getElementById('qrLines').value.split('\n').filter(l => l.trim());
+            if (lines.length === 0) { alert("Veuillez entrer des données"); return; }
+
+            const btn = event.target;
+            btn.innerText = "Compression...";
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/generate-zip`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lines })
+                });
+                if (res.ok) {
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = "qr_codes.zip";
+                    a.click();
+                } else {
+                    throw new Error();
+                }
+            } catch (err) {
+                alert("Erreur lors de la génération du ZIP");
+            } finally {
+                btn.innerText = "Générer ZIP";
+                btn.disabled = false;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+
+</html>

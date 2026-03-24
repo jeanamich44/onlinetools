@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | ChezRheyy</title>
+    <title>Tableau de Bord | ChezRheyy Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.294.0/dist/umd/lucide.min.js"></script>
     <link rel="stylesheet" href="../css/admin.css">
@@ -16,152 +16,68 @@
             <i data-lucide="shield"></i> ChezRheyy Admin
         </div>
         <nav>
-            <a href="#" class="nav-item active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-            <a href="#" class="nav-item"><i data-lucide="credit-card"></i> Payments</a>
-            <a href="#" class="nav-item"><i data-lucide="tool"></i> Tools</a>
+            <a href="dashboard.html" class="nav-item active"><i data-lucide="layout-dashboard"></i> Dashboard</a>
+            <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> Payments</a>
+            <a href="tools.html" class="nav-item"><i data-lucide="tool"></i> Tools</a>
             <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> Audio Analyse</a>
         </nav>
     </div>
 
     <div class="main">
         <header>
-            <h1>Vue d'ensemble</h1>
+            <h1>Administration des Services</h1>
             <button class="btn-logout" onclick="logout()">Déconnexion</button>
         </header>
 
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="label">Revenus Totaux</div>
-                <div class="value" id="revenue">0.00 €</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Paiements Validés</div>
-                <div class="value" id="paid_count">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">PDF Aujourd'hui</div>
-                <div class="value" id="pdf_today">0</div>
-            </div>
-            <div class="stat-card">
-                <div class="label">Total Tentatives</div>
-                <div class="value" id="total_count">0</div>
-            </div>
-        </div>
+        <section class="intro" style="margin-bottom: 40px;">
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Sélectionnez un service pour accéder à ses outils de gestion.</p>
+        </section>
 
-        <div class="table-card">
-            <h3>Dernières Transactions</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Référence</th>
-                        <th>Produit</th>
-                        <th>Montant</th>
-                        <th>Statut</th>
-                    </tr>
-                </thead>
-                <tbody id="paymentTable">
-                    
-                </tbody>
-            </table>
-        </div>
-
-        <div class="tools-grid">
-            <div class="tool-box">
-                <h3>Générateur MRZ</h3>
-                <div id="mrzForm">
-                    <input type="text" id="mrzNom" placeholder="Nom" class="form-input">
-                    <input type="text" id="mrzPrenom" placeholder="Prénom" class="form-input">
-                    <button onclick="generateMRZ()" class="btn-action">Générer MRZ</button>
-                    <pre id="mrzResult"
-                        style="background:#0f172a; padding:10px; margin-top:10px; font-size:12px;"></pre>
+        <div class="services-grid">
+            <!-- PAIEMENTS -->
+            <div class="service-card">
+                <div class="service-icon"><i data-lucide="credit-card"></i></div>
+                <h3>Gestion des Paiements</h3>
+                <p>Visualisez les transactions, vérifiez les revenus et suivez le statut des commandes clients en temps réel.</p>
+                <div class="wrapper-link-offer" style="margin-top: auto;">
+                    <a class="btn-action" href="payments.html" style="display: block; text-decoration: none; text-align: center;">Accéder</a>
                 </div>
             </div>
-            <div class="tool-box">
-                <h3>Générateur QR ZIP</h3>
-                <textarea id="qrLines" placeholder="Une ligne par QR" class="form-input" rows="4"></textarea>
-                <button onclick="generateQR()" class="btn-action">Générer ZIP</button>
+
+            <!-- OUTILS -->
+            <div class="service-card">
+                <div class="service-icon"><i data-lucide="tool"></i></div>
+                <h3>Outils Générateurs</h3>
+                <p>Gérez les outils spécialisés : Générateur MRZ (Documents) et création de archives QR Codes ZIP.</p>
+                <div class="wrapper-link-offer" style="margin-top: auto;">
+                    <a class="btn-action" href="tools.html" style="display: block; text-decoration: none; text-align: center;">Accéder</a>
+                </div>
+            </div>
+
+            <!-- AUDIO -->
+            <div class="service-card">
+                <div class="service-icon"><i data-lucide="mic"></i></div>
+                <h3>Analyse Audio AI</h3>
+                <p>Outil avancé de nettoyage sonore et transcription vocale intelligente avec comparaison de passages.</p>
+                <div class="wrapper-link-offer" style="margin-top: auto;">
+                    <a class="btn-action" href="audio_analyse.html" style="display: block; text-decoration: none; text-align: center;">Accéder</a>
+                </div>
             </div>
         </div>
+
     </div>
 
     <script>
         lucide.createIcons();
-        const API_BASE = "https://rheyy-services.up.railway.app";
         const token = localStorage.getItem('adminToken');
 
         if (!token) window.location.href = 'index.html';
-
-        async function loadDashboard() {
-            try {
-                const [statsRes, paymentsRes] = await Promise.all([
-                    fetch(`${API_BASE}/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } }),
-                    fetch(`${API_BASE}/admin/payments`, { headers: { 'Authorization': `Bearer ${token}` } })
-                ]);
-
-                if (!statsRes.ok) throw new Error("Unauthorized");
-
-                const stats = await statsRes.json();
-                document.getElementById('revenue').innerText = `${stats.total_revenue} €`;
-                document.getElementById('paid_count').innerText = stats.paid_payments;
-                document.getElementById('pdf_today').innerText = stats.generated_today;
-                document.getElementById('total_count').innerText = stats.total_payments;
-
-                const payments = await paymentsRes.json();
-                const table = document.getElementById('paymentTable');
-                table.innerHTML = payments.map(p => `
-                    <tr>
-                        <td>${new Date(p.created_at).toLocaleDateString()}</td>
-                        <td>${p.checkout_ref.substring(0, 8)}...</td>
-                        <td>${p.product_name}</td>
-                        <td>${p.amount} €</td>
-                        <td><span class="status-badge ${p.status === 'PAID' ? 'status-paid' : 'status-pending'}">${p.status}</span></td>
-                    </tr>
-                `).join('');
-
-            } catch (err) {
-                console.error(err);
-                logout();
-            }
-        }
-
-        async function generateMRZ() {
-            const nom = document.getElementById('mrzNom').value;
-            const prenom = document.getElementById('mrzPrenom').value;
-            const res = await fetch(`${API_BASE}/generate-mrz`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ mode: 'manuel', nom, prenom })
-            });
-            const data = await res.json();
-            document.getElementById('mrzResult').innerText = data.mrz[0];
-        }
-
-        async function generateQR() {
-            const lines = document.getElementById('qrLines').value.split('\n').filter(l => l.trim());
-            const res = await fetch(`${API_BASE}/generate-zip`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ lines })
-            });
-            if (res.ok) {
-                const blob = await res.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = "qr_codes.zip";
-                a.click();
-            }
-        }
 
         function logout() {
             localStorage.removeItem('adminToken');
             window.location.href = 'index.html';
         }
-
-        loadDashboard();
     </script>
 </body>
 
 </html>
-
