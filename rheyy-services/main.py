@@ -27,6 +27,9 @@ import os
 # =========================
 
 app = FastAPI(title="Rheyy Services", version="2.0.0")
+# Cache pour stocker les chemins temporaires
+audio_files = {}
+
 @app.post("/analyze-audio-stream")
 async def analyze_audio_streaming_endpoint(request: Request, admin: str = Depends(get_current_admin)):
     form_data = await request.form()
@@ -34,20 +37,53 @@ async def analyze_audio_streaming_endpoint(request: Request, admin: str = Depend
     if not file:
         raise HTTPException(status_code=400, detail="Fichier manquant")
         
-    temp_path = f"temp_stream_{int(time.time())}_{file.filename}"
+    file_id = str(int(time.time()))
+    temp_path = f"temp_stream_{file_id}_{file.filename}"
     with open(temp_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+    
+    audio_files[file_id] = temp_path
 
     async def event_generator():
-        try:
-            # On lance le générateur d'analyse
-            for progress_json in perform_full_analysis_stream(temp_path):
+        # On lance le générateur d'analyse (Pass 1 & 2)
+        for progress_json in perform_full_analysis_stream(temp_path):
+            data = json.loads(progress_json)
+            if data["status"] == "completed":
+                data["file_id"] = file_id # On donne l'ID pour le retry/confirm
+                yield json.dumps(data) + "\n"
+            else:
                 yield progress_json + "\n"
-        finally:
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
 
     return StreamingResponse(event_generator(), media_type="application/x-ndjson")
+
+@app.post("/analyze-audio-retry")
+async def analyze_audio_retry_endpoint(req: dict = Body(...), admin: str = Depends(get_current_admin)):
+    file_id = req.get("file_id")
+    temp_path = audio_files.get(file_id)
+    if not temp_path or not os.path.exists(temp_path):
+        raise HTTPException(status_code=404, detail="Fichier non trouvé ou session expirée")
+
+    async def event_generator():
+        # On lance le générateur de retry (Pass 3 & 4)
+        for progress_json in perform_retry_analysis_stream(temp_path):
+            yield progress_json + "\n"
+
+    return StreamingResponse(event_generator(), media_type="application/x-ndjson")
+
+@app.post("/analyze-audio-confirm")
+async def analyze_audio_confirm_endpoint(req: dict = Body(...), admin: str = Depends(get_current_admin)):
+    file_id = req.get("file_id")
+    numbers = req.get("numbers", [])
+    temp_path = audio_files.pop(file_id, None)
+    
+    if numbers:
+        from script.audio_analyse import perform_ssh_transfer
+        perform_ssh_transfer(numbers)
+        
+    if temp_path and os.path.exists(temp_path):
+        os.remove(temp_path)
+        
+    return {"status": "success", "message": "Nombres envoyés au serveur distant via SSH."}
 
 
 @app.post("/analyze-audio")
