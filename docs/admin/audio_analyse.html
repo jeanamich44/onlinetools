@@ -14,33 +14,31 @@
             font-family: 'JetBrains Mono', monospace; border: 1px solid #1f2937;
             margin-top: 30px; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        .console-output {
-            height: 250px; overflow-y: auto; color: #d1d5db; font-size: 0.85rem; line-height: 1.6;
-        }
+        .console-output { height: 250px; overflow-y: auto; color: #d1d5db; font-size: 0.85rem; line-height: 1.6; }
         .log-entry { margin-bottom: 5px; display: flex; gap: 10px; border-left: 2px solid #3b82f6; padding-left: 10px; }
         .log-time { color: #6b7280; font-size: 0.75rem; }
         .log-msg { color: #fff; flex-grow: 1; }
         .log-duration { color: #10b981; font-weight: bold; }
-
         .result-box { margin-top: 30px; background: var(--card-bg); border-radius: 20px; padding: 30px; border: 1px solid var(--border); display: none; }
-        
         .action-buttons { display: flex; gap: 15px; margin-top: 25px; }
         .btn-confirm { background: #10b981; color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center; }
         .btn-retry { background: #f59e0b; color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center; }
         .btn-confirm:hover { background: #059669; transform: translateY(-2px); }
         .btn-retry:hover { background: #d97706; transform: translateY(-2px); }
-        
         .diff-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; margin-right: 5px; background: rgba(239, 68, 68, 0.2); color: #ef4444; }
     </style>
 </head>
 
 <body>
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
+
     <div class="sidebar">
         <div class="logo"><i data-lucide="shield"></i> ChezRheyy <span>Admin</span></div>
         <nav>
             <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
             <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> Paiements</a>
-            <a href="tools.html" class="nav-item"><i data-lucide="tool"></i> Outils</a>
+            <a href="tools.html" class="nav-item"><i data-lucide="wrench"></i> Outils</a>
             <a href="audio_analyse.html" class="nav-item active"><i data-lucide="mic"></i> Analyse Audio</a>
         </nav>
     </div>
@@ -70,21 +68,14 @@
             <h2 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
                 <i data-lucide="file-text" style="color:var(--primary)"></i> Rapport d'Analyse
             </h2>
-            
             <div style="background: #0b0f19; padding: 25px; border-radius: 16px; margin-bottom: 20px; border: 1px solid #1f2937;">
-                <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:10px; text-transform:uppercase">Nombres détectés (Passage le plus précis) :</p>
+                <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:10px; text-transform:uppercase">Nombres détectés :</p>
                 <div id="numbers" style="font-size: 1.8rem; color: #fff; font-family: monospace; letter-spacing: 2px;"></div>
             </div>
-
             <div id="statusInfo" style="padding: 15px; border-radius: 10px; font-size: 0.9rem; margin-bottom: 20px;"></div>
-
             <div class="action-buttons">
-                <button class="btn-confirm" onclick="confirmSend()">
-                    <i data-lucide="send"></i> Valider et Envoyer (SSH)
-                </button>
-                <button class="btn-retry" onclick="retryAnalysis()">
-                    <i data-lucide="refresh-cw"></i> Réessayer (Précision Max)
-                </button>
+                <button class="btn-confirm" onclick="confirmSend()"><i data-lucide="send"></i> Valider et Envoyer (SSH)</button>
+                <button class="btn-retry" onclick="retryAnalysis()"><i data-lucide="refresh-cw"></i> Réessayer (Précision Max)</button>
             </div>
         </div>
     </div>
@@ -98,20 +89,30 @@
         let currentFileId = null;
         let currentNumbers = [];
 
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+            toast.innerHTML = `<i data-lucide="${icon}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        }
+
         async function startAnalysis() {
             const fileInput = document.getElementById('audioFile');
             if (fileInput.files.length === 0) return;
-
             document.getElementById('console').style.display = 'block';
             document.getElementById('result').style.display = 'none';
             document.getElementById('uploadSection').style.opacity = '0.5';
             document.getElementById('logOutput').innerHTML = '';
-            
             const formData = new FormData();
             formData.append('file', fileInput.files[0]);
-
-            addLog("SYSTÈME", "Démarrage du processus initial...");
-
             try {
                 const response = await fetch(`${API_BASE}/analyze-audio-stream`, {
                     method: 'POST',
@@ -119,65 +120,46 @@
                     body: formData
                 });
                 await readStream(response);
-            } catch (err) {
-                addLog("ERREUR", "Échec de connexion au serveur.", null, true);
-            }
+            } catch (err) { addLog("ERREUR", "Échec de connexion."); showToast("Erreur de connexion", "error"); }
         }
 
         async function retryAnalysis() {
             if (!currentFileId) return;
-            addLog("SYSTÈME", "Relance de l'analyse avec Précision Maximale...");
             document.getElementById('result').style.display = 'none';
-
             try {
                 const response = await fetch(`${API_BASE}/analyze-audio-retry`, {
                     method: 'POST',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ file_id: currentFileId })
                 });
                 await readStream(response);
-            } catch (err) {
-                addLog("ERREUR", "Échec de la ré-analyse.", null, true);
-            }
+            } catch (err) { showToast("Échec de la ré-analyse", "error"); }
         }
 
         async function confirmSend() {
             if (!currentFileId || currentNumbers.length === 0) return;
-            addLog("SSH", "Transmission sécurisée vers l'ordinateur distant...");
-
             try {
                 const res = await fetch(`${API_BASE}/analyze-audio-confirm`, {
                     method: 'POST',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ file_id: currentFileId, numbers: currentNumbers })
                 });
                 const data = await res.json();
+                showToast(data.message, "success");
                 addLog("FIN", data.message);
-                alert("Nombres envoyés avec succès !");
-                location.reload();
-            } catch (err) {
-                addLog("ERREUR", "Le transfert SSH a échoué.");
-            }
+            } catch (err) { showToast("Le transfert SSH a échoué", "error"); }
         }
 
         async function readStream(response) {
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
             let buffer = '';
-
             while (true) {
                 const { value, done } = await reader.read();
                 if (done) break;
                 buffer += decoder.decode(value, { stream: true });
                 const lines = buffer.split('\n');
                 buffer = lines.pop();
-
                 for (const line of lines) {
                     if (!line.trim()) continue;
                     const data = JSON.parse(line);
@@ -206,17 +188,13 @@
             currentNumbers = results.pass2.numbers;
             document.getElementById('numbers').innerText = currentNumbers.join(' - ') || "Aucun nombre détecté";
             const info = document.getElementById('statusInfo');
-            
             if (results.is_consistent) {
-                info.style.background = 'rgba(16, 185, 129, 0.1)';
-                info.style.color = '#10b981';
+                info.style.background = 'rgba(16, 185, 129, 0.1)'; info.style.color = '#10b981';
                 info.innerText = "✓ Les deux passages sont cohérents. Validation recommandée.";
             } else {
-                info.style.background = 'rgba(245, 158, 11, 0.1)';
-                info.style.color = '#f59e0b';
+                info.style.background = 'rgba(245, 158, 11, 0.1)'; info.style.color = '#f59e0b';
                 info.innerText = "⚠ Incohérences détectées. Nous vous conseillons de cliquer sur 'Réessayer (Précision Max)'.";
             }
-            addLog("TERMINÉ", `Analyse prête pour validation (${results.total_time}s total).`);
         }
 
         function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }

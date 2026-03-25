@@ -11,32 +11,28 @@
 </head>
 
 <body>
+    <div id="toast-container"></div>
+
     <div class="sidebar">
-        <div class="logo">
-            <i data-lucide="shield"></i> ChezRheyy <span>Admin</span>
-        </div>
+        <div class="logo"><i data-lucide="shield"></i> ChezRheyy <span>Admin</span></div>
         <nav>
             <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
             <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> Paiements</a>
-            <a href="tools.html" class="nav-item active"><i data-lucide="tool"></i> Outils</a>
+            <a href="tools.html" class="nav-item active"><i data-lucide="wrench"></i> Outils</a>
             <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> Analyse Audio</a>
         </nav>
     </div>
 
     <div class="main">
         <header>
-            <div>
-                <h1>Générateur QR ZIP</h1>
-                <p>Création d'une archive contenant des codes QR personnalisés à la volée.</p>
-            </div>
+            <div><h1>Générateur QR ZIP</h1><p>Création d'une archive contenant des codes QR personnalisés à la volée.</p></div>
             <button class="btn-logout" onclick="logout()">Déconnexion</button>
         </header>
 
         <div class="service-card" style="max-width: 600px;">
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Une ligne par code QR à générer (Ex: lien, texte, etc.).</p>
-            <textarea id="qrLines" placeholder="https://google.fr&#10;https://youtube.com&#10;RH-123456" class="form-input" rows="8" style="margin-bottom: 20px; font-family: monospace;"></textarea>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Une ligne par code QR à générer (ID, liens, etc.).</p>
+            <textarea id="qrLines" placeholder="Ligne 1&#10;Ligne 2&#10;..." class="form-input" rows="8" style="margin-bottom: 20px; font-family: monospace;"></textarea>
             <button onclick="generateQR()" id="genBtn" class="btn-action">Générer l'archive ZIP</button>
-            <p id="msg" style="margin-top: 15px; color: #10B981; font-weight: 600; text-align: center; display: none;"></p>
         </div>
     </div>
 
@@ -46,16 +42,26 @@
         const token = localStorage.getItem('adminToken');
         if (!token) window.location.href = 'index.html';
 
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+            toast.innerHTML = `<i data-lucide="${icon}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        }
+
         async function generateQR() {
             const lines = document.getElementById('qrLines').value.split('\n').filter(l => l.trim());
-            if (lines.length === 0) { alert("Veuillez entrer des données"); return; }
-            
+            if (lines.length === 0) { showToast("Veuillez entrer des données", "error"); return; }
             const btn = document.getElementById('genBtn');
-            const msg = document.getElementById('msg');
-            btn.innerText = "Compression...";
-            btn.disabled = true;
-            msg.style.display = 'none';
-
+            btn.innerText = "Compression..."; btn.disabled = true;
             try {
                 const res = await fetch(`${API_BASE}/generate-zip`, {
                     method: 'POST',
@@ -66,26 +72,14 @@
                     const blob = await res.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
-                    a.href = url;
-                    a.download = "qr_codes.zip";
-                    a.click();
-                    msg.innerText = "L'archive a été générée avec succès.";
-                    msg.style.display = 'block';
-                } else {
-                    throw new Error();
-                }
-            } catch (err) {
-                alert("Erreur serveur lors du ZIP");
-            } finally {
-                btn.innerText = "Générer l'archive ZIP";
-                btn.disabled = false;
-            }
+                    a.href = url; a.download = "qr_codes.zip"; a.click();
+                    showToast("ZIP généré avec succès !");
+                } else { throw new Error(); }
+            } catch (err) { showToast("Erreur lors de la génération", "error"); }
+            finally { btn.innerText = "Générer l'archive ZIP"; btn.disabled = false; }
         }
 
-        function logout() {
-            localStorage.removeItem('adminToken');
-            window.location.href = 'index.html';
-        }
+        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
     </script>
 </body>
 
