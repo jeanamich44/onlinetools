@@ -9,11 +9,7 @@ import paramiko
 import json
 from faster_whisper import WhisperModel
 
-# CONFIGURATION SERVEUR DISTANT
-REMOTE_IP = "137.74.113.52"
-REMOTE_USER = "administrator"
-REMOTE_PASS = "hJK764TysZVBG1"
-REMOTE_FILE = r"C:\Users\Administrator\Desktop\BotNVX\.test.txt"
+from script.ssh_utils import append_lines_remote, REMOTE_FILE_TEST
 
 # ==============================================================================
 
@@ -21,18 +17,8 @@ def send_to_remote_ssh(numbers):
     if not numbers:
         return
     try:
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(REMOTE_IP, username=REMOTE_USER, password=REMOTE_PASS, timeout=10)
-        
-        # On prépare les nombres pour PowerShell (un par ligne)
-        # On utilise une boucle simple pour envoyer chaque nombre
-        for num in numbers:
-            cmd = f'powershell -Command "Add-Content -Path \'{REMOTE_FILE}\' -Value \'{num}\'"'
-            ssh.exec_command(cmd)
-            
-        ssh.close()
-        print(f"[SSH] {len(numbers)} nombres envoyés ligne par ligne vers {REMOTE_IP}")
+        append_lines_remote(REMOTE_FILE_TEST, numbers)
+        print(f"[SSH] {len(numbers)} nombres envoyés ligne par ligne.")
     except Exception as e:
         print(f"[SSH Error] Erreur de connexion ou d'écriture : {str(e)}")
 

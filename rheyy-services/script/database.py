@@ -52,6 +52,11 @@ class Payment(Base):
     is_generated = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+class Setting(Base):
+    __tablename__ = "settings"
+    key = Column(String, primary_key=True)
+    value = Column(String)
+
 # =========================
 # INITIALISATION
 # =========================

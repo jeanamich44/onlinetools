@@ -8,7 +8,7 @@ import time
 import logging
 import json
 
-from script.database import init_db, get_db, Payment, Admin
+from script.database import init_db, get_db, Payment, Admin, Setting
 from script.security import (
     get_password_hash, 
     verify_password, 
@@ -19,6 +19,7 @@ from script.security import (
 
 from script.mrz import generate_mrz, generate_random_data
 from script.qr_zip import generate_qr_zip
+from script.packager import generate_packaging_elite
 from script.audio_analyse import perform_full_analysis, perform_full_analysis_stream, perform_retry_analysis_stream
 import shutil
 import os
@@ -30,6 +31,80 @@ import os
 app = FastAPI(title="Rheyy Services", version="2.0.0")
 # Cache pour stocker les chemins temporaires
 audio_files = {}
+
+@app.get("/tools/packager-index")
+async def get_packager_index(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
+    setting = db.query(Setting).filter(Setting.key == "packager_index").first()
+    if not setting:
+        return {"index": 1}
+    return {"index": int(setting.value)}
+
+@app.patch("/tools/packager-index")
+async def update_packager_index(data: dict = Body(...), db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
+    new_index = data.get("index")
+    if new_index is None:
+        raise HTTPException(status_code=400, detail="Index manquant")
+    setting = db.query(Setting).filter(Setting.key == "packager_index").first()
+    if not setting:
+        setting = Setting(key="packager_index", value=str(new_index))
+        db.add(setting)
+    else:
+        setting.value = str(new_index)
+    db.commit()
+    return {"status": "success", "index": new_index}
+
+@app.post("/generate-pack")
+async def generate_pack_endpoint(request: Request, db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
+    form_data = await request.form()
+    file = form_data.get("file")
+    
+    # Récupération au cas où l'admin force un index dans le formulaire
+    form_start = form_data.get("start_line")
+    
+    setting = db.query(Setting).filter(Setting.key == "packager_index").first()
+    if not setting:
+        setting = Setting(key="packager_index", value="1")
+        db.add(setting)
+        db.commit()
+    
+    if form_start and int(form_start) > 0:
+        start_line = int(form_start)
+    else:
+        start_line = int(setting.value)
+    
+    title = form_data.get("title")
+    
+    if not file:
+        raise HTTPException(status_code=400, detail="Fichier texte manquant")
+        
+    content = await file.read()
+    lines = content.decode("utf-8", errors="ignore").splitlines()
+    lines = [l.strip() for l in lines if l.strip()]
+    
+    if len(lines) < start_line:
+        raise HTTPException(status_code=400, detail=f"Index de départ ({start_line}) trop élevé pour ce fichier.")
+        
+    try:
+        final_zip = generate_packaging_elite(lines, start_line - 1, title)
+        
+        # Incrémentation automatique de 200 après succès
+        setting.value = str(start_line + 200)
+        db.commit()
+        
+        return FileResponse(final_zip, media_type="application/zip", filename=f"pack_200_line_{start_line}.zip")
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+from script.ssh_utils import fetch_remote_file_content, REMOTE_FILE_CARDS
+
+@app.get("/tools/fetch-remote-cards")
+async def fetch_remote_cards_endpoint(admin: str = Depends(get_current_admin)):
+    try:
+        content = fetch_remote_file_content(REMOTE_FILE_CARDS)
+        return {"content": content}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"SSH Fetch Error: {str(e)}")
 
 @app.post("/analyze-audio-stream")
 async def analyze_audio_streaming_endpoint(request: Request, admin: str = Depends(get_current_admin)):
