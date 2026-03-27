@@ -8,6 +8,43 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 100%;
+        }
+        .input-group .form-input {
+            flex: 1;
+            min-width: 0;
+        }
+        .btn-save {
+            width: 55px !important;
+            height: 52px;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: var(--accent) !important;
+        }
+        
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            appearance: textfield;
+            -moz-appearance: textfield;
+            background: #0b0f19;
+            border: 1px solid #1f2937;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+        }
+    </style>
 </head>
 
 <body>
@@ -27,57 +64,57 @@
         <header>
             <div>
                 <h1>Packager 200 Elite</h1>
-                <p>Découpe automatique (lots de 200) avec indexation persistante.</p>
+                <p>Découpe intelligente et indexation persistante.</p>
             </div>
             <button class="btn-logout" onclick="logout()">Déconnexion</button>
         </header>
 
-        <div class="service-card" style="max-width: 700px;">
-            <div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 30px;">
+        <div class="service-card" style="max-width: 750px;">
+            <div style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 35px;">
                 <div class="service-icon"><i data-lucide="package"></i></div>
                 <div>
-                    <h3>Configuration du Pack</h3>
-                    <p style="color:var(--text-muted); font-size:0.9rem;">L'index s'incrémentera de 200 automatiquement après chaque succès.</p>
+                    <h3>Gestion des Packs</h3>
+                    <p style="color:var(--text-muted); font-size:0.95rem;">L'index avance de 200 à chaque succès. Vous pouvez le corriger manuellement.</p>
                 </div>
             </div>
 
             <div class="form-group">
-                <label>Fichier Source (Local ou SSH)</label>
-                <div style="display: flex; gap: 10px;">
+                <label>Source des données</label>
+                <div style="display: flex; gap: 15px;">
                     <input type="file" id="packFile" style="display:none" onchange="updateFileName()">
-                    <button class="btn-action" style="background:#1f2937; flex:1" onclick="document.getElementById('packFile').click()">
-                        <i data-lucide="upload" style="width:16px; height:16px"></i> <span id="fileName">Choisir Local</span>
+                    <button class="btn-action" style="flex:1" onclick="document.getElementById('packFile').click()">
+                        <i data-lucide="file-text" style="width:18px"></i> <span id="fileName">Fichier Local</span>
                     </button>
                     <button class="btn-action" style="background:#3b82f6; flex:1" onclick="fetchRemoteFile()">
-                        <i data-lucide="server" style="width:16px; height:16px"></i> <span>Récupérer .10KSOLO.txt</span>
+                        <i data-lucide="cloud-download" style="width:18px"></i> <span>Distant (.10KSOLO)</span>
                     </button>
                 </div>
-                <div id="sshStatus" style="display:none; color:#10b981; font-size:0.85rem; margin-top:8px; font-weight:600;">
-                    <i data-lucide="check-circle" style="width:14px; height:14px; vertical-align:middle"></i> Fichier distant chargé !
+                <div id="sshStatus" style="display:none; color:#10b981; font-size:0.85rem; margin-top:12px; font-weight:700;">
+                    <i data-lucide="check-circle" style="width:16px; margin-right:5px"></i> Fichier SSH récupéré avec succès.
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 25px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 30px;">
                 <div class="form-group">
-                    <label>Position Actuelle (S'incrémente de 200)</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="number" id="startLine" class="form-input" style="flex:1">
-                        <button onclick="saveIndex()" class="btn-action" style="padding:0 15px; background:var(--accent)" title="Sauvegarder cette position">
-                            <i data-lucide="save" style="width:18px"></i>
+                    <label>Index Actuel (Ligne de départ)</label>
+                    <div class="input-group">
+                        <input type="number" id="startLine" class="form-input" placeholder="1">
+                        <button onclick="saveIndex()" class="btn-action btn-save" title="Mémoriser cette position">
+                            <i data-lucide="save"></i>
                         </button>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Titre (Bandeau Rouge)</label>
+                    <label>Titre des QR (Bandeau rouge)</label>
                     <input type="text" id="packTitle" placeholder="Ex: CHEZ QUICK" class="form-input">
                 </div>
             </div>
 
-            <button onclick="generatePack()" id="genBtn" class="btn-action" style="margin-top: 35px; width: 100%; height: 55px; font-size: 1.1rem; gap:12px">
-                <i data-lucide="zap"></i> GÉNÉRER LES 4 PACKS (200 LIGNES)
+            <button onclick="generatePack()" id="genBtn" class="btn-action" style="margin-top: 40px; width: 100%; height: 60px; font-size: 1.15rem; gap:12px; background:var(--primary)">
+                <i data-lucide="play-circle"></i> GÉNÉRER L'ARCHIVE ELITE (200 LIGNES)
             </button>
-            <div id="loader" style="display:none; text-align:center; margin-top:15px; color:var(--primary); font-weight:600;">
-                <p>Génération en cours... Merci de patienter.</p>
+            <div id="loader" style="display:none; text-align:center; margin-top:20px; color:var(--primary); font-weight:700; letter-spacing:0.5px;">
+                <p>Traitement en cours... (Génération des QR + Compression)</p>
             </div>
         </div>
     </div>
@@ -116,23 +153,24 @@
                 });
                 const data = await res.json();
                 document.getElementById('startLine').value = data.index;
-            } catch (err) { console.error("Index load error"); }
+            } catch (err) {}
         }
 
         async function saveIndex() {
             const val = document.getElementById('startLine').value;
+            if (!val) return;
             try {
                 const res = await fetch(`${API_BASE}/tools/packager-index`, {
                     method: 'PATCH',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ index: parseInt(val) })
                 });
-                if (res.ok) showToast("Index mis à jour avec succès");
+                if (res.ok) showToast("Position mémorisée sur le serveur.");
             } catch (err) { showToast("Erreur de sauvegarde", "error"); }
         }
 
         async function fetchRemoteFile() {
-            showToast("Récupération SSH...", "info");
+            showToast("Chargement du fichier distant...", "info");
             try {
                 const res = await fetch(`${API_BASE}/tools/fetch-remote-cards`, {
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -140,11 +178,11 @@
                 const data = await res.json();
                 if (data.content) {
                     remoteFileBlob = new Blob([data.content], { type: 'text/plain' });
-                    document.getElementById('fileName').innerText = ".10KSOLO.txt (Chargé)";
+                    document.getElementById('fileName').innerText = "10KSOLO (Distant)";
                     document.getElementById('sshStatus').style.display = 'block';
-                    showToast("Fichier SSH prêt !");
+                    showToast("Fichier distant prêt à l'emploi.");
                 }
-            } catch (err) { showToast("Erreur SSH", "error"); }
+            } catch (err) { showToast("Erreur lors de la récupération SSH", "error"); }
         }
 
         function updateFileName() {
@@ -162,14 +200,14 @@
             const title = document.getElementById('packTitle').value;
 
             const fileToUse = uploadFile || remoteFileBlob;
-            if (!fileToUse) { showToast("Veuillez charger un fichier", "error"); return; }
+            if (!fileToUse) { showToast("Source manquante.", "error"); return; }
 
             const btn = document.getElementById('genBtn');
             const loader = document.getElementById('loader');
-            btn.disabled = true; loader.style.display = 'block';
+            btn.disabled = true; btn.style.opacity = '0.6'; loader.style.display = 'block';
 
             const formData = new FormData();
-            formData.append('file', fileToUse);
+            formData.append('file', fileToUse, uploadFile ? uploadFile.name : ".10KSOLO.txt");
             formData.append('start_line', startLine);
             if (title) formData.append('title', title);
 
@@ -183,15 +221,15 @@
                     const blob = await res.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
-                    a.href = url; a.download = `pack_200_line_${startLine}.zip`; a.click();
-                    showToast("Traitement terminé ! L'index a avancé de 200.");
-                    loadCurrentIndex(); // Rafraîchir l'index affiché
+                    a.href = url; a.download = `pack_elite_line_${startLine}.zip`; a.click();
+                    showToast("Génération terminée ! Index +200.");
+                    loadCurrentIndex(); 
                 } else {
                     const err = await res.json();
-                    showToast(err.detail || "Erreur", "error");
+                    showToast(err.detail || "Échec du packaging", "error");
                 }
-            } catch (err) { showToast("Erreur serveur", "error"); }
-            finally { btn.disabled = false; loader.style.display = 'none'; }
+            } catch (err) { showToast("Erreur réseau ou serveur", "error"); }
+            finally { btn.disabled = false; btn.style.opacity = '1'; loader.style.display = 'none'; }
         }
 
         function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }

@@ -23,7 +23,6 @@ body {
     overflow-x: hidden;
 }
 
-/* LOGIN PAGE */
 .login-page {
     display: flex;
     align-items: center;
@@ -84,7 +83,7 @@ body {
 }
 
 .btn-login:hover {
-    background: var(--primary-hover);
+    background: var(--primary);
     transform: translateY(-2px);
 }
 
@@ -98,7 +97,6 @@ body {
     display: none;
 }
 
-/* SIDEBAR */
 .sidebar {
     width: 280px;
     background: var(--sidebar-bg);
@@ -173,7 +171,6 @@ body {
     stroke: var(--text-muted);
 }
 
-/* TOAST SYSTEM */
 #toast-container {
     position: fixed;
     top: 20px;
@@ -210,7 +207,6 @@ body {
 .toast.success i, .toast.success svg { color: #10b981; stroke: #10b981; }
 .toast.error i, .toast.error svg { color: #ef4444; stroke: #ef4444; }
 
-/* MAIN CONTENT */
 .main {
     margin-left: 280px;
     padding: 3rem;
@@ -252,7 +248,6 @@ header p {
     color: #fff;
 }
 
-/* CARDS GRID */
 .services-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -295,11 +290,6 @@ header p {
     background: var(--primary);
     color: #fff;
     transform: scale(1.1) rotate(5deg);
-}
-
-.service-icon i {
-    width: 32px;
-    height: 32px;
 }
 
 .service-icon i, .service-icon svg {
@@ -345,7 +335,6 @@ header p {
     transform: scale(0.98);
 }
 
-/* STATS */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -363,7 +352,6 @@ header p {
 .stat-card .label { color: var(--text-muted); margin-bottom: 10px; font-size: 0.9rem; }
 .stat-card .value { font-size: 1.8rem; font-weight: 800; color: #fff; }
 
-/* TABLE */
 .table-card {
     background: var(--card-bg);
     border-radius: 24px;
@@ -398,5 +386,5 @@ input[type="email"] {
 .form-input:focus,
 input:focus { 
     outline: none; 
-    border-color: var(--primary); 
+    border-color: var(--primary);
 }

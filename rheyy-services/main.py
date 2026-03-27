@@ -24,13 +24,12 @@ from script.audio_analyse import perform_full_analysis, perform_full_analysis_st
 import shutil
 import os
 
-# =========================
-# SETUP
-# =========================
+# ==============================================================================
 
 app = FastAPI(title="Rheyy Services", version="2.0.0")
-# Cache pour stocker les chemins temporaires
 audio_files = {}
+
+# ==============================================================================
 
 @app.get("/tools/packager-index")
 async def get_packager_index(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
@@ -57,8 +56,6 @@ async def update_packager_index(data: dict = Body(...), db: Session = Depends(ge
 async def generate_pack_endpoint(request: Request, db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
     form_data = await request.form()
     file = form_data.get("file")
-    
-    # Récupération au cas où l'admin force un index dans le formulaire
     form_start = form_data.get("start_line")
     
     setting = db.query(Setting).filter(Setting.key == "packager_index").first()
@@ -82,15 +79,12 @@ async def generate_pack_endpoint(request: Request, db: Session = Depends(get_db)
     lines = [l.strip() for l in lines if l.strip()]
     
     if len(lines) < start_line:
-        raise HTTPException(status_code=400, detail=f"Index de départ ({start_line}) trop élevé pour ce fichier.")
+        raise HTTPException(status_code=400, detail=f"Index de départ ({start_line}) trop élevé.")
         
     try:
         final_zip = generate_packaging_elite(lines, start_line - 1, title)
-        
-        # Incrémentation automatique de 200 après succès
         setting.value = str(start_line + 200)
         db.commit()
-        
         return FileResponse(final_zip, media_type="application/zip", filename=f"pack_200_line_{start_line}.zip")
     except Exception as e:
         db.rollback()
@@ -113,19 +107,18 @@ async def analyze_audio_streaming_endpoint(request: Request, admin: str = Depend
     if not file:
         raise HTTPException(status_code=400, detail="Fichier manquant")
         
-    file_id = str(int(time.time()))
-    temp_path = f"temp_stream_{file_id}_{file.filename}"
+    file_id = str(uuid.uuid4())
+    temp_path = f"audio_{file_id}_{file.filename}"
+    audio_files[file_id] = temp_path
+    
     with open(temp_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-    
-    audio_files[file_id] = temp_path
-
+        
     async def event_generator():
-        # On lance le générateur d'analyse (Pass 1 & 2)
         for progress_json in perform_full_analysis_stream(temp_path):
             data = json.loads(progress_json)
             if data["status"] == "completed":
-                data["file_id"] = file_id # On donne l'ID pour le retry/confirm
+                data["file_id"] = file_id
                 yield json.dumps(data) + "\n"
             else:
                 yield progress_json + "\n"
@@ -137,10 +130,9 @@ async def analyze_audio_retry_endpoint(req: dict = Body(...), admin: str = Depen
     file_id = req.get("file_id")
     temp_path = audio_files.get(file_id)
     if not temp_path or not os.path.exists(temp_path):
-        raise HTTPException(status_code=404, detail="Fichier non trouvé ou session expirée")
-
+        raise HTTPException(status_code=404, detail="Fichier audio expiré ou introuvable.")
+        
     async def event_generator():
-        # On lance le générateur de retry (Pass 3 & 4)
         for progress_json in perform_retry_analysis_stream(temp_path):
             yield progress_json + "\n"
 
@@ -153,83 +145,23 @@ async def analyze_audio_confirm_endpoint(req: dict = Body(...), admin: str = Dep
     temp_path = audio_files.pop(file_id, None)
     
     if numbers:
-        from script.audio_analyse import perform_ssh_transfer
-        perform_ssh_transfer(numbers)
+        from script.audio_analyse import send_to_remote_ssh
+        send_to_remote_ssh(numbers)
         
     if temp_path and os.path.exists(temp_path):
         os.remove(temp_path)
         
-    return {"status": "success", "message": "Nombres envoyés au serveur distant via SSH."}
+    return {"status": "success", "message": "Nombres envoyés avec succès."}
 
-
-@app.post("/analyze-audio")
-async def analyze_audio_endpoint(request: Request, admin: str = Depends(get_current_admin)):
-    form_data = await request.form()
-    file = form_data.get("file")
-    if not file:
-        raise HTTPException(status_code=400, detail="Fichier manquant")
-        
-    temp_path = f"temp_{int(time.time())}_{file.filename}"
-    try:
-        with open(temp_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-            
-        results = perform_full_analysis(temp_path)
-        return results
-    except Exception as e:
-        logger.error(f"Erreur d'analyse: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-@app.on_event("startup")
-async def startup_event():
-    init_db()
-    logger.info("Base de données initialisée pour Rheyy Services.")
-
-# =========================
-# MODÈLES PYDANTIC
-# =========================
-
-class MRZRequest(BaseModel):
-    mode: str = "random"
-    nom: str | None = None
-    prenom: str | None = None
-    dep: str | None = None
-    canton: str | None = None
-    bureau: str | None = None
-    date_delivrance: str | None = None
-    random_code: str | None = None
-    naissance: str | None = None
-    sexe: str | None = None
-
-class QRRequest(BaseModel):
-    lines: list[str]
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
-# =========================
-# ROUTES AUTHENTIFICATION
-# =========================
+# ==============================================================================
 
 @app.post("/auth/login")
-async def login(req: LoginRequest, db: Session = Depends(get_db)):
-    admin = db.query(Admin).filter(Admin.username == req.username).first()
-    if not admin or not verify_password(req.password, admin.hashed_password):
-        raise HTTPException(status_code=401, detail="Identifiants incorrects")
+async def login(req: dict = Body(...), db: Session = Depends(get_db)):
+    username = req.get("username")
+    password = req.get("password")
+    admin = db.query(Admin).filter(Admin.username == username).first()
+    if not admin or not verify_password(password, admin.hashed_password):
+        raise HTTPException(status_code=401, detail="Identifiants invalides")
     
     admin.last_login = datetime.utcnow()
     db.commit()
@@ -237,95 +169,50 @@ async def login(req: LoginRequest, db: Session = Depends(get_db)):
     access_token = create_access_token(data={"sub": admin.username})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.post("/admin/setup-first-admin")
-async def setup_first_admin(req: LoginRequest, request: Request, db: Session = Depends(get_db)):
-    check_ip_whitelist(request)
-    
-    try:
-        existing = db.query(Admin).first()
-        if existing:
-            raise HTTPException(status_code=400, detail="Un administrateur existe déjà")
-        
-        hashed = get_password_hash(req.password)
-        new_admin = Admin(
-            username=req.username,
-            hashed_password=hashed
-        )
-        db.add(new_admin)
-        db.commit()
-        return {"message": "Administrateur créé avec succès"}
-    except Exception as e:
-        logger.error(f"Erreur lors de la création de l'admin: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-# =========================
-# ROUTES TOOLS (PROTÉGÉES)
-# =========================
-
-@app.post("/generate-mrz")
-def generate_mrz_endpoint(req: MRZRequest, admin: str = Depends(get_current_admin)):
-    if req.mode.lower() == "aleatoire" or req.mode.lower() == "random":
-        data = generate_random_data()
-        mrz = generate_mrz(data)
-        return {"mrz": [f"{mrz['line1']}\n{mrz['line2']}"]}
-
-    if req.mode.lower() == "manuel":
-        data = {
-            "nom": req.nom,
-            "prenom": req.prenom,
-            "dep": req.dep,
-            "canton": req.canton,
-            "bureau": req.bureau,
-            "date_delivrance": req.date_delivrance,
-            "random_code": req.random_code,
-            "naissance": req.naissance,
-            "sexe": req.sexe.upper() if req.sexe else "M",
-        }
-        mrz = generate_mrz(data)
-        return {"mrz": [f"{mrz['line1']}\n{mrz['line2']}"]}
-
-    raise HTTPException(status_code=400, detail="Mode invalide")
-
-@app.post("/generate-zip")
-def generate_zip_endpoint(req: QRRequest, admin: str = Depends(get_current_admin)):
-    try:
-        zip_path = generate_qr_zip(req.lines)
-        return FileResponse(zip_path, media_type="application/zip", filename="qr_codes.zip")
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-# =========================
-# ROUTES DASHBOARD ADMIN
-# =========================
-
 @app.get("/admin/stats")
-async def get_stats(admin: str = Depends(get_current_admin), db: Session = Depends(get_db)):
-    total_payments = db.query(Payment).count()
-    paid_payments = db.query(Payment).filter(Payment.status == "PAID").count()
-    total_revenue = db.query(Payment).filter(Payment.status == "PAID").with_entities(Payment.amount).all()
-    revenue = sum([p[0] for p in total_revenue]) if total_revenue else 0
+async def get_stats(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
+    total_rev = db.query(Payment).filter(Payment.status == "PAID").sum(Payment.amount) or 0
+    paid_count = db.query(Payment).filter(Payment.status == "PAID").count()
+    total_count = db.query(Payment).count()
     
-
-    today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-    generated_today = db.query(Payment).filter(Payment.is_generated == 1, Payment.created_at >= today).count()
+    today = datetime.utcnow().date()
+    gen_today = db.query(Payment).filter(
+        Payment.is_generated == 1,
+        Payment.created_at >= today
+    ).count()
 
     return {
-        "total_payments": total_payments,
-        "paid_payments": paid_payments,
-        "total_revenue": round(revenue, 2),
-        "generated_today": generated_today
+        "total_revenue": total_rev,
+        "paid_payments": paid_count,
+        "total_payments": total_count,
+        "generated_today": gen_today
     }
 
 @app.get("/admin/payments")
-async def list_payments(
-    skip: int = 0, 
-    limit: int = 50, 
-    admin: str = Depends(get_current_admin), 
-    db: Session = Depends(get_db)
-):
-    payments = db.query(Payment).order_by(Payment.created_at.desc()).offset(skip).limit(limit).all()
-    return payments
+async def get_payments(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
+    return db.query(Payment).order_by(Payment.created_at.desc()).limit(50).all()
 
-@app.get("/admin/verify-session")
-async def verify_session(admin: str = Depends(get_current_admin)):
-    return {"status": "ok", "admin": admin}
+# ==============================================================================
+
+@app.post("/generate-mrz")
+async def mrz_endpoint(req: dict = Body(...), admin: str = Depends(get_current_admin)):
+    mode = req.get("mode", "random")
+    if mode == "random":
+        data = generate_random_data()
+        mrz_lines = generate_mrz(data['nom'], data['prenom'])
+    else:
+        mrz_lines = generate_mrz(req.get("nom"), req.get("prenom"))
+    return {"mrz": mrz_lines}
+
+@app.post("/generate-zip")
+async def zip_endpoint(req: dict = Body(...), admin: str = Depends(get_current_admin)):
+    lines = req.get("lines", [])
+    zip_path = generate_qr_zip(lines)
+    return FileResponse(zip_path, media_type="application/zip", filename="qr_codes.zip")
+
+# ==============================================================================
+
+if __name__ == "__main__":
+    import uvicorn
+    init_db()
+    uvicorn.run(app, host="0.0.0.0", port=8080)

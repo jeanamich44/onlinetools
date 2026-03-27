@@ -5,6 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import logging
 
+# ==============================================================================
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -16,7 +17,8 @@ if SQLALCHEMY_DATABASE_URL:
         SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql://", 1)
 else:
     SQLALCHEMY_DATABASE_URL = "sqlite:///./rheyy_services.db"
-    logger.warning("DATABASE_URL non trouvée, utilisation d'une base SQLite locale.")
+
+# ==============================================================================
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
@@ -25,9 +27,7 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# =========================
-# MODÈLES
-# =========================
+# ==============================================================================
 
 class Admin(Base):
     __tablename__ = "admins"
@@ -38,7 +38,6 @@ class Admin(Base):
     last_login = Column(DateTime, nullable=True)
 
 class Payment(Base):
-    """Miroir de la table de l'API principale pour la lecture."""
     __tablename__ = "payments"
     id = Column(Integer, primary_key=True, index=True)
     checkout_id = Column(String, index=True, nullable=True)
@@ -57,9 +56,7 @@ class Setting(Base):
     key = Column(String, primary_key=True)
     value = Column(String)
 
-# =========================
-# INITIALISATION
-# =========================
+# ==============================================================================
 
 def init_db():
     Base.metadata.create_all(bind=engine)
