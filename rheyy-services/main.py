@@ -86,9 +86,9 @@ async def generate_pack_endpoint(request: Request, bg: BackgroundTasks, db: Sess
         db.commit()
     
     if form_start and str(form_start).strip().isdigit():
-        start_line = int(form_start)
+        start_line = max(1, int(form_start))
     else:
-        start_line = int(setting.value)
+        start_line = max(1, int(setting.value))
     
     lines = []
     try:
