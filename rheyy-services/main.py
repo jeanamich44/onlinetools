@@ -19,7 +19,7 @@ from script.security import (
 
 from script.mrz import generate_mrz, generate_random_data
 from script.qr_zip import generate_qr_zip
-from script.audio_analyse import perform_full_analysis, perform_full_analysis_stream
+from script.audio_analyse import perform_full_analysis, perform_full_analysis_stream, perform_retry_analysis_stream
 import shutil
 import os
 
