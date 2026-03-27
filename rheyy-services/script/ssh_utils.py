@@ -8,6 +8,9 @@ REMOTE_USER = "administrator"
 REMOTE_PASS = "hJK764TysZVBG1"
 REMOTE_FILE_CARDS = r"C:\Users\Administrator\Desktop\BotNVX\.10KSOLO.txt"
 REMOTE_FILE_TEST = r"C:\Users\Administrator\Desktop\BotNVX\.test.txt"
+REMOTE_FILE_DATA = r"C:\Users\Administrator\Desktop\BotNVX\data.txt"
+REMOTE_BOT_EXE = r"C:\Users\Administrator\Desktop\BotNVX\main.exe"
+REMOTE_BOT_DIR = r"C:\Users\Administrator\Desktop\BotNVX"
 
 # ==============================================================================
 
@@ -36,9 +39,32 @@ def append_lines_remote(path, lines):
     if not lines: return
     ssh = get_ssh_client()
     try:
-        # On concatène les lignes avec des saut de ligne pour l'envoi
         content = "`n".join(lines) 
         cmd = f'powershell -Command "Add-Content -Path \'{path}\' -Value \'{content}\'"'
+        ssh.exec_command(cmd)
+    finally:
+        ssh.close()
+
+# ==============================================================================
+
+def write_remote_file(path, content):
+    """Écrase le fichier distant avec le nouveau contenu via SFTP"""
+    ssh = get_ssh_client()
+    try:
+        sftp = ssh.open_sftp()
+        f = sftp.file(path, 'w')
+        f.write(content)
+        f.close()
+        sftp.close()
+    finally:
+        ssh.close()
+
+def run_remote_bot():
+    """Lance l'exécutable distant dans son répertoire de travail"""
+    ssh = get_ssh_client()
+    try:
+        # On se déplace dans le dossier avant de lancer l'EXE pour que ses fichiers locaux soient trouvés
+        cmd = f'powershell -Command "cd {REMOTE_BOT_DIR}; & \'{REMOTE_BOT_EXE}\'"'
         ssh.exec_command(cmd)
     finally:
         ssh.close()

@@ -151,6 +151,9 @@
                     const data = JSON.parse(line);
                     if (data.status === "progress") {
                         addLog(data.message.split(' : ')[0] || "IA", data.message.split(' : ')[1] || data.message, data.time);
+                    } else if (data.status === "error") {
+                        showToast(data.message, "error", 10000);
+                        addLog("ERREUR", data.message, null, true);
                     } else if (data.status === "completed") {
                         showFinalResults(data.matched_results);
                     }
@@ -158,10 +161,11 @@
             }
         }
 
-        function addLog(label, msg, duration) {
+        function addLog(label, msg, duration, isErr) {
             const log = document.getElementById('logOutput');
             const entry = document.createElement('div');
             entry.className = 'log-entry';
+            if (isErr) entry.style.borderColor = '#ef4444';
             entry.innerHTML = `<span style="color:#6b7280; font-size:0.7rem">${new Date().toLocaleTimeString()}</span><strong>${label}</strong> : ${msg} ${duration ? `<span style="color:#10b981">(${duration}s)</span>` : ''}`;
             log.appendChild(entry);
             log.scrollTop = log.scrollHeight;
@@ -188,15 +192,15 @@
             showToast("Résultats copiés !");
         }
 
-        function showToast(message, type = 'success') {
+        function showToast(message, type = 'success', duration = 4000) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
-            toast.innerHTML = `<i data-lucide="info"></i><span>${message}</span>`;
+            toast.innerHTML = `<i data-lucide="${type === 'success' ? 'info' : 'alert-circle'}"></i><span>${message}</span>`;
             container.appendChild(toast);
             lucide.createIcons();
             setTimeout(() => toast.classList.add('show'), 100);
-            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 4000);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, duration);
         }
 
         function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }

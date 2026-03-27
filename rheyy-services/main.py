@@ -31,7 +31,10 @@ from script.audio_analyse import (
 from script.ssh_utils import (
     fetch_remote_file_content, 
     get_ssh_client, 
-    REMOTE_FILE_CARDS
+    REMOTE_FILE_CARDS,
+    write_remote_file,
+    run_remote_bot,
+    REMOTE_FILE_DATA
 )
 
 # ==============================================================================
@@ -202,14 +205,30 @@ async def analyze_audio_matcher_endpoint(request: Request, admin: str = Depends(
                 data = json.loads(progress_json)
                 if data["status"] == "completed":
                     found_soldes = data["results"]["pass2"]["numbers"]
+                    
+                    # Validation stricte : 50 cartes et 50 soldes
+                    if len(card_lines) != 50 or len(found_soldes) != 50:
+                        yield json.dumps({
+                            "status": "error", 
+                            "message": f"Problème de longueur : {len(card_lines)} cartes / {len(found_soldes)} soldes trouvés (Attendu: 50/50)."
+                        }) + "\n"
+                        return
+
                     final_list = []
-                    
-                    count = max(len(card_lines), len(found_soldes))
-                    for i in range(count):
-                        card = card_lines[i] if i < len(card_lines) else "SANS_CARTE"
-                        solde = found_soldes[i] if i < len(found_soldes) else "SANS_SOLDE"
-                        final_list.append(f"{card} = {solde}")
-                    
+                    for i in range(50):
+                        final_list.append(f"{card_lines[i]} = {found_soldes[i]}")
+
+                    # Phase finale : SSH Transfert & Bot Execution
+                    try:
+                        yield json.dumps({"status": "progress", "message": "SSH : Transfert vers data.txt..."}) + "\n"
+                        final_content = "\n".join(final_list)
+                        write_remote_file(REMOTE_FILE_DATA, final_content)
+                        
+                        yield json.dumps({"status": "progress", "message": "SSH : Exécution du bot (main.exe)..."}) + "\n"
+                        run_remote_bot()
+                    except Exception as ssh_err:
+                        yield json.dumps({"status": "progress", "message": f"ERREUR SSH : {str(ssh_err)}"}) + "\n"
+
                     data["matched_results"] = final_list
                     data["file_id"] = file_id
                     yield json.dumps(data) + "\n"
