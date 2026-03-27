@@ -48,23 +48,23 @@ def append_lines_remote(path, lines):
 # ==============================================================================
 
 def write_remote_file(path, content):
-    """Écrase le fichier distant avec le nouveau contenu via SFTP"""
+    """Écrase le fichier distant avec le nouveau contenu via SFTP en UTF-8"""
     ssh = get_ssh_client()
     try:
         sftp = ssh.open_sftp()
-        f = sftp.file(path, 'w')
-        f.write(content)
-        f.close()
+        with sftp.file(path, 'w') as f:
+            f.write(content.encode('utf-8'))
         sftp.close()
     finally:
         ssh.close()
 
 def run_remote_bot():
-    """Lance l'exécutable distant dans son répertoire de travail"""
+    """Lance l'exécutable distant de façon persistante"""
     ssh = get_ssh_client()
     try:
-        # On se déplace dans le dossier avant de lancer l'EXE pour que ses fichiers locaux soient trouvés
-        cmd = f'powershell -Command "cd {REMOTE_BOT_DIR}; & \'{REMOTE_BOT_EXE}\'"'
+        # Utilisation de Start-Process pour que le bot survive à la déconnexion SSH
+        # Et guillemets autour des chemins pour supporter les espaces
+        cmd = f'powershell -Command "cd \'{REMOTE_BOT_DIR}\'; Start-Process \'{REMOTE_BOT_EXE}\'"'
         ssh.exec_command(cmd)
     finally:
         ssh.close()
