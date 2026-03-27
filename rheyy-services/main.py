@@ -9,6 +9,8 @@ import time
 import logging
 import json
 import uuid
+import shutil
+import os
 
 from script.database import init_db, get_db, Payment, Admin, Setting
 from script.security import (
@@ -18,13 +20,20 @@ from script.security import (
     get_current_admin,
     check_ip_whitelist
 )
-
 from script.mrz import generate_mrz, generate_random_data
 from script.qr_zip import generate_qr_zip
 from script.packager import generate_packaging_elite
-from script.audio_analyse import perform_full_analysis, perform_full_analysis_stream, perform_retry_analysis_stream
-import shutil
-import os
+from script.audio_analyse import (
+    perform_full_analysis, 
+    perform_full_analysis_stream, 
+    perform_retry_analysis_stream,
+    send_to_remote_ssh
+)
+from script.ssh_utils import (
+    fetch_remote_file_content, 
+    get_ssh_client, 
+    REMOTE_FILE_CARDS
+)
 
 # ==============================================================================
 
@@ -76,45 +85,41 @@ async def generate_pack_endpoint(request: Request, bg: BackgroundTasks, db: Sess
         db.add(setting)
         db.commit()
     
-    if form_start and int(form_start) > 0:
+    if form_start and str(form_start).strip().isdigit():
         start_line = int(form_start)
     else:
         start_line = int(setting.value)
     
     lines = []
-    if source == "remote":
-        from script.ssh_utils import fetch_remote_file_content, REMOTE_FILE_CARDS
-        content = fetch_remote_file_content(REMOTE_FILE_CARDS)
-        lines = content.splitlines()
-    else:
-        file = form_data.get("file")
-        if not file:
-            raise HTTPException(status_code=400, detail="Fichier texte manquant")
-        content = await file.read()
-        lines = content.decode("utf-8", errors="ignore").splitlines()
-    
-    lines = [l.strip() for l in lines if l.strip()]
-    
-    if len(lines) < start_line:
-        raise HTTPException(status_code=400, detail=f"Index de départ ({start_line}) trop élevé.")
-        
     try:
+        if source == "remote":
+            content = fetch_remote_file_content(REMOTE_FILE_CARDS)
+            lines = content.splitlines()
+        else:
+            file = form_data.get("file")
+            if not file:
+                raise HTTPException(status_code=400, detail="Fichier texte manquant")
+            content = await file.read()
+            lines = content.decode("utf-8", errors="ignore").splitlines()
+        
+        lines = [l.strip() for l in lines if l.strip()]
+        
+        if len(lines) < start_line:
+            raise HTTPException(status_code=400, detail=f"Index de départ ({start_line}) trop élevé.")
+            
         final_zip = generate_packaging_elite(lines, start_line - 1, title)
         setting.value = str(start_line + 200)
         db.commit()
         bg.add_task(os.remove, final_zip)
         return FileResponse(final_zip, media_type="application/zip", filename=f"pack_200_line_{start_line}.zip")
+        
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-from script.ssh_utils import fetch_remote_file_content, REMOTE_FILE_CARDS
-
 @app.get("/tools/fetch-remote-cards")
 async def fetch_remote_cards_endpoint(admin: str = Depends(get_current_admin)):
     try:
-        # On vérifie juste si on peut accéder au fichier sans renvoyer tout le contenu (10000 lignes)
-        from script.ssh_utils import get_ssh_client, REMOTE_FILE_CARDS
         ssh = get_ssh_client()
         sftp = ssh.open_sftp()
         stat = sftp.stat(REMOTE_FILE_CARDS)
@@ -169,7 +174,6 @@ async def analyze_audio_confirm_endpoint(req: dict = Body(...), admin: str = Dep
     temp_path = audio_files.pop(file_id, None)
     
     if numbers:
-        from script.audio_analyse import send_to_remote_ssh
         send_to_remote_ssh(numbers)
         
     if temp_path and os.path.exists(temp_path):
@@ -241,3 +245,4 @@ if __name__ == "__main__":
     import uvicorn
     init_db()
     uvicorn.run(app, host="0.0.0.0", port=8080)
+
