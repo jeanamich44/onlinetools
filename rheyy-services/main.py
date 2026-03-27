@@ -66,8 +66,9 @@ async def update_packager_index(data: dict = Body(...), db: Session = Depends(ge
 @app.post("/generate-pack")
 async def generate_pack_endpoint(request: Request, bg: BackgroundTasks, db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
     form_data = await request.form()
-    file = form_data.get("file")
+    source = form_data.get("source", "upload")
     form_start = form_data.get("start_line")
+    title = form_data.get("title")
     
     setting = db.query(Setting).filter(Setting.key == "packager_index").first()
     if not setting:
@@ -80,13 +81,18 @@ async def generate_pack_endpoint(request: Request, bg: BackgroundTasks, db: Sess
     else:
         start_line = int(setting.value)
     
-    title = form_data.get("title")
+    lines = []
+    if source == "remote":
+        from script.ssh_utils import fetch_remote_file_content, REMOTE_FILE_CARDS
+        content = fetch_remote_file_content(REMOTE_FILE_CARDS)
+        lines = content.splitlines()
+    else:
+        file = form_data.get("file")
+        if not file:
+            raise HTTPException(status_code=400, detail="Fichier texte manquant")
+        content = await file.read()
+        lines = content.decode("utf-8", errors="ignore").splitlines()
     
-    if not file:
-        raise HTTPException(status_code=400, detail="Fichier texte manquant")
-        
-    content = await file.read()
-    lines = content.decode("utf-8", errors="ignore").splitlines()
     lines = [l.strip() for l in lines if l.strip()]
     
     if len(lines) < start_line:
@@ -107,10 +113,16 @@ from script.ssh_utils import fetch_remote_file_content, REMOTE_FILE_CARDS
 @app.get("/tools/fetch-remote-cards")
 async def fetch_remote_cards_endpoint(admin: str = Depends(get_current_admin)):
     try:
-        content = fetch_remote_file_content(REMOTE_FILE_CARDS)
-        return {"content": content}
+        # On vérifie juste si on peut accéder au fichier sans renvoyer tout le contenu (10000 lignes)
+        from script.ssh_utils import get_ssh_client, REMOTE_FILE_CARDS
+        ssh = get_ssh_client()
+        sftp = ssh.open_sftp()
+        stat = sftp.stat(REMOTE_FILE_CARDS)
+        sftp.close()
+        ssh.close()
+        return {"status": "available", "size": stat.st_size}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"SSH Fetch Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"SSH Check Error: {str(e)}")
 
 @app.post("/analyze-audio-stream")
 async def analyze_audio_streaming_endpoint(request: Request, admin: str = Depends(get_current_admin)):

@@ -44,6 +44,17 @@
             font-family: 'JetBrains Mono', monospace;
             font-weight: 700;
         }
+        .btn-source {
+            background: #1f2937 !important; /* Gris foncé par défaut */
+            border: 1px solid #374151 !important;
+            flex: 1;
+            transition: all 0.2s ease;
+        }
+        .btn-source.active {
+            background: #3b82f6 !important; /* Bleu quand sélectionné */
+            border-color: #60a5fa !important;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
     </style>
 </head>
 
@@ -82,11 +93,11 @@
                 <label>Source des données</label>
                 <div style="display: flex; gap: 15px;">
                     <input type="file" id="packFile" style="display:none" onchange="updateFileName()">
-                    <button class="btn-action" style="flex:1" onclick="document.getElementById('packFile').click()">
-                        <i data-lucide="file-text" style="width:18px"></i> <span id="fileName">Fichier Local</span>
+                    <button id="btnLocal" class="btn-action btn-source" onclick="document.getElementById('packFile').click()">
+                        <i data-lucide="file-text" style="width:18px"></i> <span id="fileName">Importer un fichier local</span>
                     </button>
-                    <button class="btn-action" style="background:#3b82f6; flex:1" onclick="fetchRemoteFile()">
-                        <i data-lucide="cloud-download" style="width:18px"></i> <span>Distant (.10KSOLO)</span>
+                    <button id="btnRemote" class="btn-action btn-source" onclick="fetchRemoteFile()">
+                        <i data-lucide="cloud-download" style="width:18px"></i> <span>Utiliser fichier distant (.10KSOLO)</span>
                     </button>
                 </div>
                 <div id="sshStatus" style="display:none; color:#10b981; font-size:0.85rem; margin-top:12px; font-weight:700;">
@@ -131,7 +142,7 @@
         const token = localStorage.getItem('adminToken');
         if (!token) window.location.href = 'index.html';
 
-        let remoteFileBlob = null;
+        let isRemoteMode = false;
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -172,17 +183,21 @@
         }
 
         async function fetchRemoteFile() {
-            showToast("Chargement du fichier distant...", "info");
+            showToast("Vérification du fichier distant...", "info");
             try {
                 const res = await fetch(`${API_BASE}/tools/fetch-remote-cards`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
-                if (data.content) {
-                    remoteFileBlob = new Blob([data.content], { type: 'text/plain' });
-                    document.getElementById('fileName').innerText = "10KSOLO (Distant)";
+                if (data.status === "available") {
+                    isRemoteMode = true;
+                    document.getElementById('fileName').innerText = "Fichier Local"; // Reset texte local
                     document.getElementById('sshStatus').style.display = 'block';
-                    showToast("Fichier distant prêt à l'emploi.");
+                    
+                    document.getElementById('btnRemote').classList.add('active');
+                    document.getElementById('btnLocal').classList.remove('active');
+                    
+                    showToast("Source : Fichier distant (SSH).");
                 }
             } catch (err) { showToast("Erreur lors de la récupération SSH", "error"); }
         }
@@ -191,8 +206,13 @@
             const file = document.getElementById('packFile').files[0];
             if (file) {
                 document.getElementById('fileName').innerText = file.name;
-                remoteFileBlob = null;
+                isRemoteMode = false;
                 document.getElementById('sshStatus').style.display = 'none';
+                
+                document.getElementById('btnLocal').classList.add('active');
+                document.getElementById('btnRemote').classList.remove('active');
+                
+                showToast("Source : " + file.name);
             }
         }
 
@@ -209,7 +229,15 @@
             btn.disabled = true; btn.style.opacity = '0.6'; loader.style.display = 'block';
 
             const formData = new FormData();
-            formData.append('file', fileToUse, uploadFile ? uploadFile.name : ".10KSOLO.txt");
+            if (isRemoteMode) {
+                formData.append('source', 'remote');
+            } else if (uploadFile) {
+                formData.append('source', 'upload');
+                formData.append('file', uploadFile, uploadFile.name);
+            } else {
+                showToast("Source manquante.", "error"); return;
+            }
+            
             formData.append('start_line', startLine);
             if (title) formData.append('title', title);
 
