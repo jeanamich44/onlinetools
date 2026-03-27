@@ -176,6 +176,51 @@ async def analyze_audio_cleanup_endpoint(req: dict = Body(...), admin: str = Dep
         
     return {"status": "success", "message": "Fichier temporaire nettoyé."}
 
+@app.post("/analyze-audio-matcher")
+async def analyze_audio_matcher_endpoint(request: Request, admin: str = Depends(get_current_admin)):
+    form_data = await request.form()
+    audio_file = form_data.get("audio")
+    txt_file = form_data.get("txt")
+    
+    if not audio_file or not txt_file:
+        raise HTTPException(status_code=400, detail="Fichiers manquants (Audio + TXT requis)")
+    
+    # Lecture du TXT
+    txt_content = await txt_file.read()
+    card_lines = txt_content.decode("utf-8", errors="ignore").splitlines()
+    card_lines = [l.strip() for l in card_lines if l.strip()]
+    
+    file_id = str(uuid.uuid4())
+    temp_path = f"audio_matcher_{file_id}_{audio_file.filename}"
+    
+    with open(temp_path, "wb") as buffer:
+        shutil.copyfileobj(audio_file.file, buffer)
+        
+    async def event_generator():
+        try:
+            for progress_json in perform_full_analysis_stream(temp_path):
+                data = json.loads(progress_json)
+                if data["status"] == "completed":
+                    found_soldes = data["results"]["pass2"]["numbers"]
+                    final_list = []
+                    
+                    count = max(len(card_lines), len(found_soldes))
+                    for i in range(count):
+                        card = card_lines[i] if i < len(card_lines) else "SANS_CARTE"
+                        solde = found_soldes[i] if i < len(found_soldes) else "SANS_SOLDE"
+                        final_list.append(f"{card} = {solde}")
+                    
+                    data["matched_results"] = final_list
+                    data["file_id"] = file_id
+                    yield json.dumps(data) + "\n"
+                else:
+                    yield progress_json + "\n"
+        finally:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+
+    return StreamingResponse(event_generator(), media_type="application/x-ndjson")
+
 # ==============================================================================
 
 @app.post("/auth/login")
