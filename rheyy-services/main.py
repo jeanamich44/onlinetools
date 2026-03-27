@@ -26,8 +26,7 @@ from script.packager import generate_packaging_elite
 from script.audio_analyse import (
     perform_full_analysis, 
     perform_full_analysis_stream, 
-    perform_retry_analysis_stream,
-    send_to_remote_ssh
+    perform_retry_analysis_stream
 )
 from script.ssh_utils import (
     fetch_remote_file_content, 
@@ -167,19 +166,15 @@ async def analyze_audio_retry_endpoint(req: dict = Body(...), admin: str = Depen
 
     return StreamingResponse(event_generator(), media_type="application/x-ndjson")
 
-@app.post("/analyze-audio-confirm")
-async def analyze_audio_confirm_endpoint(req: dict = Body(...), admin: str = Depends(get_current_admin)):
+@app.post("/analyze-audio-cleanup")
+async def analyze_audio_cleanup_endpoint(req: dict = Body(...), admin: str = Depends(get_current_admin)):
     file_id = req.get("file_id")
-    numbers = req.get("numbers", [])
     temp_path = audio_files.pop(file_id, None)
     
-    if numbers:
-        send_to_remote_ssh(numbers)
-        
     if temp_path and os.path.exists(temp_path):
         os.remove(temp_path)
         
-    return {"status": "success", "message": "Nombres envoyés avec succès."}
+    return {"status": "success", "message": "Fichier temporaire nettoyé."}
 
 # ==============================================================================
 

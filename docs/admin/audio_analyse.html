@@ -21,10 +21,8 @@
         .log-duration { color: #10b981; font-weight: bold; }
         .result-box { margin-top: 30px; background: var(--card-bg); border-radius: 20px; padding: 30px; border: 1px solid var(--border); display: none; }
         .action-buttons { display: flex; gap: 15px; margin-top: 25px; }
-        .btn-confirm { background: #10b981; color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center; }
-        .btn-retry { background: #f59e0b; color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center; }
-        .btn-confirm:hover { background: #059669; transform: translateY(-2px); }
-        .btn-retry:hover { background: #d97706; transform: translateY(-2px); }
+        .btn-retry { background: var(--primary); color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center; transition: all 0.2s; }
+        .btn-retry:hover { background: #2563eb; transform: translateY(-2px); }
         .diff-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; margin-right: 5px; background: rgba(239, 68, 68, 0.2); color: #ef4444; }
     </style>
 </head>
@@ -39,6 +37,8 @@
             <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> Dashboard</a>
             <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> Paiements</a>
             <a href="tools.html" class="nav-item"><i data-lucide="wrench"></i> Outils</a>
+            <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> MRZ</a>
+            <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> QR ZIP</a>
             <a href="packager.html" class="nav-item"><i data-lucide="package"></i> Packager 200</a>
             <a href="audio_analyse.html" class="nav-item active"><i data-lucide="mic"></i> Analyse Audio</a>
         </nav>
@@ -75,8 +75,7 @@
             </div>
             <div id="statusInfo" style="padding: 15px; border-radius: 10px; font-size: 0.9rem; margin-bottom: 20px;"></div>
             <div class="action-buttons">
-                <button class="btn-confirm" onclick="confirmSend()"><i data-lucide="send"></i> Valider et Envoyer (SSH)</button>
-                <button class="btn-retry" onclick="retryAnalysis()"><i data-lucide="refresh-cw"></i> Réessayer (Précision Max)</button>
+                <button class="btn-retry" onclick="retryAnalysis()"><i data-lucide="refresh-cw"></i> RÉ-ANALYSER AVEC PRÉCISION MAXIMALE</button>
             </div>
         </div>
     </div>
@@ -139,18 +138,15 @@
             } catch (err) { showToast("Échec de la ré-analyse", "error"); }
         }
 
-        async function confirmSend() {
-            if (!currentFileId || currentNumbers.length === 0) return;
+        async function cleanup(fileId) {
+            if (!fileId) return;
             try {
-                const res = await fetch(`${API_BASE}/analyze-audio-confirm`, {
+                await fetch(`${API_BASE}/analyze-audio-cleanup`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ file_id: currentFileId, numbers: currentNumbers })
+                    body: JSON.stringify({ file_id: fileId })
                 });
-                const data = await res.json();
-                showToast(data.message, "success");
-                addLog("FIN", data.message);
-            } catch (err) { showToast("Le transfert SSH a échoué", "error"); }
+            } catch (err) {}
         }
 
         async function readStream(response) {

@@ -9,19 +9,8 @@ import paramiko
 import json
 from faster_whisper import WhisperModel
 
-from script.ssh_utils import append_lines_remote, REMOTE_FILE_TEST
-
 # ==============================================================================
-
-def send_to_remote_ssh(numbers):
-    if not numbers:
-        return
-    try:
-        append_lines_remote(REMOTE_FILE_TEST, numbers)
-        print(f"[SSH] {len(numbers)} nombres envoyés ligne par ligne.")
-    except Exception as e:
-        print(f"[SSH Error] Erreur de connexion ou d'écriture : {str(e)}")
-
+# Analyse Audio AI
 # ==============================================================================
 
 def load_audio_with_av(file_path):
@@ -176,10 +165,7 @@ def perform_retry_analysis_stream(file_path):
         }
     })
 
-def perform_ssh_transfer(numbers):
-    """Exécute uniquement le transfert SSH"""
-    send_to_remote_ssh(numbers)
-    return True
+# Analyse Audio AI accomplie
 
 def perform_full_analysis(file_path):
     gen = perform_full_analysis_stream(file_path)
