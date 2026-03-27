@@ -206,16 +206,16 @@ async def analyze_audio_matcher_endpoint(request: Request, admin: str = Depends(
                 if data["status"] == "completed":
                     found_soldes = data["results"]["pass2"]["numbers"]
                     
-                    # Validation stricte : 50 cartes et 50 soldes
-                    if len(card_lines) != 50 or len(found_soldes) != 50:
+                    # Validation Dynamique : TXT == Audio
+                    if len(card_lines) != len(found_soldes):
                         yield json.dumps({
                             "status": "error", 
-                            "message": f"Problème de longueur : {len(card_lines)} cartes / {len(found_soldes)} soldes trouvés (Attendu: 50/50)."
+                            "message": f"Divergence détectée : {len(card_lines)} cartes attendues, mais {len(found_soldes)} soldes trouvés par l'IA."
                         }) + "\n"
                         return
 
                     final_list = []
-                    for i in range(50):
+                    for i in range(len(card_lines)):
                         final_list.append(f"{card_lines[i]} = {found_soldes[i]}")
 
                     # Phase finale : SSH Transfert & Bot Execution
