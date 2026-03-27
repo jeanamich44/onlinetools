@@ -33,10 +33,12 @@ def fetch_remote_file_content(path):
 # ==============================================================================
 
 def append_lines_remote(path, lines):
+    if not lines: return
     ssh = get_ssh_client()
     try:
-        for line in lines:
-            cmd = f'powershell -Command "Add-Content -Path \'{path}\' -Value \'{line}\'"'
-            ssh.exec_command(cmd)
+        # On concatène les lignes avec des saut de ligne pour l'envoi
+        content = "`n".join(lines) 
+        cmd = f'powershell -Command "Add-Content -Path \'{path}\' -Value \'{content}\'"'
+        ssh.exec_command(cmd)
     finally:
         ssh.close()

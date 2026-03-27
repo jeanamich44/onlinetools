@@ -1,12 +1,14 @@
-from fastapi import FastAPI, HTTPException, Request, Depends, Body
+from fastapi import FastAPI, HTTPException, Request, Depends, Body, BackgroundTasks
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from datetime import datetime, timedelta
 import time
 import logging
 import json
+import uuid
 
 from script.database import init_db, get_db, Payment, Admin, Setting
 from script.security import (
@@ -27,6 +29,15 @@ import os
 # ==============================================================================
 
 app = FastAPI(title="Rheyy Services", version="2.0.0")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 audio_files = {}
 
 # ==============================================================================
@@ -53,7 +64,7 @@ async def update_packager_index(data: dict = Body(...), db: Session = Depends(ge
     return {"status": "success", "index": new_index}
 
 @app.post("/generate-pack")
-async def generate_pack_endpoint(request: Request, db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
+async def generate_pack_endpoint(request: Request, bg: BackgroundTasks, db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
     form_data = await request.form()
     file = form_data.get("file")
     form_start = form_data.get("start_line")
@@ -85,6 +96,7 @@ async def generate_pack_endpoint(request: Request, db: Session = Depends(get_db)
         final_zip = generate_packaging_elite(lines, start_line - 1, title)
         setting.value = str(start_line + 200)
         db.commit()
+        bg.add_task(os.remove, final_zip)
         return FileResponse(final_zip, media_type="application/zip", filename=f"pack_200_line_{start_line}.zip")
     except Exception as e:
         db.rollback()
@@ -171,7 +183,7 @@ async def login(req: dict = Body(...), db: Session = Depends(get_db)):
 
 @app.get("/admin/stats")
 async def get_stats(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
-    total_rev = db.query(Payment).filter(Payment.status == "PAID").sum(Payment.amount) or 0
+    total_rev = db.query(func.sum(Payment.amount)).filter(Payment.status == "PAID").scalar() or 0
     paid_count = db.query(Payment).filter(Payment.status == "PAID").count()
     total_count = db.query(Payment).count()
     
@@ -196,18 +208,19 @@ async def get_payments(db: Session = Depends(get_db), admin: str = Depends(get_c
 
 @app.post("/generate-mrz")
 async def mrz_endpoint(req: dict = Body(...), admin: str = Depends(get_current_admin)):
-    mode = req.get("mode", "random")
-    if mode == "random":
-        data = generate_random_data()
-        mrz_lines = generate_mrz(data['nom'], data['prenom'])
-    else:
-        mrz_lines = generate_mrz(req.get("nom"), req.get("prenom"))
-    return {"mrz": mrz_lines}
+    data = generate_random_data()
+    if req.get("mode") != "random":
+        if req.get("nom"): data["nom"] = req.get("nom")
+        if req.get("prenom"): data["prenom"] = req.get("prenom")
+    
+    mrz_lines = generate_mrz(data)
+    return {"mrz": mrz_lines, "data": data}
 
 @app.post("/generate-zip")
-async def zip_endpoint(req: dict = Body(...), admin: str = Depends(get_current_admin)):
+async def zip_endpoint(req: dict = Body(...), bg: BackgroundTasks = None, admin: str = Depends(get_current_admin)):
     lines = req.get("lines", [])
     zip_path = generate_qr_zip(lines)
+    if bg: bg.add_task(os.remove, zip_path)
     return FileResponse(zip_path, media_type="application/zip", filename="qr_codes.zip")
 
 # ==============================================================================

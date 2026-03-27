@@ -20,20 +20,22 @@ def generate_qr_zip(lines: list[str]) -> str:
         raise ValueError("Too many lines")
 
     uid = str(uuid.uuid4())
-    temp_dir = f"/tmp/{uid}"
-    zip_path = f"/tmp/{uid}.zip"
+    temp_dir = f"temp_qr_{uid}"
+    zip_path = f"qr_codes_{uid}.zip"
 
-    os.makedirs(temp_dir)
+    os.makedirs(temp_dir, exist_ok=True)
 
-    for i, text in enumerate(lines):
-        code = index_to_code(i)
-        qr = qrcode.make(text)
-        qr.save(f"{temp_dir}/{code}.png")
+    try:
+        for i, text in enumerate(lines):
+            code = index_to_code(i)
+            qr = qrcode.make(text)
+            qr.save(os.path.join(temp_dir, f"{code}.png"))
 
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for file in os.listdir(temp_dir):
-            zipf.write(os.path.join(temp_dir, file), arcname=file)
-
-    shutil.rmtree(temp_dir)
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zipf:
+            for file in os.listdir(temp_dir):
+                zipf.write(os.path.join(temp_dir, file), arcname=file)
+    finally:
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
 
     return zip_path
