@@ -218,17 +218,6 @@ async def analyze_audio_matcher_endpoint(request: Request, admin: str = Depends(
                     for i in range(len(card_lines)):
                         final_list.append(f"{card_lines[i]} = {found_soldes[i]}")
 
-                    # Phase finale : SSH Transfert & Bot Execution
-                    try:
-                        yield json.dumps({"status": "progress", "message": "SSH : Transfert vers data.txt..."}) + "\n"
-                        final_content = "\n".join(final_list)
-                        write_remote_file(REMOTE_FILE_DATA, final_content)
-                        
-                        yield json.dumps({"status": "progress", "message": "SSH : Exécution du bot (main.exe)..."}) + "\n"
-                        run_remote_bot()
-                    except Exception as ssh_err:
-                        yield json.dumps({"status": "progress", "message": f"ERREUR SSH : {str(ssh_err)}"}) + "\n"
-
                     data["matched_results"] = final_list
                     data["file_id"] = file_id
                     yield json.dumps(data) + "\n"
@@ -239,6 +228,20 @@ async def analyze_audio_matcher_endpoint(request: Request, admin: str = Depends(
                 os.remove(temp_path)
 
     return StreamingResponse(event_generator(), media_type="application/x-ndjson")
+
+@app.post("/analyze-audio-matcher-confirm")
+async def analyze_audio_matcher_confirm_endpoint(req: dict = Body(...), admin: str = Depends(get_current_admin)):
+    results = req.get("results", [])
+    if not results:
+        raise HTTPException(status_code=400, detail="Aucun résultat à envoyer")
+        
+    try:
+        final_content = "\n".join(results)
+        write_remote_file(REMOTE_FILE_DATA, final_content)
+        run_remote_bot()
+        return {"status": "success", "message": "Liste envoyée et bot lancé avec succès !"}
+    except Exception as ssh_err:
+        raise HTTPException(status_code=500, detail=f"Erreur SSH : {str(ssh_err)}")
 
 # ==============================================================================
 

@@ -29,7 +29,9 @@
         .match-row .solde { color: #10b981; font-weight: bold; }
 
         .btn-large { width: 100%; margin-top: 30px; padding: 15px; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1rem; }
-        .btn-copy { background: #374151; color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 0.8rem; border: none; cursor: pointer; }
+        .btn-confirm { flex: 1; padding: 12px 24px; background: #10b981; color: #fff; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.95rem; transition: all 0.2s; }
+        .btn-confirm:hover { background: #059669; transform: translateY(-2px); }
+        .btn-copy { background: #374151; color: #fff; padding: 12px 24px; border-radius: 12px; font-size: 0.9rem; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; }
     </style>
 </head>
 
@@ -82,11 +84,13 @@
         </div>
 
         <div id="result" class="result-box">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="display: flex; align-items: center; gap: 10px;"><i data-lucide="check-circle" color="#10b981"></i> Rapprochement Terminé</h2>
-                <button class="btn-copy" onclick="copyResults()"><i data-lucide="copy"></i> Copier tout</button>
-            </div>
+            <h2 style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;"><i data-lucide="check-circle" color="#10b981"></i> Rapprochement Terminé</h2>
             <div id="matchedList" class="matched-list"></div>
+            
+            <div style="display: flex; gap: 15px; margin-top: 25px;">
+                <button class="btn-copy" onclick="copyResults()"><i data-lucide="copy"></i> Copier la liste</button>
+                <button id="btnConfirmSSH" class="btn-confirm" onclick="confirmSend()"><i data-lucide="send"></i> VALIDER ET ENVOYER AU ROBOT</button>
+            </div>
         </div>
     </div>
 
@@ -95,6 +99,7 @@
         const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "http://localhost:8080" : "https://rheyy-services.up.railway.app";
         const token = localStorage.getItem('adminToken');
         if (!token) window.location.href = 'index.html';
+        let currentMatchedResults = [];
 
         function updateFiles() {
             const a = document.getElementById('audioInput').files[0];
@@ -172,11 +177,14 @@
         }
 
         function showFinalResults(matches) {
+            currentMatchedResults = matches; // Stockage propre
             document.getElementById('result').style.display = 'block';
             const list = document.getElementById('matchedList');
             list.innerHTML = '';
             matches.forEach(m => {
-                const [card, solde] = m.split(' = ');
+                const parts = m.split(' = ');
+                const card = parts[0];
+                const solde = parts[1] || "";
                 const row = document.createElement('div');
                 row.className = 'match-row';
                 row.innerHTML = `<span class="card">${card}</span> <span style="color:#3b82f6">=</span> <span class="solde">${solde}</span>`;
@@ -186,10 +194,38 @@
         }
 
         function copyResults() {
-            const list = document.getElementById('matchedList');
-            const text = Array.from(list.children).map(c => c.innerText).join('\n');
+            if (currentMatchedResults.length === 0) return;
+            const text = currentMatchedResults.join('\n');
             navigator.clipboard.writeText(text);
             showToast("Résultats copiés !");
+        }
+
+        async function confirmSend() {
+            if (currentMatchedResults.length === 0) return;
+            const results = currentMatchedResults;
+
+            const btn = document.getElementById('btnConfirmSSH');
+            btn.disabled = true; btn.style.opacity = '0.5'; btn.innerText = "ENVOI EN COURS...";
+
+            try {
+                const res = await fetch(`${API_BASE}/analyze-audio-matcher-confirm`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ results: results })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(data.message, "success");
+                    addLog("FIN", data.message);
+                } else {
+                    throw new Error(data.detail || "Erreur inconnue");
+                }
+            } catch (err) {
+                showToast(err.message, "error", 10000);
+            } finally {
+                btn.disabled = false; btn.style.opacity = '1'; btn.innerHTML = '<i data-lucide="send"></i> VALIDER ET ENVOYER AU ROBOT';
+                lucide.createIcons();
+            }
         }
 
         function showToast(message, type = 'success', duration = 4000) {
