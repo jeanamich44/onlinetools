@@ -47,7 +47,20 @@ const { setupInterceptors, getToken, getSessionTokens } = require('./network');
 
         log("Délai : +1s avant le clic sur validation", "DELAY", CFG.COLORS.GREY);
         await page.waitForTimeout(1000);
-        await page.click(CFG.SELECTORS.SUBMIT_BTN);
+        
+        try {
+            log("Tentative 1 : Clic Fantôme (Exécution Javascript Native)...", "AUTH", CFG.COLORS.CYAN);
+            await page.evaluate((selSubmit) => {
+                const btn = document.evaluate(selSubmit.replace('xpath=', ''), document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                if (!btn) throw new Error("Noeud introuvable dans le DOM");
+                btn.removeAttribute('disabled');
+                btn.click();
+            }, CFG.SELECTORS.SUBMIT_BTN);
+        } catch (err) {
+            log(`Échec du Clic Fantôme, Tentative 2 : Feinte Clavier (Touche Entrée)...`, "AUTH", CFG.COLORS.YELLOW);
+            await page.focus(CFG.SELECTORS.PASS_INPUT).catch(()=>{});
+            await page.keyboard.press('Enter');
+        }
 
 
         // Attente A2F
