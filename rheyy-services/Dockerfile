@@ -25,5 +25,5 @@ RUN npx playwright install --with-deps chromium
 # 6. Copie de tout le code source
 COPY . .
 
-# 7. Lancement (syntaxe shell pour supporter $PORT)
-CMD uvicorn main:app --host 0.0.0.0 --port $PORT
+# 7. Lancement via Python (Python gère le Port dynamiquement)
+CMD ["python", "main.py"]

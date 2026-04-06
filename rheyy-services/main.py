@@ -333,5 +333,8 @@ async def zip_endpoint(req: dict = Body(...), bg: BackgroundTasks = None, admin:
 
 if __name__ == "__main__":
     import uvicorn
+    import os
     init_db()
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    # On récupère le port de Railway, sinon 8080 par défaut
+    port = int(os.environ.get("PORT", 8080))
+    uvicorn.run(app, host="0.0.0.0", port=port)
