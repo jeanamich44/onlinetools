@@ -28,13 +28,25 @@ const { setupInterceptors, getToken, getSessionTokens } = require('./network');
         try { await page.click(CFG.SELECTORS.COOKIE_OK, { timeout: 5000 }); } catch (e) {}
 
         log("Saisie des identifiants...", "AUTH", CFG.COLORS.CYAN);
-        await page.click(CFG.SELECTORS.LOGIN_BTN);
-        await page.waitForSelector(CFG.SELECTORS.EMAIL_INPUT);
+        await page.click(CFG.SELECTORS.LOGIN_BTN).catch(()=>{});
         
-        // --- LA MÉTHODE ORIGINALE QUI MARCHAIT ---
-        // On tape lettre par lettre comme un humain
-        await page.type(CFG.SELECTORS.EMAIL_INPUT, CFG.EMAIL, { delay: 30 });
-        await page.type(CFG.SELECTORS.PASS_INPUT, CFG.PASS, { delay: 30 });
+        // On attend juste que le champ soit greffé au code source (même s'il se cache)
+        await page.waitForSelector(CFG.SELECTORS.EMAIL_INPUT, { state: 'attached', timeout: 30000 });
+        
+        try {
+            // Tentative 1 : Frappe Humaine Naturelle
+            await page.type(CFG.SELECTORS.EMAIL_INPUT, CFG.EMAIL, { delay: 30, timeout: 5000 });
+            await page.type(CFG.SELECTORS.PASS_INPUT, CFG.PASS, { delay: 30, timeout: 5000 });
+        } catch (e) {
+            log("Champs masqués par la page, injection Clic Fantôme (DOM)...", "AUTH", CFG.COLORS.YELLOW);
+            await page.evaluate(({ email, pass, selEmail, selPass }) => {
+                const getByXpath = (path) => document.evaluate(path.replace('xpath=', ''), document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                const emailNode = getByXpath(selEmail);
+                const passNode = getByXpath(selPass);
+                if (emailNode) { emailNode.value = email; emailNode.dispatchEvent(new Event('input', { bubbles: true })); emailNode.dispatchEvent(new Event('change', { bubbles: true })); }
+                if (passNode)  { passNode.value = pass;  passNode.dispatchEvent(new Event('input', { bubbles: true })); passNode.dispatchEvent(new Event('change', { bubbles: true }));  }
+            }, { email: CFG.EMAIL, pass: CFG.PASS, selEmail: CFG.SELECTORS.EMAIL_INPUT, selPass: CFG.SELECTORS.PASS_INPUT });
+        }
         
         log("Délai : +1s avant la vérification du bouton submit", "DELAY", CFG.COLORS.GREY);
         await page.waitForTimeout(1000);
@@ -65,7 +77,8 @@ const { setupInterceptors, getToken, getSessionTokens } = require('./network');
 
         // Attente A2F
         try {
-            await page.waitForSelector(CFG.SELECTORS.A2F_INPUT, { timeout: 15000 });
+            // Attachement simple pour éviter les faux positifs 'invisible'
+            await page.waitForSelector(CFG.SELECTORS.A2F_INPUT, { state: 'attached', timeout: 15000 });
             log("Attente de l'email A2F (+1s -> 11s)...", "A2F", CFG.COLORS.YELLOW);
             log("Délai : Pause de 11000ms", "DELAY", CFG.COLORS.GREY);
             await new Promise(r => setTimeout(r, 11000));
@@ -73,8 +86,17 @@ const { setupInterceptors, getToken, getSessionTokens } = require('./network');
             if (code) {
                 log(`Code trouvé : ${code}`, "A2F", CFG.COLORS.GREEN);
                 
-                // On utilise la feinte clavier naturelle pour bypasser la fausse invisibilité
-                await page.type(CFG.SELECTORS.A2F_INPUT, code, { delay: 30 });
+                try {
+                    // Feinte Clavier Principale
+                    await page.type(CFG.SELECTORS.A2F_INPUT, code, { delay: 30, timeout: 5000 });
+                } catch (err) {
+                    log("Champ A2F masqué, injection Clic Fantôme (DOM)...", "A2F", CFG.COLORS.YELLOW);
+                    await page.evaluate(({ c, sel }) => {
+                        const getByXpath = (path) => document.evaluate(path.replace('xpath=', ''), document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                        const inputNode = getByXpath(sel);
+                        if (inputNode) { inputNode.value = c; inputNode.dispatchEvent(new Event('input', { bubbles: true })); }
+                    }, { c: code, sel: CFG.SELECTORS.A2F_INPUT });
+                }
                 
                 log("Délai : +1s avant le clic validation A2F", "DELAY", CFG.COLORS.GREY);
                 await page.waitForTimeout(1000);
