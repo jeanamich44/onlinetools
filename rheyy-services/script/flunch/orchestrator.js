@@ -72,8 +72,27 @@ const { setupInterceptors, getToken, getSessionTokens } = require('./network');
             const code = await fetchLastCodeAndDelete();
             if (code) {
                 log(`Code trouvé : ${code}`, "A2F", CFG.COLORS.GREEN);
-                await page.fill(CFG.SELECTORS.A2F_INPUT, code);
-                await page.click(CFG.SELECTORS.A2F_SUBMIT);
+                
+                // On utilise la feinte clavier naturelle pour bypasser la fausse invisibilité
+                await page.type(CFG.SELECTORS.A2F_INPUT, code, { delay: 30 });
+                
+                log("Délai : +1s avant le clic validation A2F", "DELAY", CFG.COLORS.GREY);
+                await page.waitForTimeout(1000);
+                
+                // Moteur hybride : Clic Fantôme puis Frappe
+                try {
+                    log("Tentative A2F 1 : Clic Fantôme...", "A2F", CFG.COLORS.CYAN);
+                    await page.evaluate((selA2FSubmit) => {
+                        const btn = document.evaluate(selA2FSubmit.replace('xpath=', ''), document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                        if (!btn) throw new Error("Noeud introuvable A2F");
+                        btn.removeAttribute('disabled');
+                        btn.click();
+                    }, CFG.SELECTORS.A2F_SUBMIT);
+                } catch (err) {
+                    log("Échec Clic Fantôme A2F, Tentative 2 : Feinte clavier...", "A2F", CFG.COLORS.YELLOW);
+                    await page.focus(CFG.SELECTORS.A2F_INPUT).catch(()=>{});
+                    await page.keyboard.press('Enter');
+                }
             }
         } catch (e) {
             log("Pas d'A2F détecté ou timeout.", "A2F", CFG.COLORS.GREY);
