@@ -22,21 +22,49 @@
         .info-item span { display: block; font-size: 0.75rem; color: #8b949e; margin-bottom: 4px; text-transform: uppercase; }
         .info-item b { font-size: 1rem; color: #f0f6fc; }
 
-        /* LOG PANEL */
-        .log-panel { margin-top: 30px; background: #161b22; border-radius: 12px; border: 1px solid #30363d; overflow: hidden; }
-        .log-tabs { display: flex; background: #0d1117; border-bottom: 1px solid #30363d; }
+        /* LOG PANEL PREMIUM */
+        .log-panel { margin-top: 30px; background: #161b22; border-radius: 12px; border: 1px solid #30363d; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .log-header {
+            display: flex; justify-content: space-between; align-items: center; 
+            background: #0d1117; border-bottom: 1px solid #30363d; padding: 0 15px;
+        }
+        .log-tabs { display: flex; }
         .tab-btn { 
-            padding: 12px 20px; border: none; background: none; color: #8b949e; 
-            cursor: pointer; font-weight: 600; border-right: 1px solid #30363d;
-            transition: all 0.2s;
+            padding: 16px 20px; border: none; background: transparent; color: #8b949e; 
+            cursor: pointer; font-weight: 600; font-size: 0.9rem;
+            border-bottom: 2px solid transparent; transition: all 0.2s;
         }
-        .tab-btn.active { color: #3b82f6; background: #161b22; }
+        .tab-btn:hover { color: #c9d1d9; }
+        .tab-btn.active { color: #58a6ff; border-bottom: 2px solid #58a6ff; }
+        
+        .log-actions { display: flex; gap: 10px; align-items: center; }
+        .refresh-logs { 
+            display: flex; align-items: center; gap: 6px;
+            padding: 6px 14px; background: #238636; color: white; 
+            border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; border: none; 
+            transition: background 0.2s; height: 32px;
+        }
+        .refresh-logs:hover { background: #2ea043; }
+        .refresh-logs i { width: 14px; height: 14px; }
+        .refresh-logs.spin i { animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
         .log-content { 
-            padding: 15px; font-family: monospace; font-size: 0.85rem; 
-            background: #0d1117; color: #d1d5db; height: 300px; 
-            overflow-y: scroll; white-space: pre-wrap;
+            padding: 20px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.85rem; 
+            background: #090b10; color: #e6edf3; height: 500px; 
+            overflow-y: auto; white-space: pre-wrap; line-height: 1.6;
         }
-        .refresh-logs { float: right; margin: 10px; padding: 5px 10px; background: #238636; color: white; border-radius: 6px; cursor: pointer; font-size: 0.8rem; border: none; }
+        
+        /* Syntax Highlighting Console */
+        .log-tag-system { color: #d2a8ff; font-weight: bold; }
+        .log-tag-nav { color: #79c0ff; font-weight: bold; }
+        .log-tag-auth { color: #a5d6ff; font-weight: bold; }
+        .log-tag-a2f { color: #f2cc60; font-weight: bold; }
+        .log-tag-success { color: #56d364; font-weight: bold; }
+        .log-tag-error { color: #ff7b72; font-weight: bold; }
+        .log-tag-trace { color: #484f58; }
+        .log-tag-delay { color: #8b949e; font-style: italic; }
+        .log-time { color: #8b949e; margin-right: 8px; }
     </style>
 </head>
 
@@ -74,11 +102,17 @@
 
             <!-- LOGS PANEL -->
             <div class="log-panel">
-                <button class="refresh-logs" onclick="loadFiles()">Rafraîchir les logs</button>
-                <div class="log-tabs">
-                    <button class="tab-btn active" id="tab-automation" onclick="switchTab('automation')">Automation Log</button>
-                    <button class="tab-btn" id="tab-mails" onclick="switchTab('mails')">Codes Mails</button>
-                    <button class="tab-btn" id="tab-token" onclick="switchTab('token')">Current Token</button>
+                <div class="log-header">
+                    <div class="log-tabs">
+                        <button class="tab-btn active" id="tab-automation" onclick="switchTab('automation')">Automation Log</button>
+                        <button class="tab-btn" id="tab-mails" onclick="switchTab('mails')">Codes Mails</button>
+                        <button class="tab-btn" id="tab-token" onclick="switchTab('token')">Current Token</button>
+                    </div>
+                    <div class="log-actions">
+                        <button class="refresh-logs" id="btnRefresh" onclick="loadFiles()">
+                            <i data-lucide="refresh-cw"></i> Actualiser
+                        </button>
+                    </div>
                 </div>
                 <div id="log-viewer" class="log-content">Chargement des fichiers système...</div>
             </div>
@@ -101,6 +135,9 @@
         let activeTab = 'automation';
 
         async function loadFiles() {
+            const btn = document.getElementById('btnRefresh');
+            if(btn) btn.classList.add('spin');
+            
             try {
                 const res = await fetch(`${API_BASE}/admin/flunch/files`, {
                     method: 'GET',
@@ -110,6 +147,8 @@
                 renderLogs();
             } catch (err) {
                 document.getElementById('log-viewer').innerText = "Erreur de chargement des logs.";
+            } finally {
+                if(btn) btn.classList.remove('spin');
             }
         }
 
@@ -121,7 +160,39 @@
         }
 
         function renderLogs() {
-            document.getElementById('log-viewer').innerText = filesData[activeTab] || "Données indisponibles.";
+            const viewer = document.getElementById('log-viewer');
+            let content = filesData[activeTab] || "Données indisponibles.";
+            
+            // Formatage intelligent type Console
+            if (activeTab === 'automation' && content !== "Données indisponibles.") {
+                // Échapper le HTML (pour les <button> ou erreurs réseau)
+                content = content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                
+                // Coloration de l'heure
+                content = content.replace(/^\[(.*?)\] /gm, '<span class="log-time">[$1]</span> ');
+                
+                // Coloration Syntaxique des Tags
+                content = content.replace(/\[(SYSTEM\s*)\]/g, '<span class="log-tag-system">[$1]</span>');
+                content = content.replace(/\[(NAV\s*)\]/g, '<span class="log-tag-nav">[$1]</span>');
+                content = content.replace(/\[(AUTH\s*)\]/g, '<span class="log-tag-auth">[$1]</span>');
+                content = content.replace(/\[(A2F\s*)\]/g, '<span class="log-tag-a2f">[$1]</span>');
+                content = content.replace(/\[(DEBUG\s*)\]/g, '<span class="log-tag-a2f">[$1]</span>');
+                content = content.replace(/\[(SUCCESS\s*)\]/g, '<span class="log-tag-success">[$1]</span>');
+                content = content.replace(/\[(CRITICAL\s*)\]/g, '<span class="log-tag-error">[$1]</span>');
+                content = content.replace(/\[(ERROR\s*)\]/g, '<span class="log-tag-error">[$1]</span>');
+                content = content.replace(/\[(NETFAIL\s*)\]/g, '<span class="log-tag-error">[$1]</span>');
+                content = content.replace(/\[(TRACE\s*)\]/g, '<span class="log-tag-trace">[$1]</span>');
+                content = content.replace(/\[(DELAY\s*)\]/g, '<span class="log-tag-delay">[$1]</span>');
+                
+                viewer.innerHTML = content;
+            } else {
+                viewer.textContent = content; // Pour Token et Email, du texte brut
+            }
+            
+            // Auto-scroll tout en bas
+            setTimeout(() => {
+                viewer.scrollTop = viewer.scrollHeight;
+            }, 50);
         }
 
         function showToast(message, type = 'success') {

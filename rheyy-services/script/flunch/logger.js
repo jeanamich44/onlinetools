@@ -15,7 +15,7 @@ const log = (msg, category, color = "") => {
     fs.appendFileSync(LOG_FILE, `${entry}\n`);
 
     // LOG CONSOLE (Railway) : On ne garde que l'essentiel et le Propre
-    const consoleCategories = ["SYSTEM", "NAV", "AUTH", "A2F", "SUCCESS", "CRITICAL"];
+    const consoleCategories = ["SYSTEM", "NAV", "AUTH", "A2F", "SUCCESS", "CRITICAL", "DELAY"];
     if (consoleCategories.includes(category.trim())) {
         console.log(`[${category.trim()}] ${msg}`);
     }

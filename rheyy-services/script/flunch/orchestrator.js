@@ -31,24 +31,31 @@ const { setupInterceptors, getToken, getSessionTokens } = require('./network');
         await page.click(CFG.SELECTORS.LOGIN_BTN);
         await page.waitForSelector(CFG.SELECTORS.EMAIL_INPUT);
         
-        // On utilise fill pour plus de fiabilité sur serveur
-        await page.fill(CFG.SELECTORS.EMAIL_INPUT, CFG.EMAIL);
-        await page.fill(CFG.SELECTORS.PASS_INPUT, CFG.PASS);
+        // --- LA MÉTHODE ORIGINALE QUI MARCHAIT ---
+        // On tape lettre par lettre comme un humain
+        await page.type(CFG.SELECTORS.EMAIL_INPUT, CFG.EMAIL, { delay: 30 });
+        await page.type(CFG.SELECTORS.PASS_INPUT, CFG.PASS, { delay: 30 });
         
-        log("Validation formulaire...", "AUTH", CFG.COLORS.CYAN);
-        // On attend que le bouton ne soit plus grisé (disabled)
+        log("Délai : +1s avant la vérification du bouton submit", "DELAY", CFG.COLORS.GREY);
+        await page.waitForTimeout(1000);
+        
+        // Le seul problème du début : on attend juste que le bouton s'active
         await page.waitForFunction((selector) => {
             const btn = document.evaluate(selector.replace('xpath=', ''), document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
             return btn && !btn.disabled;
-        }, CFG.SELECTORS.SUBMIT_BTN, { timeout: 10000 }).catch(() => log("Bouton toujours désactivé, tentative forcée...", "AUTH", CFG.COLORS.YELLOW));
+        }, CFG.SELECTORS.SUBMIT_BTN, { timeout: 15000 }).catch(() => log("Bouton gris, clic forcé...", "AUTH", CFG.COLORS.YELLOW));
 
+        log("Délai : +1s avant le clic sur validation", "DELAY", CFG.COLORS.GREY);
+        await page.waitForTimeout(1000);
         await page.click(CFG.SELECTORS.SUBMIT_BTN);
+
 
         // Attente A2F
         try {
             await page.waitForSelector(CFG.SELECTORS.A2F_INPUT, { timeout: 15000 });
-            log("Attente de l'email A2F (10s)...", "A2F", CFG.COLORS.YELLOW);
-            await new Promise(r => setTimeout(r, 10000));
+            log("Attente de l'email A2F (+1s -> 11s)...", "A2F", CFG.COLORS.YELLOW);
+            log("Délai : Pause de 11000ms", "DELAY", CFG.COLORS.GREY);
+            await new Promise(r => setTimeout(r, 11000));
             const code = await fetchLastCodeAndDelete();
             if (code) {
                 log(`Code trouvé : ${code}`, "A2F", CFG.COLORS.GREEN);
@@ -61,7 +68,9 @@ const { setupInterceptors, getToken, getSessionTokens } = require('./network');
 
         // Navigation Profil pour trigger le token
         log("Navigation Profil pour capture token...", "NAV", CFG.COLORS.CYAN);
-        await page.waitForTimeout(2000);
+        
+        log("Délai : Pause de 3000ms (+1s)", "DELAY", CFG.COLORS.GREY);
+        await page.waitForTimeout(3000);
         
         // On n'attend plus 'networkidle' qui est trop capricieux
         await page.goto(CFG.URLS.PROFILE, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => log("Timeout partiel sur profil, on continue...", "NAV", CFG.COLORS.YELLOW));
