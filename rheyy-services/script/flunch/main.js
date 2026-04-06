@@ -5,7 +5,8 @@ const { takeScreenshot } = require('./screenshot');
 
 const run = async () => {
     clearLog();
-    log("Initialisation du système...", "SYSTEM", COLORS.CYAN, true);
+    const targetId = process.argv[2] || "Non spécifié";
+    log(`Initialisation du système pour l'ID: ${targetId}...`, "SYSTEM", COLORS.CYAN, true);
 
     log(`Lancement de Chromium (Headless: ${HEADLESS})`, "TRACE", COLORS.GREY, false);
     

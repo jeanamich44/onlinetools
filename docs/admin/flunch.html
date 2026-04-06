@@ -159,6 +159,7 @@
                 <i data-lucide="user-plus" style="width:20px; color: var(--primary);"></i>
                 <input type="text" id="targetId" placeholder="ID Client / Carte (ex: FR123456789)" class="form-input" style="width: 320px; height: 42px; font-size: 0.95rem; font-family: 'JetBrains Mono', monospace; margin: 0;" aria-label="Saisir ID Client ou Carte">
                 <button onclick="startFlunchProcess()" id="btnStart" class="btn-action" style="width: auto; height: 42px; padding: 0 24px; background: var(--primary); font-size: 0.95rem; margin: 0;">Lancer le traitement</button>
+                <button onclick="startFlunchProcess('2864393')" id="btnTest" class="btn-action" style="width: auto; height: 42px; padding: 0 20px; background: #4f46e5; border-color: #4338ca; font-size: 0.85rem; margin: 0;">Test ID</button>
             </div>
 
             <nav class="control-tabs" role="tablist" aria-label="Fichiers de logs">
@@ -195,7 +196,7 @@
 
     <script>
         lucide.createIcons();
-        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || !window.location.hostname || window.location.protocol === "file:";
         const API_BASE = isLocal ? 'http://localhost:8080' : "https://rheyy-services.up.railway.app";
         const token = localStorage.getItem('adminToken');
         
@@ -306,16 +307,17 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        async function startFlunchProcess() {
+        async function startFlunchProcess(forcedId) {
             const input = document.getElementById('targetId');
-            const userId = input.value.trim();
+            const userId = forcedId || input.value.trim();
             if(!userId) { 
                 showToast("Veuillez entrer un ID valide.", "error"); 
                 input.focus();
                 return; 
             }
             
-            const btn = document.getElementById('btnStart');
+            const btn = forcedId ? document.getElementById('btnTest') : document.getElementById('btnStart');
+            const originalText = btn.innerText;
             btn.disabled = true; 
             btn.innerText = "Lancement..."; 
             btn.style.opacity = "0.7";
@@ -329,7 +331,7 @@
                 
                 if(res.ok) {
                     showToast("Processus démarré pour l'ID: " + userId);
-                    input.value = "";
+                    if(!forcedId) input.value = "";
                     switchTab('automation');
                     loadFiles();
                 } else {
@@ -340,7 +342,7 @@
                 showToast("Échec de connexion au serveur", "error");
             } finally {
                 btn.disabled = false; 
-                btn.innerText = "Lancer l'ID"; 
+                btn.innerText = originalText; 
                 btn.style.opacity = "1";
             }
         }

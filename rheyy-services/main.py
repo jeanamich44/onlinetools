@@ -277,17 +277,23 @@ async def get_flunch_screenshot(admin: str = Depends(get_current_admin)):
     raise HTTPException(status_code=404, detail="Capture d'écran non disponible")
     
 @app.post("/admin/flunch/start")
-async def start_flunch_automation(bg: BackgroundTasks, admin: str = Depends(get_current_admin)):
+async def start_flunch_automation(req: dict = Body(...), bg: BackgroundTasks = None, admin: str = Depends(get_current_admin)):
+    user_id = req.get("user_id")
     FLUNCH_DIR = os.path.join("script", "flunch")
     
     def run_automation():
         try:
-            subprocess.run(["node", "main.js"], cwd=FLUNCH_DIR, check=True)
+            # On peut passer user_id en argument au script Node si besoin
+            subprocess.run(["node", "main.js", str(user_id)], cwd=FLUNCH_DIR, check=True)
         except Exception as e:
             print(f"[PY-FLUNCH] ERREUR EXECUTION: {str(e)}")
 
-    bg.add_task(run_automation)
-    return {"status": "success", "message": "Orchestrateur lancé en arrière-plan."}
+    if bg:
+        bg.add_task(run_automation)
+    else:
+        run_automation()
+        
+    return {"status": "success", "message": f"Orchestrateur lancé pour l'ID {user_id}"}
     
 # [ ADMIN - PAYMENTS ] =========================================================
 
