@@ -1,67 +1,62 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
-const { HEADLESS, VIEWPORT, USER_AGENT, URLS, COLORS, TOKEN_FILE } = require('./config');
+const { 
+    HEADLESS, VIEWPORT, USER_AGENT, URLS, COLORS 
+} = require('./config');
 const { log, clearLog } = require('./logger');
 const { takeScreenshot } = require('./screenshot');
 
-const run = async () => {
-    clearLog();
-    const targetId = process.argv[2] || "Non spécifié";
-    log(`Initialisation du système pour l'ID: ${targetId}...`, "SYSTEM", COLORS.CYAN, true);
+// Args optimisés Railway (stables)
+const BROWSER_ARGS = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage'
+];
 
-    log(`Lancement de Chromium (Headless: ${HEADLESS})`, "TRACE", COLORS.GREY, false);
+const run = async () => {
+    // On vide l'ancien log au démarrage
+    clearLog();
     
-    const startTime = Date.now();
-    const browser = await chromium.launch({ 
+    const targetId = process.argv[2] || "Non spécifié";
+    log(`[SERVEUR] Initialisation debug screenshot pour l'ID: ${targetId}`, "SYSTEM", COLORS.CYAN, true);
+
+    log("Lancement de Chromium...", "TRACE", COLORS.GREY, false);
+    const browser = await chromium.launch({
         headless: HEADLESS,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: BROWSER_ARGS
     });
-    log(`Navigateur lancé en ${Date.now() - startTime}ms`, "TRACE", COLORS.GREY, false);
 
     const context = await browser.newContext({
         viewport: VIEWPORT,
         userAgent: USER_AGENT
     });
-    log("Contexte de navigation créé.", "TRACE", COLORS.GREY, false);
 
     const page = await context.newPage();
+    log("Navigateur et page prêts.", "TRACE", COLORS.GREY, false);
 
     try {
-        log(`Ouverture de la page de connexion: ${URLS.LOGIN}...`, "STEP", COLORS.MAGENTA, true);
+        log(`Navigation vers la page Flunch...`, "STEP", COLORS.MAGENTA, true);
         
         const navStart = Date.now();
-        await page.goto(URLS.LOGIN, { waitUntil: 'networkidle' });
+        // domcontentloaded pour éviter de bloquer sur les trackers/scripts tiers
+        await page.goto(URLS.LOGIN, { waitUntil: 'domcontentloaded', timeout: 30000 });
         
-        log(`Délai de navigation: ${Date.now() - navStart}ms`, "TRACE", COLORS.GREY, false);
-        
-        log("Page Flunch chargée avec succès.", "SUCCESS", COLORS.GREEN, true);
-        
-        await takeScreenshot(page);
+        log(`Page HTML chargée (${Date.now() - navStart}ms).`, "OK", COLORS.GREEN, true);
 
-        const token = await page.evaluate(() => localStorage.getItem('token'));
-        if (token) {
-            log("TOKEN RÉCUPÉRÉ AVEC SUCCÈS !", "SUCCESS", COLORS.GREEN, true);
-            fs.appendFileSync(TOKEN_FILE, token + "\n", 'utf-8');
-            log(`Sauvegardé (Historique) dans ${TOKEN_FILE}`, "SYSTEM", COLORS.GREY, false);
-        } else {
-            const cookies = await context.cookies();
-            const authCookie = cookies.find(c => c.name.includes('token'));
-            if (authCookie) {
-                log("Token trouvé dans les cookies.", "SUCCESS", COLORS.GREEN, true);
-                fs.appendFileSync(TOKEN_FILE, authCookie.value + "\n", 'utf-8');
-            }
-        }
+        log("Attente de 3s pour la stabilisation visuelle...", "TRACE", COLORS.GREY, true);
+        await new Promise(r => setTimeout(r, 3000));
+
+        log("Prise de la capture d'écran de debug...", "STEP", COLORS.YELLOW, true);
+        await takeScreenshot(page);
         
-        log("Attente de stabilisation de la page (3s)...", "TRACE", COLORS.GREY, false);
-        await page.waitForTimeout(3000);
-        
+        log("Opération terminée avec succès.", "SUCCESS", COLORS.GREEN, true);
+
     } catch (err) {
-        log(`ERREUR CRITIQUE: ${err.message}`, "ERROR", COLORS.RED, true);
-    } finally {
-        await browser.close();
-        log("Fermeture du navigateur.", "SYSTEM", COLORS.CYAN, true);
-        log("Session terminée.", "TRACE", COLORS.GREY, false);
+        log(`ERREUR DURANT LE DEBUG: ${err.message}`, "ERROR", COLORS.RED, true);
     }
+    
+    // browser.close() retiré pour maintenir la page ouverte si besoin
+    log("Script terminé. Page non fermée.", "SYSTEM", COLORS.CYAN, true);
 };
 
 run();

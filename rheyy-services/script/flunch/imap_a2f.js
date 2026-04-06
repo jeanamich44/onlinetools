@@ -9,6 +9,7 @@ const fetchLastCodeAndDelete = async () => {
     try {
         const connection = await imaps.connect({ imap: IMAP });
         await connection.openBox('INBOX');
+        
         const messages = await connection.search(['ALL'], { bodies: [''], struct: true, markSeen: false });
         const lastMessages = messages.slice(-10).reverse();
         let codeFound = null;
@@ -16,12 +17,16 @@ const fetchLastCodeAndDelete = async () => {
         for (const msg of lastMessages) {
             const allPart = msg.parts.find(p => p.which === '');
             const mail = await simpleParser(allPart.body);
+            
             const fromStr = mail.from ? mail.from.text : "";
             const subject = mail.subject || "";
+            const bodyStr = mail.text || "";
+
             log(`Examen mail de: ${fromStr} | Sujet: ${subject}`, "TRACE", COLORS.GREY);
 
             if (fromStr.toLowerCase().includes('flunch') || subject.toLowerCase().includes('flunch')) {
                 log("Mail Flunch détecté ! Analyse du contenu...", "TRACE", COLORS.YELLOW);
+                
                 const match = bodyStr.match(/\b\d{6}\b/);
                 if (match) {
                     codeFound = match[0];
@@ -34,6 +39,7 @@ const fetchLastCodeAndDelete = async () => {
                 }
             }
         }
+        
         await connection.imap.expunge();
         connection.end();
         return codeFound;
