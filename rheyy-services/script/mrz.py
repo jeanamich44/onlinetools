@@ -1,56 +1,51 @@
 import random
 from datetime import datetime, timedelta
 
-# =========================
-# UTILITAIRES ICAO
-# =========================
+# ---
 
-def char_value_icao(char: str) -> int:
+def char_value_icao(char):
     if char.isdigit():
         return int(char)
-    if "A" <= char <= "Z":
-        return ord(char) - ord("A") + 10
-    if char == "<":
+    elif 'A' <= char <= 'Z':
+        return ord(char) - ord('A') + 10
+    elif char == '<':
         return 0
-    raise ValueError(f"Invalid ICAO char: {char}")
+    else:
+        raise ValueError(f"Caractère invalide ICAO : {char}")
 
 def icao_check_digit(data: str) -> str:
     weights = [7, 3, 1]
-    return str(
-        sum(char_value_icao(c) * weights[i % 3] for i, c in enumerate(data)) % 10
-    )
+    return str(sum(char_value_icao(c) * weights[i % 3] for i, c in enumerate(data)) % 10)
 
-def normalize_name(name: str) -> str:
+def normalize_name(name):
     return name.upper().replace(" ", "<")
 
-# =========================
-# DONNEES ALEATOIRES
-# =========================
+# ---
 
 PRENOMS_M = [
-        "GABRIEL", "RAPHAEL", "LEO", "LOUIS", "MAEL", "NOAH", "JULES", "ADAM", "ARTHUR", "ISAAC",
-        "LIAM", "SACHA", "EDEN", "LUCAS", "GABIN", "LEON", "MOHAMED", "HUGO", "NAEL", "NOE",
-        "MARCEAU", "AARON", "PAUL", "ETHAN", "AYDEN", "NATHAN", "MARIUS", "THEO", "IBRAHIM", "MALO",
-        "ELIO", "TOM", "NINO", "VICTOR", "MARTIN", "ELIOTT", "MATHIS", "LYAM", "GASPARD", "IMRAN",
-        "MILO", "AUGUSTIN", "ROBIN", "VALENTIN", "TIMEO", "AXEL", "LEANDRE", "ANTOINE", "NOLAN", "TIAGO",
-        "SOHAN", "COME", "KAIS", "RAYAN", "AMIR", "ENZO", "ISMAEL", "YANIS", "SOAN", "CAMILLE",
-        "SAMUEL", "OWEN", "ANDREA", "SIMON", "ALESSIO", "MAHE", "PABLO", "MATHEO", "OSCAR", "EVAN",
-        "NAIM", "MAE", "CHARLY", "NOA", "CHARLIE", "ZAYN", "BASILE", "LIVIO", "MAXENCE", "KAYDEN",
-        "ISSA", "ALI", "AYLAN", "CHARLES", "ALEXANDRE", "JOSEPH", "AUGUSTE", "MARIN", "ANAS", "CLEMENT",
-        "ACHILLE", "ROMEO", "EZIO", "TIMOTHEE", "BAPTISTE", "LUCIEN", "ABEL", "LOAN", "LENNY"
+    "GABRIEL", "RAPHAEL", "LEO", "LOUIS", "MAEL", "NOAH", "JULES", "ADAM", "ARTHUR", "ISAAC",
+    "LIAM", "SACHA", "EDEN", "LUCAS", "GABIN", "LEON", "MOHAMED", "HUGO", "NAEL", "NOE",
+    "MARCEAU", "AARON", "PAUL", "ETHAN", "AYDEN", "NATHAN", "MARIUS", "THEO", "IBRAHIM", "MALO",
+    "ELIO", "TOM", "NINO", "VICTOR", "MARTIN", "ELIOTT", "MATHIS", "LYAM", "GASPARD", "IMRAN",
+    "MILO", "AUGUSTIN", "ROBIN", "VALENTIN", "TIMEO", "AXEL", "LEANDRE", "ANTOINE", "NOLAN", "TIAGO",
+    "SOHAN", "COME", "KAIS", "RAYAN", "AMIR", "ENZO", "ISMAEL", "YANIS", "SOAN", "CAMILLE",
+    "SAMUEL", "OWEN", "ANDREA", "SIMON", "ALESSIO", "MAHE", "PABLO", "MATHEO", "OSCAR", "EVAN",
+    "NAIM", "MAE", "CHARLY", "NOA", "CHARLIE", "ZAYN", "BASILE", "LIVIO", "MAXENCE", "KAYDEN",
+    "ISSA", "ALI", "AYLAN", "CHARLES", "ALEXANDRE", "JOSEPH", "AUGUSTE", "MARIN", "ANAS", "CLEMENT",
+    "ACHILLE", "ROMEO", "EZIO", "TIMOTHEE", "BAPTISTE", "LUCIEN", "ABEL", "LOAN", "LENNY"
 ]
 
 PRENOMS_F = [
-        "LOUISE", "AMBRE", "ALBA", "JADE", "EMMA", "ROSE", "ALMA", "ALICE", "ROMY", "ANNA",
-        "EVA", "LINA", "MIA", "INAYA", "AGATHE", "LOU", "JULIA", "IRIS", "LENA", "GIULIA",
-        "CHARLIE", "ADELE", "VICTOIRE", "OLIVIA", "CHLOE", "LEA", "JULIETTE", "JEANNE", "LUNA", "NINA",
-        "NOUR", "LEONIE", "ZOE", "SOFIA", "VICTORIA", "ROMANE", "LOLA", "LYA", "AVA", "ALYA",
-        "LUCIE", "ALIX", "CHARLOTTE", "LYANA", "ELENA", "INES", "MILA", "EMY", "MARGAUX", "ALBANE",
-        "AYA", "MYA", "MARGOT", "LOUNA", "THEA", "GABRIELLE", "LYNA", "CAMILLE", "SARAH", "ASSIA",
-        "CAPUCINE", "YASMINE", "MARIA", "APOLLINE", "ESMEE", "CELESTE", "LIVIA", "MAYA", "ELLA", "CLEMENCE",
-        "MANON", "DIANE", "LANA", "ARYA", "LILA", "LILY", "AMELIA", "VALENTINA", "THAIS", "SUZANNE",
-        "VALENTINE", "JOY", "CLARA", "ARIA", "MARYAM", "NORA", "MARIE", "CONSTANCE", "ROXANE", "LISE",
-        "ALICIA", "ELLIE", "MATHILDE", "HELOISE", "ELYA", "ZELIE", "AICHA", "ALIYAH", "FATIMA", "JUDITH"
+    "LOUISE", "AMBRE", "ALBA", "JADE", "EMMA", "ROSE", "ALMA", "ALICE", "ROMY", "ANNA",
+    "EVA", "LINA", "MIA", "INAYA", "AGATHE", "LOU", "JULIA", "IRIS", "LENA", "GIULIA",
+    "CHARLIE", "ADELE", "VICTOIRE", "OLIVIA", "CHLOE", "LEA", "JULIETTE", "JEANNE", "LUNA", "NINA",
+    "NOUR", "LEONIE", "ZOE", "SOFIA", "VICTORIA", "ROMANE", "LOLA", "LYA", "AVA", "ALYA",
+    "LUCIE", "ALIX", "CHARLOTTE", "LYANA", "ELENA", "INES", "MILA", "EMY", "MARGAUX", "ALBANE",
+    "AYA", "MYA", "MARGOT", "LOUNA", "THEA", "GABRIELLE", "LYNA", "CAMILLE", "SARAH", "ASSIA",
+    "CAPUCINE", "YASMINE", "MARIA", "APOLLINE", "ESMEE", "CELESTE", "LIVIA", "MAYA", "ELLA", "CLEMENCE",
+    "MANON", "DIANE", "LANA", "ARYA", "LILA", "LILY", "AMELIA", "VALENTINA", "THAIS", "SUZANNE",
+    "VALENTINE", "JOY", "CLARA", "ARIA", "MARYAM", "NORA", "MARIE", "CONSTANCE", "ROXANE", "LISE",
+    "ALICIA", "ELLIE", "MATHILDE", "HELOISE", "ELYA", "ZELIE", "AICHA", "ALIYAH", "FATIMA", "JUDITH"
 ]
 
 NOMS = [
@@ -96,64 +91,53 @@ NOMS = [
     "TISSIER", "ROUXEL", "BONNARD", "LE GAL", "CREPIN", "LESUEUR", "MARQUES", "ROTH", "WOLFF"
 ]
 
-def _rand_date(start_year: int, end_year: int) -> datetime:
-    start = datetime(start_year, 1, 1)
-    end = datetime(end_year, 12, 31)
-    return start + timedelta(days=random.randint(0, (end - start).days))
+# ---
 
 def generate_random_data():
-    is_male = random.choice([True, False])
-
+    nom = random.choice(NOMS)
+    if random.choice(["M", "F"]) == "M":
+        prenom = random.choice(PRENOMS_M)
+        sexe = "M"
+    else:
+        prenom = random.choice(PRENOMS_F)
+        sexe = "F"
+    dep = f"{random.randint(1, 95):02d}"
+    canton = random.choice("123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+    bureau = f"{random.randint(0, 999):03d}"
+    naissance = (datetime.today() - timedelta(days=random.randint(18*365, 70*365))).strftime("%y%m%d")
+    start_date = datetime(2017, 1, 1)
+    end_date = datetime(2019, 12, 31)
+    date_delivrance = (start_date + timedelta(days=random.randint(1, (end_date - start_date).days - 1))).strftime("%y%m")
+    random_code = f"{random.randint(0, 9999):04d}"
     return {
-        "nom": random.choice(NOMS),
-        "prenom": random.choice(PRENOMS_M if is_male else PRENOMS_F),
-        "sexe": "M" if is_male else "F",
-        "dep": f"{random.randint(1, 95):02d}",
-        "canton": random.choice("123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
-        "bureau": f"{random.randint(0, 999):03d}",
-        "naissance": _rand_date(1955, 2005).strftime("%y%m%d"),
-        "date_delivrance": _rand_date(2017, 2019).strftime("%y%m"),
-        "random_code": f"{random.randint(0, 9999):04d}",
+        "nom": nom,
+        "prenom": prenom,
+        "sexe": sexe,
+        "dep": dep,
+        "canton": canton,
+        "bureau": bureau,
+        "naissance": naissance,
+        "date_delivrance": date_delivrance,
+        "random_code": random_code
     }
 
-# =========================
-# NOYAU MRZ
-# =========================
-
-def generate_mrz(data: dict) -> dict:
+def generate_mrz(data: dict):
     prefix = "IDFRA"
-
     nom = normalize_name(data["nom"])
-    prenom = normalize_name(data["prenom"])
-
-    suffix = data["dep"] + data["canton"] + data["bureau"]
+    suffix = f"{data['dep']}{data['canton']}{data['bureau']}"
     max_nom_len = 36 - len(prefix) - len(suffix)
-    nom_cut = nom[:max_nom_len]
-
-    fill1 = "<" * (36 - len(prefix + nom_cut + suffix))
-    line1 = f"{prefix}{nom_cut}{fill1}{suffix}"
-
+    nom_tronque = nom[:max_nom_len]
+    fill1 = "<" * (36 - len(prefix + nom_tronque + suffix))
+    line1 = f"{prefix}{nom_tronque}{fill1}{suffix}"
     bloc7 = data["dep"] + data["canton"] + data["bureau"][0]
     cle1 = icao_check_digit(data["date_delivrance"] + bloc7 + data["random_code"])
     cle2 = icao_check_digit(data["naissance"])
-
+    prenom = normalize_name(data["prenom"])
     prenom_padded = (prenom + "<" * 14)[:14]
-
-    line2_partial = (
-        data["date_delivrance"]
-        + bloc7
-        + data["random_code"]
-        + cle1
-        + prenom_padded
-        + data["naissance"]
-        + cle2
-        + data["sexe"]
-    )
-
+    line2_partial = f"{data['date_delivrance']}{bloc7}{data['random_code']}{cle1}{prenom_padded}{data['naissance']}{cle2}{data['sexe']}"
     cle3 = icao_check_digit(line1 + line2_partial)
     line2 = line2_partial + cle3
-
     return {
         "line1": line1,
-        "line2": line2,
+        "line2": line2
     }

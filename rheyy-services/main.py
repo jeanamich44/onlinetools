@@ -362,8 +362,9 @@ async def get_stats(db: Session = Depends(get_db), admin: str = Depends(get_curr
 async def mrz_endpoint(req: dict = Body(...), admin: str = Depends(get_current_admin)):
     data = generate_random_data()
     if req.get("mode") != "random":
-        if req.get("nom"): data["nom"] = req.get("nom")
-        if req.get("prenom"): data["prenom"] = req.get("prenom")
+        for key in ["nom", "prenom", "dep", "canton", "bureau", "date_delivrance", "random_code", "naissance", "sexe"]:
+            if req.get(key):
+                data[key] = req.get(key)
     
     mrz_lines = generate_mrz(data)
     return {"mrz": mrz_lines, "data": data}

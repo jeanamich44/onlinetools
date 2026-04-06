@@ -250,6 +250,10 @@
                             <i data-lucide="activity" style="width:12px;"></i>
                             <span id="check-stats">0 total</span>
                         </div>
+                        <div class="stats-pill" id="timer-container" style="display: none; border: 1px solid rgba(16, 185, 129, 0.1);">
+                            <i data-lucide="clock" style="width:12px;"></i>
+                            <span id="check-timer">0.00s</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -296,12 +300,23 @@
 
             const btn = document.getElementById('btnCheck');
             const resArea = document.getElementById('results-text');
+            const timerContainer = document.getElementById('timer-container');
+            const timerDisplay = document.getElementById('check-timer');
             
             btn.disabled = true;
             btn.innerHTML = '<i data-lucide="refresh-cw" class="spin"></i> Scan en cours...';
             lucide.createIcons();
 
             resArea.innerText = "Connexion au serveur...";
+            
+            // Initialisation Chrono
+            timerContainer.style.display = 'flex';
+            timerDisplay.style.color = 'var(--text-body)';
+            const startTime = performance.now();
+            const timerInterval = setInterval(() => {
+                const elapsed = (performance.now() - startTime) / 1000;
+                timerDisplay.innerText = elapsed.toFixed(2) + 's';
+            }, 60);
 
             try {
                 const res = await fetch(`${API_BASE}/admin/flunch/check`, {
@@ -317,6 +332,11 @@
                 showToast(err.message, "error");
                 resArea.innerText = "Erreur: " + err.message;
             } finally {
+                clearInterval(timerInterval);
+                const finalTime = (performance.now() - startTime) / 1000;
+                timerDisplay.innerText = finalTime.toFixed(2) + 's';
+                timerDisplay.style.color = 'var(--success-accent)'; // Passage au vert
+                
                 btn.disabled = false;
                 btn.innerHTML = '<i data-lucide="play-circle"></i> Lancer l\'analyse';
                 lucide.createIcons();
