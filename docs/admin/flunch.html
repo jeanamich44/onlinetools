@@ -65,6 +65,30 @@
         .log-tag-trace { color: #484f58; }
         .log-tag-delay { color: #8b949e; font-style: italic; }
         .log-time { color: #8b949e; margin-right: 8px; }
+
+        /* SCREENSHOTS GALLERY */
+        .screens-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px; padding: 20px; background: #0d1117;
+        }
+        .screen-item { 
+            cursor: pointer; border-radius: 8px; overflow: hidden; border: 2px solid #30363d;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .screen-item:hover { transform: scale(1.03); border-color: #58a6ff; }
+        .screen-item img { width: 100%; height: auto; display: block; }
+        .screen-item span { 
+            display: block; padding: 8px; background: #161b22; 
+            font-size: 0.7rem; color: #8b949e; text-align: center;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+
+        /* MODALE ZOOM */
+        #modal-zoom {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            z-index: 1000; justify-content: center; align-items: center; cursor: zoom-out;
+        }
+        #modal-zoom img { max-width: 90%; max-height: 90%; border: 3px solid #30363d; border-radius: 8px; }
     </style>
 </head>
 
@@ -107,17 +131,21 @@
                         <button class="tab-btn active" id="tab-automation" onclick="switchTab('automation')">Automation Log</button>
                         <button class="tab-btn" id="tab-mails" onclick="switchTab('mails')">Codes Mails</button>
                         <button class="tab-btn" id="tab-token" onclick="switchTab('token')">Current Token</button>
+                        <button class="tab-btn" id="tab-screens" onclick="switchTab('screens')">Screenshots</button>
                     </div>
                     <div class="log-actions">
-                        <button class="refresh-logs" id="btnRefresh" onclick="loadFiles()">
+                        <button class="refresh-logs" id="btnRefresh" onclick="refreshContext()">
                             <i data-lucide="refresh-cw"></i> Actualiser
                         </button>
                     </div>
                 </div>
                 <div id="log-viewer" class="log-content">Chargement des fichiers système...</div>
+                <div id="screens-viewer" class="screens-grid" style="display:none"></div>
             </div>
         </div>
     </div>
+
+    <div id="modal-zoom" onclick="this.style.display='none'"><img src="" id="img-zoom"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => { 
@@ -132,7 +160,13 @@
         if (!token) window.location.href = 'index.html';
 
         let filesData = {};
+        let screensData = [];
         let activeTab = 'automation';
+
+        async function refreshContext() {
+            if (activeTab === 'screens') await loadScreens();
+            else await loadFiles();
+        }
 
         async function loadFiles() {
             const btn = document.getElementById('btnRefresh');
@@ -152,11 +186,58 @@
             }
         }
 
+        async function loadScreens() {
+            const btn = document.getElementById('btnRefresh');
+            if(btn) btn.classList.add('spin');
+            
+            try {
+                const res = await fetch(`${API_BASE}/admin/flunch/screens`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                screensData = await res.json();
+                renderScreens();
+            } catch (err) {
+                console.error("Erreur screens:", err);
+            } finally {
+                if(btn) btn.classList.remove('spin');
+            }
+        }
+
         function switchTab(tab) {
             activeTab = tab;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('tab-' + tab).classList.add('active');
-            renderLogs();
+            
+            if (tab === 'screens') {
+                document.getElementById('log-viewer').style.display = 'none';
+                document.getElementById('screens-viewer').style.display = 'grid';
+                loadScreens();
+            } else {
+                document.getElementById('log-viewer').style.display = 'block';
+                document.getElementById('screens-viewer').style.display = 'none';
+                renderLogs();
+            }
+        }
+
+        function zoom(url) {
+            const modal = document.getElementById('modal-zoom');
+            document.getElementById('img-zoom').src = url;
+            modal.style.display = 'flex';
+        }
+
+        function renderScreens() {
+            const container = document.getElementById('screens-viewer');
+            if (screensData.length === 0) {
+                container.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: #8b949e;">Aucun screenshot trouvé pour le moment.</div>`;
+                return;
+            }
+            container.innerHTML = screensData.map(s => `
+                <div class="screen-item" onclick="zoom('${API_BASE}${s.url}')">
+                    <img src="${API_BASE}${s.url}">
+                    <span>${s.name.split('_').slice(1).join('_')}</span>
+                </div>
+            `).join('');
         }
 
         function renderLogs() {

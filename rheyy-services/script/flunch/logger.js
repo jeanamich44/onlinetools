@@ -10,7 +10,7 @@ const init = () => {
 const log = (msg, category, color = "") => {
     const time = new Date().toLocaleTimeString();
     const entry = `[${time}] [${category.padEnd(8)}] ${msg}`;
-    
+
     // LOG FICHIER : On écrit TOUT pour le debug
     fs.appendFileSync(LOG_FILE, `${entry}\n`);
 

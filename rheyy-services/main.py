@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request, Depends, Body, BackgroundTasks
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -41,6 +42,10 @@ from script.flunch_checker import fetch_flunch_data
 # ==============================================================================
 
 app = FastAPI(title="Rheyy Services", version="2.0.0")
+
+SCR_DIR = "screenshots"
+if not os.path.exists(SCR_DIR): os.makedirs(SCR_DIR)
+app.mount("/admin/flunch/view_screens", StaticFiles(directory=SCR_DIR), name="screens")
 
 app.add_middleware(
     CORSMiddleware,
@@ -277,6 +282,12 @@ async def get_flunch_files(admin: str = Depends(get_current_admin)):
         else:
             results[key] = f"Fichier '{key}' non encore généré."
     return results
+
+@app.get("/admin/flunch/screens")
+async def list_screens(admin: str = Depends(get_current_admin)):
+    if not os.path.exists(SCR_DIR): return []
+    files = sorted([f for f in os.listdir(SCR_DIR) if f.endswith(".png")], reverse=True)
+    return [{"name": f, "url": f"/admin/flunch/view_screens/{f}"} for f in files]
 
 # ==============================================================================
 
