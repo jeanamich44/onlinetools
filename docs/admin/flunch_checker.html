@@ -145,29 +145,20 @@
 
             results.forEach(res => {
                 const d = res.data || {};
-                const isError = d.status === "error" || d.error || (!d.firstName && !d.balance);
+                const isError = d.status === "error" || d.error;
                 
                 if (isError) {
-                    output += `${res.id} | ERREUR: ${d.message || d.detail || 'Identifiants invalides'}\n`;
+                    output += `${res.id} | ERREUR: ${d.message || d.detail || 'Inconnu'}\n`;
                 } else {
                     valids++;
+                    let lineParts = [res.id];
+                    const keys = ["ID", "CARTE", "SOLDE", "START", "NOM", "PRENOM", "DDN", "MAIL", "TEL", "TEL2", "CP", "VILLE", "ADRESSE", "LIEU", "TYPE"];
                     
-                    // Construction de la ligne selon l'exemple EXACT fourni
-                    let lineParts = [];
-                    lineParts.push(res.id); // Premier ID sans label selon exemple
-                    
-                    if (res.id) lineParts.push(`ID = ${res.id}`);
-                    if (d.loyaltyCardNumber || d.cardId) lineParts.push(`CARTE = ${d.loyaltyCardNumber || d.cardId}`);
-                    if (d.balance !== undefined) lineParts.push(`SOLDE = ${d.balance}`);
-                    if (d.registrationDate) lineParts.push(`START = ${d.registrationDate}`);
-                    if (d.lastName) lineParts.push(`NOM = ${d.lastName}`);
-                    if (d.firstName) lineParts.push(`PRENOM = ${d.firstName}`);
-                    if (d.birthDate) lineParts.push(`DDN = ${d.birthDate}`);
-                    if (d.emailAddress || d.email) lineParts.push(`MAIL = ${d.emailAddress || d.email}`);
-                    if (d.zipCode || d.cp) lineParts.push(`CP = ${d.zipCode || d.cp}`);
-                    if (d.city) lineParts.push(`VILLE = ${d.city}`);
-                    if (d.addressLine1 || d.address) lineParts.push(`ADRESSE = ${d.addressLine1 || d.address}`);
-                    if (d.type || d.loyaltyProgramCode) lineParts.push(`TYPE = ${d.type || d.loyaltyProgramCode}`);
+                    keys.forEach(k => {
+                        if (d[k] && d[k] !== "None" && d[k] !== "") {
+                            lineParts.push(`${k} = ${d[k]}`);
+                        }
+                    });
 
                     output += lineParts.join(' | ') + "\n";
                 }
