@@ -1,5 +1,16 @@
+providers = ["python", "node"]
+
+[phases.setup]
+nixPkgs = ["...", "nodejs_20", "playwright-driver"]
+
+[phases.install]
+cmds = [
+    "pip install -r requirements.txt",
+    "npm install --prefix script/flunch axios playwright node-imap mailparser imap-simple"
+]
+
 [phases.build]
 cmds = [
     "...",
-    "npm run install-playwright"
+    "npx playwright install --with-deps chromium"
 ]
