@@ -4,32 +4,181 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flunch Bulk Checker | ChezRheyy Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="../css/admin.css">
     <style>
-        .checker-container {
-            background: #111827;
-            border-radius: 16px;
-            border: 1px solid #1f2937;
-            padding: 25px;
-            margin-top: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        :root {
+            --surface-primary: #0a0b10;
+            --surface-secondary: #12141c;
+            --border-primary: #1e2230;
+            --primary-accent: #3b82f6;
+            --success-accent: #10b981;
+            --text-heading: #ffffff;
+            --text-body: #94a3b8;
         }
-        .results-table { display: none; }
-        #results-text {
+
+        .main {
+            padding: 30px 40px;
+            background: var(--surface-primary);
+        }
+
+        header h1 {
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .checker-grid {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 25px;
+            margin-top: 30px;
+            align-items: start;
+        }
+
+        .input-panel {
+            background: var(--surface-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 20px;
+            padding: 24px;
+            position: sticky;
+            top: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .results-panel {
+            background: var(--surface-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: calc(100vh - 180px);
+        }
+
+        .form-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--text-heading);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .ids-textarea {
             width: 100%;
-            min-height: 400px;
-            background: #000;
-            border: 1px solid #1f2937;
+            height: 350px;
+            background: #06070a;
+            border: 1.5px solid var(--border-primary);
             border-radius: 12px;
-            padding: 20px;
+            padding: 15px;
+            color: #fff;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.85rem;
+            resize: none;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .ids-textarea:focus {
+            border-color: var(--primary-accent);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .drop-overlay {
+            position: absolute;
+            inset: 24px;
+            background: rgba(59, 130, 246, 0.9);
+            border: 2px dashed #fff;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            backdrop-filter: blur(4px);
+        }
+
+        .btn-check {
+            width: 100%;
+            height: 52px;
+            margin-top: 20px;
+            background: var(--primary-accent);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: transform 0.1s active, opacity 0.2s;
+        }
+
+        .btn-check:hover { opacity: 0.9; }
+        .btn-check:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .results-header {
+            padding: 20px 24px;
+            background: #191c26;
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #results-text {
+            flex-grow: 1;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
             color: #10b981;
-            line-height: 1.6;
-            white-space: pre-wrap;
             overflow-y: auto;
+            white-space: pre-wrap;
+            background: #06070a;
+            line-height: 1.8;
+        }
+
+        .stats-pill {
+            background: #252a3a;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stats-pill strong { color: var(--success-accent); }
+
+        .btn-copy {
+            background: #252a3a;
+            border: 1px solid #2e3549;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-copy:hover { background: #2e3549; }
+
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from {transform: rotate(0deg)} to {transform: rotate(360deg)} }
+
+        @media (max-width: 1100px) {
+            .checker-grid { grid-template-columns: 1fr; }
+            .input-panel { position: static; height: auto; }
         }
     </style>
 </head>
@@ -38,13 +187,13 @@
     
     <div class="sidebar">
         <div class="logo">
-            <i data-lucide="shield" aria-hidden="true"></i> ChezRheyy <span>Admin</span>
+            <i data-lucide="shield"></i> ChezRheyy <span>Admin</span>
         </div>
-        <nav aria-label="Navigation principale">
+        <nav>
             <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
             <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
             <a href="flunch_token.html" class="nav-item"><i data-lucide="key"></i> <span>Flunch Token</span></a>
-            <a href="flunch_checker.html" class="nav-item active" aria-current="page"><i data-lucide="search"></i> <span>Flunch Checker</span></a>
+            <a href="flunch_checker.html" class="nav-item active"><i data-lucide="search"></i> <span>Flunch Checker</span></a>
             <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
             <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
             <a href="packager.html" class="nav-item"><i data-lucide="package"></i> <span>Packager 200</span></a>
@@ -57,36 +206,55 @@
         <header>
             <div class="header-content">
                 <h1>Flunch Bulk Checker</h1>
-                <p>Vérification groupée des comptes et soldes fidélité.</p>
+                <p>Outil de vérification massive à haute performance.</p>
             </div>
             <button class="btn-logout" onclick="logout()">Déconnexion</button>
         </header>
 
-        <section class="checker-container">
-            <div style="margin-bottom: 25px;">
-                <label for="ids-input" style="display: block; margin-bottom: 12px; color: #9ca3af; font-size: 0.95rem; font-weight: 600;">Liste des IDs Clients</label>
-                <textarea id="ids-input" class="form-input" placeholder="FR123456789, FR987654321..."></textarea>
-                <p style="margin-top: 8px; font-size: 0.8rem; color: #4b5563;">Séparez les IDs par des virgules ou des retours à la ligne.</p>
-            </div>
-            
-            <button onclick="startBulkCheck()" id="btnCheck" class="btn-action" style="width: auto; padding: 0 32px; height: 48px; background: var(--primary);">
-                <i data-lucide="play" style="width:20px; margin-right:10px;"></i> <span>Lancer la vérification</span>
-            </button>
-
-            <div id="results-area" style="display: none; margin-top: 40px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1f2937; padding-bottom: 15px;">
-                    <h3 style="margin: 0; display: flex; align-items: center; gap: 12px; color: #fff;">
-                        <i data-lucide="list" style="color: var(--primary);"></i> Résultats de l'analyse (Format TXT)
-                    </h3>
-                    <button onclick="copyResults()" class="btn-action" style="width:auto; height:32px; font-size:0.75rem; background: #1f2937; border-color: #374151;">
-                        <i data-lucide="copy" style="width:14px; margin-right:5px;"></i> Copier tout
-                    </button>
-                    <div id="check-stats" style="font-size: 0.85rem; color: #9ca3af; font-family: 'JetBrains Mono';"></div>
+        <div class="checker-grid">
+            <!-- Panneau Saisie (Gauche/Haut) -->
+            <div class="input-panel">
+                <div class="form-label">
+                    <span>Saisie des IDs</span>
+                    <i data-lucide="help-circle" style="width:14px; opacity:0.5;" title="Un ID par ligne ou séparés par des virgules"></i>
                 </div>
                 
-                <div id="results-text"></div>
+                <div style="position: relative;">
+                    <textarea id="ids-input" class="ids-textarea" placeholder="Collez vos IDs ici..."></textarea>
+                    <div id="drop-overlay" class="drop-overlay">
+                        <div style="text-align: center;">
+                            <i data-lucide="file-text" style="width:40px; height:40px; margin-bottom:10px;"></i>
+                            <div>Relâchez pour charger le .txt</div>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="font-size: 0.75rem; color: #4b5563; margin-top: 12px; line-height: 1.4;">
+                    Supporte le Drag & Drop (.txt).<br>Parsing automatique des champs demandés.
+                </p>
+
+                <button onclick="startBulkCheck()" id="btnCheck" class="btn-check">
+                    <i data-lucide="play-circle" style="width:20px;"></i> Lancer l'analyse
+                </button>
             </div>
-        </section>
+
+            <!-- Panneau Résultats (Droite) -->
+            <div class="results-panel">
+                <div class="results-header">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <button onclick="copyResults()" class="btn-copy">
+                            <i data-lucide="copy" style="width: 14px;"></i> Copier
+                        </button>
+                        <div class="stats-pill">
+                            <i data-lucide="activity" style="width:12px;"></i>
+                            <span id="check-stats">0 total</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="results-text">Les résultats apparaîtront ici après le scan...</div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -97,102 +265,107 @@
         
         if (!isLocal && !token) window.location.href = 'index.html';
 
-        async function startBulkCheck() {
-            const input = document.getElementById('ids-input');
-            const ids = input.value.trim();
-            if (!ids) {
-                showToast("Veuillez entrer au moins un ID", "error");
-                return;
+        // Drag & Drop
+        const idsInput = document.getElementById('ids-input');
+        const overlay = document.getElementById('drop-overlay');
+
+        document.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            if (e.target === idsInput) overlay.style.display = 'flex';
+        });
+
+        overlay.addEventListener('dragleave', () => overlay.style.display = 'none');
+        overlay.addEventListener('drop', (e) => {
+            e.preventDefault();
+            overlay.style.display = 'none';
+            const file = e.dataTransfer.files[0];
+            if (file && file.name.endsWith('.txt')) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    idsInput.value = ev.target.result;
+                    showToast("Fichier chargé !");
+                };
+                reader.readAsText(file);
             }
+        });
+
+        async function startBulkCheck() {
+            const ids = idsInput.value.trim();
+            if (!ids) return showToast("Veuillez entrer des IDs", "error");
 
             const btn = document.getElementById('btnCheck');
+            const resArea = document.getElementById('results-text');
+            
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="refresh-cw" class="spin" style="width:20px; margin-right:10px;"></i> Vérification en cours...';
+            btn.innerHTML = '<i data-lucide="refresh-cw" class="spin"></i> Scan en cours...';
             lucide.createIcons();
+
+            resArea.innerText = "Connexion au serveur...";
 
             try {
                 const res = await fetch(`${API_BASE}/admin/flunch/check`, {
                     method: 'POST',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ids: ids })
                 });
 
-                if (!res.ok) throw new Error("Erreur serveur");
-
+                if (!res.ok) throw new Error("Serveur indisponible");
                 const data = await res.json();
                 displayResults(data.results);
-                showToast("Vérification terminée avec succès !");
             } catch (err) {
-                showToast(err.message || "Erreur lors de la requête", "error");
+                showToast(err.message, "error");
+                resArea.innerText = "Erreur: " + err.message;
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i data-lucide="play" style="width:20px; margin-right:10px;"></i> Lancer la vérification';
+                btn.innerHTML = '<i data-lucide="play-circle"></i> Lancer l\'analyse';
                 lucide.createIcons();
             }
         }
 
         function displayResults(results) {
-            const area = document.getElementById('results-area');
             const container = document.getElementById('results-text');
             const stats = document.getElementById('check-stats');
-            
-            area.style.display = 'block';
             let output = "";
             let valids = 0;
 
             results.forEach(res => {
                 const d = res.data || {};
-                const isError = d.status === "error" || d.error;
-                
-                if (isError) {
-                    output += `${res.id} | ERREUR: ${d.message || d.detail || 'Inconnu'}\n`;
+                if (d.status === "error" || d.error) {
+                    output += `${res.id} | ERREUR: ${d.message || 'Inconnu'}\n`;
                 } else {
                     valids++;
                     let lineParts = [res.id];
                     const keys = ["ID", "CARTE", "SOLDE", "START", "NOM", "PRENOM", "DDN", "MAIL", "TEL", "TEL2", "CP", "VILLE", "ADRESSE", "LIEU", "TYPE"];
-                    
                     keys.forEach(k => {
                         if (d[k] && d[k] !== "None" && d[k] !== "") {
                             lineParts.push(`${k} = ${d[k]}`);
                         }
                     });
-
                     output += lineParts.join(' | ') + "\n";
                 }
             });
             
-            container.innerText = output;
-            stats.innerText = `${valids} valide(s) / ${results.length} total`;
+            container.innerText = output || "Aucun résultat exploitable.";
+            stats.innerHTML = `<strong>${valids} valides</strong> / ${results.length} total`;
         }
 
         function copyResults() {
             const text = document.getElementById('results-text').innerText;
-            navigator.clipboard.writeText(text).then(() => {
-                showToast("Copié dans le presse-papier !");
-            });
+            if (text.includes("Les résultats apparaîtront ici")) return;
+            navigator.clipboard.writeText(text).then(() => showToast("Copié !"));
         }
 
-        function showToast(message, type = 'success') {
+        function showToast(msg, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast ${type} show`;
-            const icon = type === 'success' ? 'check-circle' : 'alert-circle';
-            toast.innerHTML = `<i data-lucide="${icon}" aria-hidden="true"></i><span>${message}</span>`;
+            toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check' : 'alert-circle'}"></i><span>${msg}</span>`;
             container.appendChild(toast);
             lucide.createIcons();
-            setTimeout(() => { 
-                toast.classList.remove('show'); 
-                setTimeout(() => toast.remove(), 400); 
-            }, 4000);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        function logout() {
-            localStorage.removeItem('adminToken');
-            window.location.href = 'index.html';
-        }
+        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
     </script>
 </body>
 </html>
