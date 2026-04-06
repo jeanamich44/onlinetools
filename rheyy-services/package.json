@@ -1,0 +1,15 @@
+{
+  "name": "rheyy-services-node-runtime",
+  "version": "1.0.0",
+  "description": "Permet d'ajouter Node.js et Playwright au serveur Python",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "playwright": "latest",
+    "node-imap": "latest",
+    "mailparser": "latest",
+    "imap-simple": "latest"
+  },
+  "scripts": {
+    "install-playwright": "npx playwright install --with-deps chromium"
+  }
+}
