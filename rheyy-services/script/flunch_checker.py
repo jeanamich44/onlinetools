@@ -9,7 +9,7 @@ import time
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FLUNCH_DIR = os.path.join(BASE_DIR, "script", "flunch")
 TOKEN_FILE = os.path.join(FLUNCH_DIR, "output", "bearer_token.txt")
-ORCHESTRATOR = os.path.join(FLUNCH_DIR, "orchestrator.js")
+ORCHESTRATOR = os.path.join(FLUNCH_DIR, "main.js")
 
 def get_cached_token():
     if not os.path.exists(TOKEN_FILE):

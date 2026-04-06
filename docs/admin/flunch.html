@@ -171,6 +171,9 @@
                 <button onclick="switchTab('token')" id="btn-token" class="tab-btn" role="tab" aria-selected="false" aria-controls="log-viewer">
                     <i data-lucide="key" style="width:20px" aria-hidden="true"></i> Jeton Actuel (JWT)
                 </button>
+                <button onclick="switchTab('screenshot')" id="btn-screenshot" class="tab-btn" role="tab" aria-selected="false" aria-controls="log-viewer">
+                    <i data-lucide="camera" style="width:20px" aria-hidden="true"></i> Screenshot
+                </button>
             </nav>
 
             <div class="terminal-container" aria-label="Console de sortie des logs">
@@ -231,9 +234,9 @@
             
             document.getElementById('active-filename').innerText = 
                 tab === 'automation' ? 'automation.log' : 
-                (tab === 'mails' ? 'mails_recus.txt' : 'bearer_token.txt');
+                (tab === 'mails' ? 'mails_recus.txt' : 
+                (tab === 'token' ? 'bearer_token.txt' : 'screenshot.png'));
             
-            // Affichage dynamique du bouton Clear
             document.getElementById('btnClear').style.display = tab === 'automation' ? 'flex' : 'none';
             
             renderContent();
@@ -249,6 +252,22 @@
 
         function renderContent() {
             const container = document.getElementById('log-viewer');
+
+            if (currentTab === 'screenshot') {
+                container.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 10px;">
+                        <img src="${API_BASE}/admin/flunch/screenshot?t=${Date.now()}" 
+                             style="max-width: 100%; border-radius: 8px; border: 1px solid #374151; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" 
+                             alt="Dernière capture d'écran de l'automate"
+                             onerror="this.parentElement.innerHTML='<div style=\'color:#4b5563; font-style:italic; padding:40px;\'>Aucune capture d\'écran disponible.</div>'">
+                        <a href="${API_BASE}/admin/flunch/screenshot" target="_blank" class="btn-action" style="width:auto; font-size: 0.8rem; padding: 8px 16px;">
+                            <i data-lucide="external-link" style="width:14px; margin-right:5px;"></i> Ouvrir en plein écran
+                        </a>
+                    </div>`;
+                lucide.createIcons();
+                return;
+            }
+
             const data = filesData[currentTab] || "Aucune donnée disponible.";
             
             if (currentTab === 'token') {

@@ -11,6 +11,7 @@ import json
 import uuid
 import shutil
 import os
+import subprocess
 
 from script.database import init_db, get_db, Payment, Admin, Setting
 from script.security import (
@@ -37,7 +38,7 @@ from script.ssh_utils import (
     REMOTE_FILE_DATA
 )
 
-# ==============================================================================
+# [ CONFIGURATION ] ============================================================
 
 app = FastAPI(title="Rheyy Services", version="2.0.0")
 
@@ -51,7 +52,7 @@ app.add_middleware(
 
 audio_files = {}
 
-# ==============================================================================
+# [ TOOLS - PACKAGER ] =========================================================
 
 @app.get("/tools/packager-index")
 async def get_packager_index(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
@@ -119,6 +120,8 @@ async def generate_pack_endpoint(request: Request, bg: BackgroundTasks, db: Sess
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
+# [ TOOLS - SSH ] ==============================================================
+
 @app.get("/tools/fetch-remote-cards")
 async def fetch_remote_cards_endpoint(admin: str = Depends(get_current_admin)):
     try:
@@ -130,6 +133,8 @@ async def fetch_remote_cards_endpoint(admin: str = Depends(get_current_admin)):
         return {"status": "available", "size": stat.st_size}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"SSH Check Error: {str(e)}")
+
+# [ AUDIO ANALYSE ] ============================================================
 
 @app.post("/analyze-audio-stream")
 async def analyze_audio_streaming_endpoint(request: Request, admin: str = Depends(get_current_admin)):
@@ -243,7 +248,7 @@ async def analyze_audio_matcher_confirm_endpoint(req: dict = Body(...), admin: s
     except Exception as ssh_err:
         raise HTTPException(status_code=500, detail=f"Erreur SSH : {str(ssh_err)}")
 
-# ==============================================================================
+# [ FLUNCH ] ===================================================================
 
 @app.get("/admin/flunch/files")
 async def get_flunch_files(admin: str = Depends(get_current_admin)):
@@ -263,14 +268,34 @@ async def get_flunch_files(admin: str = Depends(get_current_admin)):
             results[key] = ""
             
     return results
+
+@app.get("/admin/flunch/screenshot")
+async def get_flunch_screenshot(admin: str = Depends(get_current_admin)):
+    path = os.path.join("script", "flunch", "output", "screenshot.png")
+    if os.path.exists(path):
+        return FileResponse(path, media_type="image/png")
+    raise HTTPException(status_code=404, detail="Capture d'écran non disponible")
     
-# ==============================================================================
+@app.post("/admin/flunch/start")
+async def start_flunch_automation(bg: BackgroundTasks, admin: str = Depends(get_current_admin)):
+    FLUNCH_DIR = os.path.join("script", "flunch")
+    
+    def run_automation():
+        try:
+            subprocess.run(["node", "main.js"], cwd=FLUNCH_DIR, check=True)
+        except Exception as e:
+            print(f"[PY-FLUNCH] ERREUR EXECUTION: {str(e)}")
+
+    bg.add_task(run_automation)
+    return {"status": "success", "message": "Orchestrateur lancé en arrière-plan."}
+    
+# [ ADMIN - PAYMENTS ] =========================================================
 
 @app.get("/admin/payments")
 async def get_payments(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
     return db.query(Payment).order_by(Payment.created_at.desc()).limit(50).all()
 
-# ==============================================================================
+# [ AUTHENTICATION ] ===========================================================
 
 @app.post("/auth/login")
 async def login(req: dict = Body(...), db: Session = Depends(get_db)):
@@ -285,6 +310,8 @@ async def login(req: dict = Body(...), db: Session = Depends(get_db)):
     
     access_token = create_access_token(data={"sub": admin.username})
     return {"access_token": access_token, "token_type": "bearer"}
+
+# [ ADMIN - STATS ] ============================================================
 
 @app.get("/admin/stats")
 async def get_stats(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
@@ -305,7 +332,7 @@ async def get_stats(db: Session = Depends(get_db), admin: str = Depends(get_curr
         "generated_today": gen_today
     }
 
-# ==============================================================================
+# [ GENERATORS - MRZ/ZIP ] =====================================================
 
 @app.post("/generate-mrz")
 async def mrz_endpoint(req: dict = Body(...), admin: str = Depends(get_current_admin)):
@@ -324,7 +351,7 @@ async def zip_endpoint(req: dict = Body(...), bg: BackgroundTasks = None, admin:
     if bg: bg.add_task(os.remove, zip_path)
     return FileResponse(zip_path, media_type="application/zip", filename="qr_codes.zip")
 
-# ==============================================================================
+# [ MAIN - SERVER ] ============================================================
 
 if __name__ == "__main__":
     import uvicorn

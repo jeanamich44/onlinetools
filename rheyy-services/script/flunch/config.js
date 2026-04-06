@@ -17,6 +17,7 @@ module.exports = {
     LOG_FILE:       path.join(LOGS_DIR, 'automation.log'),
     TOKEN_FILE:     path.join(OUTPUT_DIR, 'bearer_token.txt'),
     MAIL_LOG:       path.join(LOGS_DIR, 'mails_recus.txt'),
+    SCREENSHOT:     path.join(OUTPUT_DIR, 'screenshot.png'),
 
     EMAIL:   "antoineprogsh@gmail.com",
     PASS:    "Lolman349!?",
