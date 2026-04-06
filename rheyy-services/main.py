@@ -301,10 +301,13 @@ async def check_flunch_batch(req: dict = Body(...), admin: str = Depends(get_cur
     if not id_string:
         raise HTTPException(status_code=400, detail="Aucun ID fourni")
         
-    id_list = [i.strip() for i in id_string.split(",") if i.strip()]
-    results = []
+    # On supporte les virgules ET les retours à la ligne
+    cleaned_ids = id_string.replace("\n", ",").replace("\r", ",")
+    id_list = [i.strip() for i in cleaned_ids.split(",") if i.strip()]
     
+    results = []
     for client_id in id_list:
+        # Chaque ID aura sa propre exécution de fetch_flunch_data (donc une requête API distincte)
         data = fetch_flunch_data(client_id)
         results.append({"id": client_id, "data": data})
         
