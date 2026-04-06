@@ -1,356 +1,237 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flunch Checker | ChezRheyy Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <title>Flunch Control Center | Premium Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="../css/admin.css">
     <style>
-        .result-box {
-            background: #0b0f19; padding: 20px; border-radius: 12px;
-            border: 1px solid #1f2937; font-family: monospace; color: #10b981;
-            font-size: 0.9rem; margin-top: 20px; min-height: 80px;
-            white-space: pre-wrap; text-align: left; overflow-x: auto;
-        }
-        .info-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;
-        }
-        .info-item { background: #161b22; padding: 10px; border-radius: 8px; border: 1px solid #30363d; }
-        .info-item span { display: block; font-size: 0.75rem; color: #8b949e; margin-bottom: 4px; text-transform: uppercase; }
-        .info-item b { font-size: 1rem; color: #f0f6fc; }
-
-        /* LOG PANEL PREMIUM */
-        .log-panel { margin-top: 30px; background: #161b22; border-radius: 12px; border: 1px solid #30363d; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .log-header {
-            display: flex; justify-content: space-between; align-items: center; 
-            background: #0d1117; border-bottom: 1px solid #30363d; padding: 0 15px;
-        }
-        .log-tabs { display: flex; }
-        .tab-btn { 
-            padding: 16px 20px; border: none; background: transparent; color: #8b949e; 
-            cursor: pointer; font-weight: 600; font-size: 0.9rem;
-            border-bottom: 2px solid transparent; transition: all 0.2s;
-        }
-        .tab-btn:hover { color: #c9d1d9; }
-        .tab-btn.active { color: #58a6ff; border-bottom: 2px solid #58a6ff; }
-        
-        .log-actions { display: flex; gap: 10px; align-items: center; }
-        .refresh-logs { 
-            display: flex; align-items: center; gap: 6px;
-            padding: 6px 14px; background: #238636; color: white; 
-            border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; border: none; 
-            transition: background 0.2s; height: 32px;
-        }
-        .refresh-logs:hover { background: #2ea043; }
-        .refresh-logs i { width: 14px; height: 14px; }
-        .refresh-logs.spin i { animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        
-        .log-content { 
-            padding: 20px; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.85rem; 
-            background: #090b10; color: #e6edf3; height: 500px; 
-            overflow-y: auto; white-space: pre-wrap; line-height: 1.6;
-        }
-        
-        /* Syntax Highlighting Console */
-        .log-tag-system { color: #d2a8ff; font-weight: bold; }
-        .log-tag-nav { color: #79c0ff; font-weight: bold; }
-        .log-tag-auth { color: #a5d6ff; font-weight: bold; }
-        .log-tag-a2f { color: #f2cc60; font-weight: bold; }
-        .log-tag-success { color: #56d364; font-weight: bold; }
-        .log-tag-error { color: #ff7b72; font-weight: bold; }
-        .log-tag-trace { color: #484f58; }
-        .log-tag-delay { color: #8b949e; font-style: italic; }
-        .log-time { color: #8b949e; margin-right: 8px; }
-
-        /* SCREENSHOTS GALLERY */
-        .screens-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px; padding: 20px; background: #0d1117;
-        }
-        .screen-item { 
-            cursor: pointer; border-radius: 8px; overflow: hidden; border: 2px solid #30363d;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-        .screen-item:hover { transform: scale(1.03); border-color: #58a6ff; }
-        .screen-item img { width: 100%; height: auto; display: block; }
-        .screen-item span { 
-            display: block; padding: 8px; background: #161b22; 
-            font-size: 0.7rem; color: #8b949e; text-align: center;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        :root {
+            --bg-dark: #08090a;
+            --card-bg: #111418;
+            --accent: #ffb703;
+            --text-main: #e2e8f0;
+            --terminal-bg: #0d0f14;
         }
 
-        /* MODALE ZOOM */
-        #modal-zoom {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
-            z-index: 1000; justify-content: center; align-items: center; cursor: zoom-out;
+        body {
+            background: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            overflow-x: hidden;
         }
-        #modal-zoom img { max-width: 90%; max-height: 90%; border: 3px solid #30363d; border-radius: 8px; }
+
+        .glass-panel {
+            background: rgba(17, 20, 24, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+        }
+
+        /* IDE TERMINAL STYLE */
+        .log-terminal {
+            background: var(--terminal-bg);
+            border: 1px solid #1f2937;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            padding: 1.5rem;
+            position: relative;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+            min-height: 500px;
+            max-height: 65vh;
+            overflow-y: auto;
+        }
+
+        .log-terminal::-webkit-scrollbar { width: 6px; }
+        .log-terminal::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
+
+        .log-line { margin-bottom: 4px; border-left: 2px solid transparent; padding-left: 8px; }
+        .log-line:hover { background: rgba(255,255,255,0.02); }
+
+        .tag { font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-right: 8px; font-size: 0.75rem; }
+        .tag-system { background: #3b82f633; color: #60a5fa; }
+        .tag-auth { background: #f59e0b33; color: #fbbf24; }
+        .tag-success { background: #10b98133; color: #34d399; }
+        .tag-error { background: #ef444433; color: #f87171; }
+        .tag-trace { background: #6b728033; color: #9ca3af; }
+
+        .time { color: #4b5563; margin-right: 10px; font-size: 0.8rem; }
+
+        /* BUTTONS & NAV */
+        .nav-btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+        }
+        .nav-btn.active { color: var(--accent); background: rgba(255, 183, 3, 0.1); border: 1px solid rgba(255, 183, 3, 0.2); }
+        .nav-btn:hover:not(.active) { color: white; background: rgba(255,255,255,0.05); }
+
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from {transform: rotate(0deg)} to {transform: rotate(360deg)} }
+
+        .glow-accent { box-shadow: 0 0 20px rgba(255, 183, 3, 0.15); }
     </style>
 </head>
-
-<body>
-    <div id="toast-container"></div>
-
-    <div class="sidebar">
-        <div class="logo"><i data-lucide="shield"></i> ChezRheyy <span>Admin</span></div>
-        <nav>
-            <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
-            <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
-            <a href="tools.html" class="nav-item"><i data-lucide="wrench"></i> <span>Outils</span></a>
-            <a href="flunch.html" class="nav-item active"><i data-lucide="utensils"></i> <span>Flunch</span></a>
-            <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
-            <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
-            <a href="packager.html" class="nav-item"><i data-lucide="package"></i> <span>Packager 200</span></a>
-            <a href="audio_matcher.html" class="nav-item"><i data-lucide="link"></i> <span>Linker Audio</span></a>
-            <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> <span>Analyse Audio</span></a>
-        </nav>
-    </div>
-
-    <div class="main">
-        <header>
-            <div><h1>Flunch Checker</h1><p>Vérification des comptes fidélité Flunch et extraction de données.</p></div>
-            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+<body class="p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- HEADER -->
+        <header class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-4">
+                <div class="bg-gradient-to-br from-yellow-400 to-orange-500 p-3 rounded-xl glow-accent">
+                    <i data-lucide="zap" class="text-black fill-black"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">Flunch Orchestrator <span class="text-yellow-500">v2.1</span></h1>
+                    <p class="text-gray-500 text-sm">Contrôle de l'automate de fidélisation en temps réel</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="loadFiles()" id="btnRefresh" class="flex items-center gap-2 px-5 py-2.5 glass-panel hover:bg-gray-800 transition-all font-semibold">
+                    <i data-lucide="refresh-cw" id="iconRefresh" class="w-4 h-4"></i> Actualiser
+                </button>
+            </div>
         </header>
 
-        <div class="service-card" style="max-width: 800px;">
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label>ID Client Flunch</label>
-                <input type="text" id="clientId" placeholder="Ex: 2864358" class="form-input">
-            </div>
-            <button onclick="checkFlunch()" id="checkBtn" class="btn-action">Vérifier le compte</button>
-            <div id="result" class="result-box">Entrez un ID pour voir les données...</div>
-
-            <!-- LOGS PANEL -->
-            <div class="log-panel">
-                <div class="log-header">
-                    <div class="log-tabs">
-                        <button class="tab-btn active" id="tab-automation" onclick="switchTab('automation')">Automation Log</button>
-                        <button class="tab-btn" id="tab-mails" onclick="switchTab('mails')">Codes Mails</button>
-                        <button class="tab-btn" id="tab-token" onclick="switchTab('token')">Current Token</button>
-                        <button class="tab-btn" id="tab-screens" onclick="switchTab('screens')">Screenshots</button>
-                    </div>
-                    <div class="log-actions">
-                        <button class="refresh-logs" id="btnRefresh" onclick="refreshContext()">
-                            <i data-lucide="refresh-cw"></i> Actualiser
+        <div class="grid grid-cols-12 gap-6">
+            <!-- SIDEBAR CONTROL -->
+            <aside class="col-span-12 lg:col-span-3 flex flex-col gap-4">
+                <div class="glass-panel p-5">
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Flux Système</h3>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="switchTab('automation')" id="btn-automation" class="nav-btn active">
+                            <i data-lucide="terminal" class="w-4 h-4"></i> Automation Logs
+                        </button>
+                        <button onclick="switchTab('mails')" id="btn-mails" class="nav-btn">
+                            <i data-lucide="mail" class="w-4 h-4"></i> Historique Codes
+                        </button>
+                        <button onclick="switchTab('token')" id="btn-token" class="nav-btn">
+                            <i data-lucide="key" class="w-4 h-4"></i> Jeton Actuel (JWT)
                         </button>
                     </div>
                 </div>
-                <div id="log-viewer" class="log-content">Chargement des fichiers système...</div>
-                <div id="screens-viewer" class="screens-grid" style="display:none"></div>
-            </div>
+
+                <div class="glass-panel p-5 bg-gradient-to-b from-transparent to-yellow-500/5">
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Statut Session</h3>
+                    <div id="status-display" class="flex items-center gap-3 text-sm text-yellow-400">
+                        <div class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></div>
+                        En attente d'instruction...
+                    </div>
+                    <hr class="my-4 border-gray-800">
+                    <button class="w-full py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-lg text-sm font-bold hover:bg-red-500 hover:text-white transition-all">
+                        Arrêt d'Urgence
+                    </button>
+                </div>
+            </aside>
+
+            <!-- MAIN TERMINAL AREA -->
+            <main class="col-span-12 lg:col-span-9">
+                <div class="flex items-center justify-between mb-3 px-2">
+                    <div class="flex items-center gap-2">
+                        <div class="flex gap-1.5">
+                            <div class="w-3 h-3 rounded-full bg-red-500/30"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500/30"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500/30"></div>
+                        </div>
+                        <span id="active-filename" class="text-xs text-gray-500 font-mono ml-4">automation.log</span>
+                    </div>
+                    <span class="text-xs text-gray-600 font-mono">SSH CONNECTED</span>
+                </div>
+                
+                <div id="log-viewer" class="log-terminal">
+                   <!-- Logs will be rendered here -->
+                   <div class="flex items-center justify-center h-full text-gray-600 italic">Connexion au serveur Python...</div>
+                </div>
+            </main>
         </div>
     </div>
 
-    <div id="modal-zoom" onclick="this.style.display='none'"><img src="" id="img-zoom"></div>
-
     <script>
-        document.addEventListener('DOMContentLoaded', () => { 
-            lucide.createIcons(); 
-            loadFiles(); // Charger les logs dès le départ
-        });
-
-        const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") 
-            ? "http://localhost:8080" 
-            : "https://rheyy-services.up.railway.app";
-        const token = localStorage.getItem('adminToken');
-        if (!token) window.location.href = 'index.html';
-
+        lucide.createIcons();
+        const API_BASE = window.location.origin.includes('localhost') ? 'http://localhost:8080' : window.location.origin;
+        const token = localStorage.getItem('token');
+        let currentTab = 'automation';
         let filesData = {};
-        let screensData = [];
-        let activeTab = 'automation';
-
-        async function refreshContext() {
-            if (activeTab === 'screens') await loadScreens();
-            else await loadFiles();
-        }
 
         async function loadFiles() {
-            const btn = document.getElementById('btnRefresh');
-            if(btn) btn.classList.add('spin');
+            const btn = document.getElementById('iconRefresh');
+            btn.classList.add('spin');
             
             try {
                 const res = await fetch(`${API_BASE}/admin/flunch/files`, {
-                    method: 'GET',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 filesData = await res.json();
-                renderLogs();
+                renderContent();
+                document.getElementById('status-display').innerHTML = `<div class="w-2 h-2 rounded-full bg-green-500"></div> Données à jour`;
             } catch (err) {
-                document.getElementById('log-viewer').innerText = "Erreur de chargement des logs.";
+                console.error(err);
+                document.getElementById('status-display').innerHTML = `<div class="w-2 h-2 rounded-full bg-red-500"></div> Erreur Backend`;
             } finally {
-                if(btn) btn.classList.remove('spin');
-            }
-        }
-
-        async function loadScreens() {
-            const btn = document.getElementById('btnRefresh');
-            if(btn) btn.classList.add('spin');
-            
-            try {
-                const res = await fetch(`${API_BASE}/admin/flunch/screens`, {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                screensData = await res.json();
-                renderScreens();
-            } catch (err) {
-                console.error("Erreur screens:", err);
-            } finally {
-                if(btn) btn.classList.remove('spin');
+                setTimeout(() => btn.classList.remove('spin'), 500);
             }
         }
 
         function switchTab(tab) {
-            activeTab = tab;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-' + tab).classList.add('active');
+            currentTab = tab;
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${tab}`).classList.add('active');
+            document.getElementById('active-filename').innerText = tab === 'automation' ? 'automation.log' : (tab === 'mails' ? 'mails_recus.txt' : 'bearer_token.txt');
+            renderContent();
+        }
+
+        function renderContent() {
+            const container = document.getElementById('log-viewer');
+            const data = filesData[currentTab] || "Aucune donnée disponible.";
             
-            if (tab === 'screens') {
-                document.getElementById('log-viewer').style.display = 'none';
-                document.getElementById('screens-viewer').style.display = 'grid';
-                loadScreens();
-            } else {
-                document.getElementById('log-viewer').style.display = 'block';
-                document.getElementById('screens-viewer').style.display = 'none';
-                renderLogs();
-            }
-        }
-
-        function zoom(url) {
-            const modal = document.getElementById('modal-zoom');
-            document.getElementById('img-zoom').src = url;
-            modal.style.display = 'flex';
-        }
-
-        function renderScreens() {
-            const container = document.getElementById('screens-viewer');
-            if (screensData.length === 0) {
-                container.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: #8b949e;">Aucun screenshot trouvé pour le moment.</div>`;
+            if (currentTab === 'token') {
+                container.innerHTML = `<div class="p-6 bg-yellow-500/5 border border-yellow-500/20 rounded-lg break-all text-yellow-100">${data}</div>`;
                 return;
             }
-            container.innerHTML = screensData.map(s => {
-                const fullUrl = s.url.startsWith('http') ? s.url : (API_BASE + s.url);
+
+            const lines = data.split('\n').filter(l => l.trim().length > 0);
+            container.innerHTML = lines.map(line => {
+                let tagClass = 'tag-trace';
+                let tagName = 'INFO';
+                
+                if (line.includes('[SYSTEM]')) { tagClass = 'tag-system'; tagName = 'SYSTEM'; }
+                if (line.includes('[AUTH]') || line.includes('[A2F]')) { tagClass = 'tag-auth'; tagName = 'AUTH'; }
+                if (line.includes('[SUCCESS]')) { tagClass = 'tag-success'; tagName = 'SUCCESS'; }
+                if (line.includes('[ERROR]') || line.includes('[CRITICAL]')) { tagClass = 'tag-error'; tagName = 'ERROR'; }
+                
+                // Extraction du timestamp s'il existe
+                const timeMatch = line.match(/\[(\d{1,2}:\d{2}:\d{2} [AP]M)\]/);
+                const timeStr = timeMatch ? timeMatch[1] : '';
+                const cleanLine = line.replace(/\[.*?\]/g, '').trim();
+
                 return `
-                <div class="screen-item" onclick="zoom('${fullUrl}')">
-                    <img src="${fullUrl}">
-                    <span>${s.name.split('_').slice(1).join('_')}</span>
-                </div>
+                    <div class="log-line">
+                        <span class="time">${timeStr}</span>
+                        <span class="tag ${tagClass}">${tagName}</span>
+                        <span class="content">${cleanLine}</span>
+                    </div>
                 `;
             }).join('');
+
+            // Auto-scroll au bas
+            container.scrollTop = container.scrollHeight;
         }
 
-        function renderLogs() {
-            const viewer = document.getElementById('log-viewer');
-            let content = filesData[activeTab] || "Données indisponibles.";
-            
-            // Formatage intelligent type Console
-            if (activeTab === 'automation' && content !== "Données indisponibles.") {
-                // Échapper le HTML (pour les <button> ou erreurs réseau)
-                content = content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                
-                // Coloration de l'heure
-                content = content.replace(/^\[(.*?)\] /gm, '<span class="log-time">[$1]</span> ');
-                
-                // Coloration Syntaxique des Tags
-                content = content.replace(/\[(SYSTEM\s*)\]/g, '<span class="log-tag-system">[$1]</span>');
-                content = content.replace(/\[(NAV\s*)\]/g, '<span class="log-tag-nav">[$1]</span>');
-                content = content.replace(/\[(AUTH\s*)\]/g, '<span class="log-tag-auth">[$1]</span>');
-                content = content.replace(/\[(A2F\s*)\]/g, '<span class="log-tag-a2f">[$1]</span>');
-                content = content.replace(/\[(DEBUG\s*)\]/g, '<span class="log-tag-a2f">[$1]</span>');
-                content = content.replace(/\[(SUCCESS\s*)\]/g, '<span class="log-tag-success">[$1]</span>');
-                content = content.replace(/\[(CRITICAL\s*)\]/g, '<span class="log-tag-error">[$1]</span>');
-                content = content.replace(/\[(ERROR\s*)\]/g, '<span class="log-tag-error">[$1]</span>');
-                content = content.replace(/\[(NETFAIL\s*)\]/g, '<span class="log-tag-error">[$1]</span>');
-                content = content.replace(/\[(TRACE\s*)\]/g, '<span class="log-tag-trace">[$1]</span>');
-                content = content.replace(/\[(DELAY\s*)\]/g, '<span class="log-tag-delay">[$1]</span>');
-                
-                viewer.innerHTML = content;
-            } else {
-                viewer.textContent = content; // Pour Token et Email, du texte brut
-            }
-            
-            // Auto-scroll tout en bas
-            setTimeout(() => {
-                viewer.scrollTop = viewer.scrollHeight;
-            }, 50);
-        }
+        // Auto load every 5 seconds if automation tab active
+        setInterval(() => {
+            if (currentTab === 'automation') loadFiles();
+        }, 5000);
 
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            const icon = type === 'success' ? 'check-circle' : 'alert-circle';
-            toast.innerHTML = `<i data-lucide="${icon}"></i><span>${message}</span>`;
-            container.appendChild(toast);
-            lucide.createIcons();
-            setTimeout(() => toast.classList.add('show'), 100);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 400);
-            }, 4000);
-        }
-
-        async function checkFlunch() {
-            const clientId = document.getElementById('clientId').value;
-            if (!clientId) { showToast("Veuillez entrer un ID", "error"); return; }
-            
-            const btn = document.getElementById('checkBtn');
-            const resBox = document.getElementById('result');
-            
-            btn.innerText = "Recherche (Attente A2F possible)..."; 
-            btn.disabled = true;
-            resBox.style.color = "#8b949e";
-            resBox.innerText = "L'automate interroge l'API Flunch...";
-
-            try {
-                const res = await fetch(`${API_BASE}/tools/flunch/${clientId}`, {
-                    method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const responseData = await res.json();
-                
-                if (responseData.status === "success") {
-                    const d = responseData.data;
-                    if (d.status === "error") {
-                        resBox.style.color = "#ef4444";
-                        resBox.innerText = "Erreur: " + d.message;
-                        showToast("Échec de la récupération", "error");
-                    } else {
-                        resBox.style.color = "#10b981";
-                        resBox.innerHTML = renderFullData(d);
-                        showToast("Données extraites !");
-                        loadFiles(); // Rafraîchir les logs si un automate s'est lancé
-                    }
-                } else {
-                    showToast("Erreur API", "error");
-                }
-            } catch (err) { 
-                showToast("Erreur serveur", "error"); 
-                resBox.innerText = "Erreur de connexion au serveur.";
-            }
-            finally { btn.innerText = "Vérifier le compte"; btn.disabled = false; }
-        }
-
-        function renderFullData(data) {
-            return `
-<div class="info-grid">
-    <div class="info-item"><span>NOM</span><b>${data.lastName || 'N/A'}</b></div>
-    <div class="info-item"><span>PRÉNOM</span><b>${data.firstName || 'N/A'}</b></div>
-    <div class="info-item"><span>CARTE</span><b>${data.mainIdentifier || 'N/A'}</b></div>
-    <div class="info-item"><span>POINTS</span><b>${data.mainPointsBalance || 0} pts</b></div>
-    <div class="info-item"><span>EMAIL</span><b>${data.login || 'N/A'}</b></div>
-    <div class="info-item"><span>MOBILE</span><b>${data.address?.mobile || 'N/A'}</b></div>
-    <div class="info-item"><span>VILLE</span><b>${data.address?.city || 'N/A'}</b></div>
-    <div class="info-item"><span>DÉBUT FID</span><b>${data.enrolmentDate || 'N/A'}</b></div>
-</div>
-            `;
-        }
-
-        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
+        // Initial load
+        window.onload = loadFiles;
     </script>
 </body>
 </html>
