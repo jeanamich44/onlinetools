@@ -124,7 +124,8 @@
         <nav>
             <a href="dashboard.html" class="nav-item active"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
             <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
-            <a href="flunch.html" class="nav-item"><i data-lucide="utensils"></i> <span>Flunch</span></a>
+            <a href="flunch_token.html" class="nav-item"><i data-lucide="key"></i> <span>Flunch Token</span></a>
+            <a href="flunch_checker.html" class="nav-item"><i data-lucide="search"></i> <span>Flunch Checker</span></a>
             <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
             <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
             <a href="packager.html" class="nav-item"><i data-lucide="package"></i> <span>Packager 200</span></a>
@@ -157,15 +158,27 @@
         
         <div class="tools-grid">
             <!-- Flunch -->
-            <div class="tool-card" onclick="location.href='flunch.html'">
+            <div class="tool-card" onclick="location.href='flunch_token.html'">
                 <img src="img/flunch_icon.svg" class="tool-img">
                 <div class="tool-content">
                     <span class="tool-tag">ADMIN</span>
-                    <div class="tool-title">Flunch Checker</div>
-                    <div class="tool-desc">Extraction des données de fidélité et clients Flunch.</div>
+                    <div class="tool-title">Flunch Token Automate</div>
+                    <div class="tool-desc">Automatisation Playwright pour l'extraction de jetons Bearer Flunch frais.</div>
                 </div>
                 <div class="tool-footer">
-                    <a href="flunch.html" class="btn-tool">Ouvrir</a>
+                    <a href="flunch_token.html" class="btn-tool">Ouvrir</a>
+                </div>
+            </div>
+
+            <div class="tool-card" onclick="location.href='flunch_checker.html'">
+                <img src="img/flunch_icon.svg" class="tool-img" style="filter: hue-rotate(45deg);">
+                <div class="tool-content">
+                    <span class="tool-tag">CHECKER</span>
+                    <div class="tool-title">Flunch Bulk Checker</div>
+                    <div class="tool-desc">Vérification groupée ultra-rapide des comptes, soldes et points Flunch.</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="flunch_checker.html" class="btn-tool">Ouvrir</a>
                 </div>
             </div>
 
