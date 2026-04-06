@@ -35,14 +35,12 @@ module.exports = {
 
     SELECTORS: {
         COOKIE_OK:     'text="OK pour moi"',
-        COOKIE_OVERLAY:'axeptio_overlay',
         LOGIN_BTN:     'xpath=/html/body/div[2]/main/div/div[1]/div/form/button',
         EMAIL_INPUT:   'xpath=/html/body/div[1]/div[2]/form/div[1]/input',
         PASS_INPUT:    'xpath=/html/body/div[1]/div[2]/form/div[2]/input',
         SUBMIT_BTN:    'xpath=/html/body/div[1]/div[2]/form/div[6]/button',
         A2F_INPUT:     'xpath=/html/body/div/div[2]/form/div[1]/input',
-        A2F_SUBMIT:    'xpath=/html/body/div/div[2]/form/div[2]/button',
-        SAVE_BTN:      'xpath=/html/body/div[2]/div/div[1]/form/button[1]/div'
+        A2F_SUBMIT:    'xpath=/html/body/div/div[2]/form/div[2]/button'
     },
 
     URLS: {
@@ -51,8 +49,7 @@ module.exports = {
     },
 
     COLORS: {
-        RESET:   "\x1b[0m", BOLD: "\x1b[1m", GREY: "\x1b[90m",
-        BLUE:    "\x1b[34m", CYAN: "\x1b[36m", GREEN: "\x1b[32m",
-        YELLOW:  "\x1b[33m", RED: "\x1b[31m", MAGENTA: "\x1b[35m"
+        RESET: "\x1b[0m", MAGENTA: "\x1b[35m", CYAN: "\x1b[36m", 
+        YELLOW: "\x1b[33m", GREEN: "\x1b[32m", RED: "\x1b[31m", GREY: "\x1b[90m"
     }
 };
