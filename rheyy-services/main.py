@@ -248,10 +248,13 @@ async def analyze_audio_matcher_confirm_endpoint(req: dict = Body(...), admin: s
 async def get_payments(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
     return db.query(Payment).order_by(Payment.created_at.desc()).limit(50).all()
 
+from fastapi.concurrency import run_in_threadpool
+
 @app.get("/tools/flunch/{client_id}")
 async def get_flunch_info(client_id: str, admin: str = Depends(get_current_admin)):
     try:
-        data = fetch_flunch_data(client_id)
+        # On lance l'automate dans un pool de threads pour ne pas bloquer le serveur
+        data = await run_in_threadpool(fetch_flunch_data, client_id)
         return {"status": "success", "data": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

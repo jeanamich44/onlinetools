@@ -2,21 +2,27 @@ let capturedToken = null;
 
 const getToken = () => capturedToken;
 
+const { log } = require('./logger');
+
 const setupInterceptors = (page) => {
-    // On écoute TOUTES les requêtes sortantes
     page.on('request', req => {
         const url = req.url();
         const headers = req.headers();
         
-        // Si la requête va vers l'API de Flunch et possède un header Authorization
-        if (url.includes('flunch.fr') && headers['authorization']) {
+        if (headers['authorization']) {
             const auth = headers['authorization'];
-            // On extrait le token du format "Bearer eY..."
             const token = auth.startsWith('Bearer ') ? auth.substring(7).trim() : auth.trim();
+            const len = token.length;
+            const start = token.substring(0, 10);
             
-            // On vérifie que le token commence par ey et fait entre 730 et 780 caractères.
-            if (token.startsWith('ey') && token.length >= 730 && token.length <= 780) {
+            // On log TOUT pour le debug (ignorer ou valider)
+            if (token.startsWith('ey') && len >= 730 && len <= 780) {
+                log(`TOKEN VALIDE capture [URL: ${url.substring(0, 40)}...] (LEN: ${len})`, "NETWORK", "#32CD32");
                 capturedToken = token;
+            } else {
+                // On log pourquoi on l'ignore
+                const reason = !token.startsWith('ey') ? "pas de prefix ey" : `longueur incorrecte (${len})`;
+                log(`TOKEN IGNORE [${reason}] - ${url.substring(0, 40)}...`, "DEBUG", "#808080");
             }
         }
     });
