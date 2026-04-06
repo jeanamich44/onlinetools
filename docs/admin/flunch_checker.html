@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flunch Bulk Checker | ChezRheyy Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .checker-container {
+            background: #111827;
+            border-radius: 16px;
+            border: 1px solid #1f2937;
+            padding: 25px;
+            margin-top: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-family: 'Inter', sans-serif;
+        }
+        .results-table th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #1f2937;
+            color: #9ca3af;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .results-table td {
+            padding: 12px;
+            border-bottom: 1px solid #374151;
+            color: #d1d5db;
+            font-size: 0.9rem;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .status-ok { background: #10b98122; color: #34d399; }
+        .status-err { background: #ef444422; color: #f87171; }
+        textarea.form-input {
+            height: 120px;
+            resize: vertical;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.5;
+            background: #000;
+            border-color: #1f2937;
+            color: #fff;
+        }
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from {transform: rotate(0deg)} to {transform: rotate(360deg)} }
+    </style>
+</head>
+<body>
+    <div id="toast-container" aria-live="polite"></div>
+    
+    <div class="sidebar">
+        <div class="logo">
+            <i data-lucide="shield" aria-hidden="true"></i> ChezRheyy <span>Admin</span>
+        </div>
+        <nav aria-label="Navigation principale">
+            <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
+            <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
+            <a href="tools.html" class="nav-item"><i data-lucide="wrench"></i> <span>Outils</span></a>
+            <a href="flunch.html" class="nav-item"><i data-lucide="utensils"></i> <span>Flunch</span></a>
+            <a href="flunch_checker.html" class="nav-item active" aria-current="page"><i data-lucide="search"></i> <span>Checker Flunch</span></a>
+            <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
+            <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
+            <a href="packager.html" class="nav-item"><i data-lucide="package"></i> <span>Packager 200</span></a>
+            <a href="audio_matcher.html" class="nav-item"><i data-lucide="link"></i> <span>Linker Audio</span></a>
+            <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> <span>Analyse Audio</span></a>
+        </nav>
+    </div>
+
+    <div class="main">
+        <header>
+            <div class="header-content">
+                <h1>Flunch Bulk Checker</h1>
+                <p>Vérification groupée des comptes et soldes fidélité.</p>
+            </div>
+            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        </header>
+
+        <section class="checker-container">
+            <div style="margin-bottom: 25px;">
+                <label for="ids-input" style="display: block; margin-bottom: 12px; color: #9ca3af; font-size: 0.95rem; font-weight: 600;">Liste des IDs Clients</label>
+                <textarea id="ids-input" class="form-input" placeholder="FR123456789, FR987654321..."></textarea>
+                <p style="margin-top: 8px; font-size: 0.8rem; color: #4b5563;">Séparez les IDs par des virgules ou des retours à la ligne.</p>
+            </div>
+            
+            <button onclick="startBulkCheck()" id="btnCheck" class="btn-action" style="width: auto; padding: 0 32px; height: 48px; background: var(--primary);">
+                <i data-lucide="play" style="width:20px; margin-right:10px;"></i> <span>Lancer la vérification</span>
+            </button>
+
+            <div id="results-area" style="display: none; margin-top: 40px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1f2937; padding-bottom: 15px;">
+                    <h3 style="margin: 0; display: flex; align-items: center; gap: 12px; color: #fff;">
+                        <i data-lucide="list" style="color: var(--primary);"></i> Résultats de l'analyse
+                    </h3>
+                    <div id="check-stats" style="font-size: 0.85rem; color: #9ca3af; font-family: 'JetBrains Mono';"></div>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>ID Client</th>
+                                <th>Statut</th>
+                                <th>Détails Profile</th>
+                                <th>Solde (€)</th>
+                                <th>Points</th>
+                                <th>Message / Erreur</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || !window.location.hostname || window.location.protocol === "file:";
+        const API_BASE = isLocal ? 'http://localhost:8080' : "https://rheyy-services.up.railway.app";
+        const token = localStorage.getItem('adminToken');
+        
+        if (!isLocal && !token) window.location.href = 'index.html';
+
+        async function startBulkCheck() {
+            const input = document.getElementById('ids-input');
+            const ids = input.value.trim();
+            if (!ids) {
+                showToast("Veuillez entrer au moins un ID", "error");
+                return;
+            }
+
+            const btn = document.getElementById('btnCheck');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="refresh-cw" class="spin" style="width:20px; margin-right:10px;"></i> Vérification en cours...';
+            lucide.createIcons();
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/flunch/check`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ids: ids })
+                });
+
+                if (!res.ok) throw new Error("Erreur serveur");
+
+                const data = await res.json();
+                displayResults(data.results);
+                showToast("Vérification terminée avec succès !");
+            } catch (err) {
+                showToast(err.message || "Erreur lors de la requête", "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="play" style="width:20px; margin-right:10px;"></i> Lancer la vérification';
+                lucide.createIcons();
+            }
+        }
+
+        function displayResults(results) {
+            const area = document.getElementById('results-area');
+            const body = document.getElementById('results-body');
+            const stats = document.getElementById('check-stats');
+            
+            area.style.display = 'block';
+            body.innerHTML = '';
+            
+            let valids = 0;
+            results.forEach(res => {
+                const tr = document.createElement('tr');
+                const d = res.data || {};
+                
+                // Détection d'erreur basée sur la structure de l'API Flunch
+                const isError = d.status === "error" || d.error || (!d.firstName && !d.balance);
+                if (!isError) valids++;
+
+                tr.innerHTML = `
+                    <td style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #60a5fa;">${res.id}</td>
+                    <td><span class="status-badge ${isError ? 'status-err' : 'status-ok'}">${isError ? 'ERREUR' : 'VALIDE'}</span></td>
+                    <td><span style="font-weight: 600;">${d.firstName || ''} ${d.lastName || ''}</span></td>
+                    <td style="font-weight: 800; color: #10b981;">${d.balance !== undefined ? d.balance : '0.00'} €</td>
+                    <td style="font-family: 'JetBrains Mono'; color: #fbbf24;">${d.loyaltyPoints || d.points || '0'}</td>
+                    <td style="font-size: 0.8rem; color: #4b5563; max-width: 250px;">${d.message || (isError ? (d.detail || 'Invalide') : 'Compte actif')}</td>
+                `;
+                body.appendChild(tr);
+            });
+            
+            stats.innerText = `${valids} valide(s) / ${results.length} total`;
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type} show`;
+            const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+            toast.innerHTML = `<i data-lucide="${icon}" aria-hidden="true"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => { 
+                toast.classList.remove('show'); 
+                setTimeout(() => toast.remove(), 400); 
+            }, 4000);
+        }
+
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

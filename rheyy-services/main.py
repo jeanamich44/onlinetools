@@ -37,6 +37,7 @@ from script.ssh_utils import (
     run_remote_bot,
     REMOTE_FILE_DATA
 )
+from script.flunch_checker import fetch_flunch_data
 
 # [ CONFIGURATION ] ============================================================
 
@@ -283,7 +284,6 @@ async def start_flunch_automation(req: dict = Body(...), bg: BackgroundTasks = N
     
     def run_automation():
         try:
-            # On peut passer user_id en argument au script Node si besoin
             subprocess.run(["node", "main.js", str(user_id)], cwd=FLUNCH_DIR, check=True)
         except Exception as e:
             print(f"[PY-FLUNCH] ERREUR EXECUTION: {str(e)}")
@@ -294,6 +294,21 @@ async def start_flunch_automation(req: dict = Body(...), bg: BackgroundTasks = N
         run_automation()
         
     return {"status": "success", "message": f"Orchestrateur lancé pour l'ID {user_id}"}
+
+@app.post("/admin/flunch/check")
+async def check_flunch_batch(req: dict = Body(...), admin: str = Depends(get_current_admin)):
+    id_string = req.get("ids", "")
+    if not id_string:
+        raise HTTPException(status_code=400, detail="Aucun ID fourni")
+        
+    id_list = [i.strip() for i in id_string.split(",") if i.strip()]
+    results = []
+    
+    for client_id in id_list:
+        data = fetch_flunch_data(client_id)
+        results.append({"id": client_id, "data": data})
+        
+    return {"results": results}
     
 # [ ADMIN - PAYMENTS ] =========================================================
 

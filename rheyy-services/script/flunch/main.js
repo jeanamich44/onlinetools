@@ -1,5 +1,6 @@
 const { chromium } = require('playwright');
-const { HEADLESS, VIEWPORT, USER_AGENT, URLS, COLORS } = require('./config');
+const fs = require('fs');
+const { HEADLESS, VIEWPORT, USER_AGENT, URLS, COLORS, TOKEN_FILE } = require('./config');
 const { log, clearLog } = require('./logger');
 const { takeScreenshot } = require('./screenshot');
 
@@ -36,6 +37,20 @@ const run = async () => {
         log("Page Flunch chargée avec succès.", "SUCCESS", COLORS.GREEN, true);
         
         await takeScreenshot(page);
+
+        const token = await page.evaluate(() => localStorage.getItem('token'));
+        if (token) {
+            log("TOKEN RÉCUPÉRÉ AVEC SUCCÈS !", "SUCCESS", COLORS.GREEN, true);
+            fs.appendFileSync(TOKEN_FILE, token + "\n", 'utf-8');
+            log(`Sauvegardé (Historique) dans ${TOKEN_FILE}`, "SYSTEM", COLORS.GREY, false);
+        } else {
+            const cookies = await context.cookies();
+            const authCookie = cookies.find(c => c.name.includes('token'));
+            if (authCookie) {
+                log("Token trouvé dans les cookies.", "SUCCESS", COLORS.GREEN, true);
+                fs.appendFileSync(TOKEN_FILE, authCookie.value + "\n", 'utf-8');
+            }
+        }
         
         log("Attente de stabilisation de la page (3s)...", "TRACE", COLORS.GREY, false);
         await page.waitForTimeout(3000);
