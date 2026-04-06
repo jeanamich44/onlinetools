@@ -8,6 +8,8 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="../css/admin.css">
     <style>
+        /* Conserver les couleurs et l'atmosphère tout en améliorant l'accessibilité */
+        
         .terminal-container {
             background: #000;
             border-radius: 16px;
@@ -16,6 +18,7 @@
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
+        
         .terminal-header {
             background: #111827;
             padding: 12px 20px;
@@ -24,8 +27,9 @@
             justify-content: space-between;
             align-items: center;
         }
+        
         .terminal-body {
-            height: 550px;
+            height: 78vh;
             overflow-y: auto;
             padding: 20px;
             font-family: 'JetBrains Mono', monospace;
@@ -33,60 +37,99 @@
             line-height: 1.6;
             color: #d1d5db;
         }
+        
         .terminal-body::-webkit-scrollbar { width: 6px; }
         .terminal-body::-webkit-scrollbar-thumb { background: #374151; border-radius: 10px; }
 
-        .log-line { margin-bottom: 4px; border-left: 2px solid transparent; padding-left: 10px; }
+        .log-line { 
+            margin-bottom: 4px; 
+            border-left: 2px solid transparent; 
+            padding-left: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
         .log-line:hover { background: rgba(255,255,255,0.03); }
 
-        .tag { font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-right: 8px; font-size: 0.7rem; }
+        .tag { 
+            font-weight: 700; 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            font-size: 0.7rem;
+            text-transform: uppercase;
+        }
         .tag-system { background: #3b82f633; color: #60a5fa; }
         .tag-auth { background: #f59e0b33; color: #fbbf24; }
         .tag-success { background: #10b98133; color: #34d399; }
         .tag-error { background: #ef444433; color: #f87171; }
         .tag-trace { background: #6b728033; color: #9ca3af; }
 
-        .time { color: #4b5563; margin-right: 10px; font-size: 0.75rem; }
+        .time { color: #4b5563; font-size: 0.75rem; min-width: 85px; }
 
         .control-tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 15px;
         }
+        
         .tab-btn {
-            background: #161a22;
-            border: 1px solid #2a2f3a;
-            color: #94a3b8;
-            padding: 10px 20px;
-            border-radius: 10px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+            padding: 12px 24px;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
+            font-weight: 700;
+            font-size: 0.95rem;
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
         }
-        .tab-btn:hover { background: #1f2937; color: white; }
+        
+        .tab-btn:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
+        
         .tab-btn.active {
+            color: var(--primary);
             background: rgba(59, 130, 246, 0.1);
-            border-color: #3b82f6;
-            color: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.2);
         }
+        
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -16px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px 3px 0 0;
+        }
+
+        /* Accessibilité : Focus states clairs */
+        .tab-btn:focus-visible, .btn-action:focus-visible, input:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
     </style>
 </head>
 
 <body>
-    <div id="toast-container"></div>
+    <div id="toast-container" aria-live="polite"></div>
+    
     <div class="sidebar">
         <div class="logo">
-            <i data-lucide="shield"></i> ChezRheyy <span>Admin</span>
+            <i data-lucide="shield" aria-hidden="true"></i> ChezRheyy <span>Admin</span>
         </div>
-        <nav>
+        <nav aria-label="Navigation principale">
             <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
             <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
             <a href="tools.html" class="nav-item"><i data-lucide="wrench"></i> <span>Outils</span></a>
-            <a href="flunch.html" class="nav-item active"><i data-lucide="utensils"></i> <span>Flunch</span></a>
+            <a href="flunch.html" class="nav-item active" aria-current="page"><i data-lucide="utensils"></i> <span>Flunch</span></a>
             <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
             <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
             <a href="packager.html" class="nav-item"><i data-lucide="package"></i> <span>Packager 200</span></a>
@@ -102,58 +145,49 @@
                 <p>Contrôle de l'automate de fidélisation en temps réel.</p>
             </div>
             <div style="display: flex; gap: 15px;">
-                <button onclick="loadFiles()" class="btn-action" style="padding: 10px 20px; font-size: 0.9rem;">
-                    <i data-lucide="refresh-cw" id="iconRefresh" style="width:16px"></i> Actualiser les données
+                <button onclick="loadFiles()" class="btn-action" style="padding: 10px 24px; font-size: 0.9rem; width: auto;" aria-label="Actualiser les données des logs">
+                    <i data-lucide="refresh-cw" id="iconRefresh" style="width:16px" aria-hidden="true"></i> 
+                    <span>Actualiser</span>
                 </button>
-                <button class="btn-logout" onclick="logout()">Déconnexion</button>
+                <button class="btn-logout" onclick="logout()" aria-label="Se déconnecter de la session admin">Déconnexion</button>
             </div>
         </header>
 
-        <div class="service-card" style="max-width: 1000px;">
-            <!-- Traitement individuel par ID -->
-            <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 30px; background: rgba(59, 130, 246, 0.05); padding: 25px; border-radius: 20px; border: 1px solid rgba(59, 130, 246, 0.1);">
-                <div class="service-icon" style="width: 54px; height: 54px; flex-shrink: 0;"><i data-lucide="user-plus"></i></div>
-                <div style="flex-grow: 1;">
-                    <h3 style="font-size: 1.2rem; margin-bottom: 5px;">Traitement Individuel</h3>
-                    <p style="font-size: 0.9rem; color: var(--text-muted);">Lance l'automate pour un ID Client ou numéro de carte spécifique.</p>
-                </div>
-                <div style="display: flex; gap: 12px; align-items: center;">
-                    <input type="text" id="targetId" placeholder="ID Client / Carte" class="form-input" style="width: 220px; height: 50px; font-family: 'JetBrains Mono', monospace;">
-                    <button onclick="startFlunchProcess()" id="btnStart" class="btn-action" style="width: 140px; height: 50px; background: var(--primary); font-size: 1rem;">Lancer</button>
-                </div>
+        <section class="service-card" style="max-width: 1100px;">
+            <!-- Traitement individuel par ID ultra compact -->
+            <div style="display: flex; gap: 15px; margin-bottom: 25px; align-items: center; background: rgba(59, 130, 246, 0.05); padding: 12px 20px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.1);">
+                <i data-lucide="user-plus" style="width:20px; color: var(--primary);"></i>
+                <input type="text" id="targetId" placeholder="ID Client / Carte (ex: FR123456789)" class="form-input" style="width: 320px; height: 42px; font-size: 0.95rem; font-family: 'JetBrains Mono', monospace; margin: 0;" aria-label="Saisir ID Client ou Carte">
+                <button onclick="startFlunchProcess()" id="btnStart" class="btn-action" style="width: auto; height: 42px; padding: 0 24px; background: var(--primary); font-size: 0.95rem; margin: 0;">Lancer le traitement</button>
             </div>
 
-            <div class="control-tabs">
-                <button onclick="switchTab('automation')" id="btn-automation" class="tab-btn active">
-                    <i data-lucide="terminal" style="width:16px"></i> Automation Logs
+            <nav class="control-tabs" role="tablist" aria-label="Fichiers de logs">
+                <button onclick="switchTab('automation')" id="btn-automation" class="tab-btn active" role="tab" aria-selected="true" aria-controls="log-viewer">
+                    <i data-lucide="terminal" style="width:20px" aria-hidden="true"></i> Automation Logs
                 </button>
-                <button onclick="switchTab('mails')" id="btn-mails" class="tab-btn">
-                    <i data-lucide="mail" style="width:16px"></i> Historique Codes
+                <button onclick="switchTab('mails')" id="btn-mails" class="tab-btn" role="tab" aria-selected="false" aria-controls="log-viewer">
+                    <i data-lucide="mail" style="width:20px" aria-hidden="true"></i> Historique Codes
                 </button>
-                <button onclick="switchTab('token')" id="btn-token" class="tab-btn">
-                    <i data-lucide="key" style="width:16px"></i> Jeton Actuel (JWT)
+                <button onclick="switchTab('token')" id="btn-token" class="tab-btn" role="tab" aria-selected="false" aria-controls="log-viewer">
+                    <i data-lucide="key" style="width:20px" aria-hidden="true"></i> Jeton Actuel (JWT)
                 </button>
-            </div>
+            </nav>
 
-            <div class="terminal-container">
-                <div class="terminal-header">
-                    <div style="display: flex; gap: 8px;">
-                        <div style="width:12px; height:12px; border-radius:50%; background:#ef4444;"></div>
-                        <div style="width:12px; height:12px; border-radius:50%; background:#f59e0b;"></div>
-                        <div style="width:12px; height:12px; border-radius:50%; background:#10b981;"></div>
-                    </div>
+            <div class="terminal-container" aria-label="Console de sortie des logs">
+                <div class="terminal-header" style="padding: 10px 20px;">
                     <div style="display: flex; gap: 8px; align-items: center;">
-                        <span id="active-filename" style="font-family: monospace; font-size: 0.75rem; color: #6b7280; margin-right: 15px;">automation.log</span>
-                        <button id="btnClear" onclick="clearLogs()" style="display: flex; align-items: center; gap: 5px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; cursor: pointer; transition: all 0.2s;">
-                            <i data-lucide="trash-2" style="width:12px; height:12px;"></i> Effacer Console
-                        </button>
+                        <i data-lucide="file-text" style="width:14px; color: #6b7280;"></i>
+                        <span id="active-filename" style="font-family: monospace; font-size: 0.75rem; color: #6b7280; font-weight: 600;">automation.log</span>
                     </div>
+                    <button id="btnClear" onclick="clearLogs()" style="display: flex; align-items: center; gap: 8px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;" aria-label="Vider le contenu de la console">
+                        <i data-lucide="trash-2" style="width:14px; height:14px;" aria-hidden="true"></i> Effacer la console
+                    </button>
                 </div>
-                <div id="log-viewer" class="terminal-body">
-                   <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #4b5563; font-style: italic;">Initialisation...</div>
+                <div id="log-viewer" class="terminal-body" role="log" aria-relevant="additions" aria-live="polite">
+                   <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #4b5563; font-style: italic;">Initialisation de l'orchestrateur...</div>
                 </div>
             </div>
-        </div>
+        </section>
     </div>
 
     <script>
@@ -161,13 +195,15 @@
         const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
         const API_BASE = isLocal ? 'http://localhost:8080' : "https://rheyy-services.up.railway.app";
         const token = localStorage.getItem('adminToken');
+        
         if (!isLocal && !token) window.location.href = 'index.html';
+        
         let currentTab = 'automation';
         let filesData = {};
 
         async function loadFiles() {
             const btnIcon = document.getElementById('iconRefresh');
-            btnIcon.classList.add('spin');
+            if (btnIcon) btnIcon.classList.add('spin');
             
             try {
                 const res = await fetch(`${API_BASE}/admin/flunch/files`, {
@@ -176,17 +212,26 @@
                 filesData = await res.json();
                 renderContent();
             } catch (err) {
-                console.error(err);
+                console.error("Erreur de chargement des fichiers:", err);
             } finally {
-                setTimeout(() => btnIcon.classList.remove('spin'), 500);
+                if (btnIcon) setTimeout(() => btnIcon.classList.remove('spin'), 500);
             }
         }
 
         function switchTab(tab) {
             currentTab = tab;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`btn-${tab}`).classList.add('active');
-            document.getElementById('active-filename').innerText = tab === 'automation' ? 'automation.log' : (tab === 'mails' ? 'mails_recus.txt' : 'bearer_token.txt');
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('active');
+                b.setAttribute('aria-selected', 'false');
+            });
+            
+            const activeBtn = document.getElementById(`btn-${tab}`);
+            activeBtn.classList.add('active');
+            activeBtn.setAttribute('aria-selected', 'true');
+            
+            document.getElementById('active-filename').innerText = 
+                tab === 'automation' ? 'automation.log' : 
+                (tab === 'mails' ? 'mails_recus.txt' : 'bearer_token.txt');
             
             // Affichage dynamique du bouton Clear
             document.getElementById('btnClear').style.display = tab === 'automation' ? 'flex' : 'none';
@@ -198,6 +243,7 @@
             if (currentTab === 'automation') {
                 filesData['automation'] = "";
                 renderContent();
+                showToast("Console vidée localement", "success");
             }
         }
 
@@ -206,11 +252,16 @@
             const data = filesData[currentTab] || "Aucune donnée disponible.";
             
             if (currentTab === 'token') {
-                container.innerHTML = `<div style="padding: 20px; background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; word-break: break-all; color: #93c5fd;">${data}</div>`;
+                container.innerHTML = `<div style="padding: 24px; background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; word-break: break-all; color: #93c5fd; font-family: 'JetBrains Mono', monospace; line-height: 1.8;">${data}</div>`;
                 return;
             }
 
             const lines = data.split('\n').filter(l => l.trim().length > 0);
+            if (lines.length === 0) {
+                container.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #4b5563; font-style: italic;">Aucune entrée de log trouvée.</div>`;
+                return;
+            }
+
             container.innerHTML = lines.map(line => {
                 let tagClass = 'tag-trace';
                 let tagName = 'INFO';
@@ -221,7 +272,7 @@
                 if (line.includes('[ERROR]') || line.includes('[CRITICAL]')) { tagClass = 'tag-error'; tagName = 'ERROR'; }
                 
                 const timeMatch = line.match(/\[(\d{1,2}:\d{2}:\d{2} [AP]M)\]/);
-                const timeStr = timeMatch ? timeMatch[1] : '';
+                const timeStr = timeMatch ? timeMatch[1] : '--:--:--';
                 const cleanLine = line.replace(/\[.*?\]/g, '').trim();
 
                 return `
@@ -236,17 +287,19 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        function logout() {
-            localStorage.removeItem('adminToken');
-            window.location.href = 'index.html';
-        }
-
         async function startFlunchProcess() {
-            const userId = document.getElementById('targetId').value.trim();
-            if(!userId) { showToast("Veuillez entrer un ID.", "error"); return; }
+            const input = document.getElementById('targetId');
+            const userId = input.value.trim();
+            if(!userId) { 
+                showToast("Veuillez entrer un ID valide.", "error"); 
+                input.focus();
+                return; 
+            }
             
             const btn = document.getElementById('btnStart');
-            btn.disabled = true; btn.innerText = "Lancement..."; btn.style.opacity = "0.7";
+            btn.disabled = true; 
+            btn.innerText = "Lancement..."; 
+            btn.style.opacity = "0.7";
             
             try {
                 const res = await fetch(`${API_BASE}/admin/flunch/start`, {
@@ -254,19 +307,22 @@
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id: userId })
                 });
-                const data = await res.json();
                 
                 if(res.ok) {
                     showToast("Processus démarré pour l'ID: " + userId);
-                    switchTab('automation'); // Aller aux logs pour voir l'avancement
+                    input.value = "";
+                    switchTab('automation');
                     loadFiles();
                 } else {
+                    const data = await res.json();
                     showToast(data.detail || "Erreur de démarrage", "error");
                 }
             } catch (err) {
                 showToast("Échec de connexion au serveur", "error");
             } finally {
-                btn.disabled = false; btn.innerText = "Lancer"; btn.style.opacity = "1";
+                btn.disabled = false; 
+                btn.innerText = "Lancer l'ID"; 
+                btn.style.opacity = "1";
             }
         }
 
@@ -275,12 +331,22 @@
             const toast = document.createElement('div');
             toast.className = `toast ${type} show`;
             const icon = type === 'success' ? 'check-circle' : 'alert-circle';
-            toast.innerHTML = `<i data-lucide="${icon}"></i><span>${message}</span>`;
+            toast.innerHTML = `<i data-lucide="${icon}" aria-hidden="true"></i><span>${message}</span>`;
             container.appendChild(toast);
             lucide.createIcons();
-            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 4000);
+            
+            setTimeout(() => { 
+                toast.classList.remove('show'); 
+                setTimeout(() => toast.remove(), 400); 
+            }, 4000);
         }
 
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = 'index.html';
+        }
+
+        // Auto-refresh logs
         setInterval(() => {
             if (currentTab === 'automation') loadFiles();
         }, 5000);
