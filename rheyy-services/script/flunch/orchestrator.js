@@ -60,10 +60,13 @@ const { setupInterceptors, getToken } = require('./network');
 
         // Navigation Profil pour trigger le token
         log("Navigation Profil pour capture token...", "NAV", CFG.COLORS.CYAN);
-        await page.waitForTimeout(5000);
-        await page.goto(CFG.URLS.PROFILE, { waitUntil: 'networkidle' });
+        await page.waitForTimeout(2000);
+        
+        // On n'attend plus 'networkidle' qui est trop capricieux
+        await page.goto(CFG.URLS.PROFILE, { waitUntil: 'domcontentloaded', timeout: 60000 }).catch(() => log("Timeout partiel sur profil, on continue...", "NAV", CFG.COLORS.YELLOW));
         
         let wait = 0;
+        // On surveille le token pendant 15 secondes max
         while (!getToken() && wait < 15) {
             await page.waitForTimeout(1000);
             wait++;
