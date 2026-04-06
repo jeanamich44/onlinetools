@@ -60,7 +60,7 @@
         const token = localStorage.getItem('adminToken');
         if (!isLocal && !token) window.location.href = 'index.html';
 
-        function showToast(message, type = 'success') {
+        function showToast(message, type = 'sucess') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
