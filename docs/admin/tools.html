@@ -260,8 +260,9 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
         const token = localStorage.getItem('adminToken');
-        if (!token) window.location.href = 'index.html';
+        if (!isLocal && !token) window.location.href = 'index.html';
 
         function logout() {
             localStorage.removeItem('adminToken');

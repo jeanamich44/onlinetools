@@ -67,6 +67,7 @@
             <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
             <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
             <a href="tools.html" class="nav-item"><i data-lucide="wrench"></i> <span>Outils</span></a>
+            <a href="flunch.html" class="nav-item"><i data-lucide="utensils"></i> <span>Flunch</span></a>
             <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
             <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
             <a href="packager.html" class="nav-item active"><i data-lucide="package"></i> <span>Packager 200</span></a>
@@ -143,8 +144,9 @@
         const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") 
             ? "http://localhost:8080" 
             : "https://rheyy-services.up.railway.app";
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
         const token = localStorage.getItem('adminToken');
-        if (!token) window.location.href = 'index.html';
+        if (!isLocal && !token) window.location.href = 'index.html';
 
         let isRemoteMode = false;
 

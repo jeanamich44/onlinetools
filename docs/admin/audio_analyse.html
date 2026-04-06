@@ -87,8 +87,9 @@
         const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") 
             ? "http://localhost:8080" 
             : "https://rheyy-services.up.railway.app";
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
         const token = localStorage.getItem('adminToken');
-        if (!token) window.location.href = 'index.html';
+        if (!isLocal && !token) window.location.href = 'index.html';
 
         let currentFileId = null;
         let currentNumbers = [];

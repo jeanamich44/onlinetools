@@ -1,0 +1,31 @@
+<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- BACKGROUND CIRCLE WITH GLOW -->
+  <circle cx="120" cy="120" r="100" fill="url(#paint0_linear)" fill-opacity="0.1"/>
+  <circle cx="120" cy="120" r="90" stroke="url(#paint1_linear)" stroke-width="4" stroke-dasharray="10 5"/>
+  
+  <!-- STYLIZED DISH / PLATE BASE -->
+  <path d="M120 40C75.8172 40 40 75.8172 40 120C40 164.183 75.8172 200 120 200C164.183 200 200 164.183 200 120C200 75.8172 164.183 40 120 40ZM120 180C86.8629 180 60 153.137 60 120C60 86.8629 86.8629 60 120 60C153.137 60 180 86.8629 180 120C180 153.137 153.137 180 120 180Z" fill="url(#paint2_linear)"/>
+  
+  <!-- THE CENTRAL BOLT (AUTOMATION SYMBOL) -->
+  <path d="M130 85L85 140H115L110 185L155 130H125L130 85Z" fill="#FFB703" filter="url(#filter0_f)"/>
+  <path d="M130 85L85 140H115L110 185L155 130H125L130 85Z" fill="white"/>
+  
+  <!-- GRADIENTS & FILTERS DEFINITIONS -->
+  <defs>
+    <filter id="filter0_f" x="80" y="80" width="80" height="110" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+    </filter>
+    <linearGradient id="paint0_linear" x1="40" y1="40" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB703"/>
+      <stop offset="1" stop-color="#FF8A00"/>
+    </linearGradient>
+    <linearGradient id="paint1_linear" x1="40" y1="40" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB703" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#FF8A00" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="paint2_linear" x1="40" y1="40" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB703"/>
+      <stop offset="1" stop-color="#FB8500"/>
+    </linearGradient>
+  </defs>
+</svg>
