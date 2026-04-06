@@ -40,12 +40,10 @@ from script.ssh_utils import (
 from script.flunch_checker import fetch_flunch_data
 
 # ==============================================================================
-
-app = FastAPI(title="Rheyy Services", version="2.0.0")
-
 SCR_DIR = "screenshots"
 if not os.path.exists(SCR_DIR): os.makedirs(SCR_DIR)
-app.mount("/admin/flunch/view_screens", StaticFiles(directory=SCR_DIR), name="screens")
+
+app = FastAPI(title="Rheyy Services", version="2.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -54,6 +52,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.mount("/admin/flunch/view_screens", StaticFiles(directory=SCR_DIR), name="screens")
 
 audio_files = {}
 
