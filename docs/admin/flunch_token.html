@@ -256,16 +256,11 @@
 
             if (currentTab === 'screenshot') {
                 container.innerHTML = `
-                    <div style="display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 10px;">
-                        <img src="${API_BASE}/admin/flunch/screenshot?t=${Date.now()}" 
-                             style="max-width: 100%; border-radius: 8px; border: 1px solid #374151; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" 
-                             alt="Dernière capture d'écran de l'automate"
-                             onerror="this.parentElement.innerHTML='<div style=\'color:#4b5563; font-style:italic; padding:40px;\'>Aucune capture d\'écran disponible.</div>'">
-                        <a href="${API_BASE}/admin/flunch/screenshot" target="_blank" class="btn-action" style="width:auto; font-size: 0.8rem; padding: 8px 16px;">
-                            <i data-lucide="external-link" style="width:14px; margin-right:5px;"></i> Ouvrir en plein écran
-                        </a>
+                    <div id="screenshot-container" style="display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 10px;">
+                        <div class="loader-spinner" style="padding: 40px; color: #4b5563; font-style: italic;">Chargement de la capture...</div>
                     </div>`;
-                lucide.createIcons();
+                
+                fetchScreenshot();
                 return;
             }
 
@@ -434,6 +429,34 @@
                 return JSON.parse(jsonPayload);
             } catch (err) {
                 return null;
+            }
+        }
+
+        async function fetchScreenshot() {
+            const sc = document.getElementById('screenshot-container');
+            if (!sc) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/flunch/screenshot?t=${Date.now()}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    if (res.status === 404) throw new Error("Aucune capture d'écran disponible.");
+                    if (res.status === 401) throw new Error("Session expirée. Veuillez vous reconnecter.");
+                    throw new Error(`Erreur ${res.status}`);
+                }
+
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+
+                sc.innerHTML = `
+                    <img src="${url}" 
+                         style="max-width: 100%; border-radius: 8px; border: 1px solid #374151; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" 
+                         alt="Dernière capture d'écran">
+                `;
+            } catch (err) {
+                sc.innerHTML = `<div style="color:#ef4444; font-style:italic; padding:40px;">${err.message}</div>`;
             }
         }
 
