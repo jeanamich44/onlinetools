@@ -36,6 +36,7 @@ from script.ssh_utils import (
     run_remote_bot,
     REMOTE_FILE_DATA
 )
+from script.flunch_checker import fetch_flunch_data
 
 # ==============================================================================
 
@@ -243,6 +244,37 @@ async def analyze_audio_matcher_confirm_endpoint(req: dict = Body(...), admin: s
     except Exception as ssh_err:
         raise HTTPException(status_code=500, detail=f"Erreur SSH : {str(ssh_err)}")
 
+@app.get("/admin/payments")
+async def get_payments(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
+    return db.query(Payment).order_by(Payment.created_at.desc()).limit(50).all()
+
+@app.get("/tools/flunch/{client_id}")
+async def get_flunch_info(client_id: str, admin: str = Depends(get_current_admin)):
+    try:
+        data = fetch_flunch_data(client_id)
+        return {"status": "success", "data": data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/admin/flunch/files")
+async def get_flunch_files(admin: str = Depends(get_current_admin)):
+    # Chemins relatifs à la racine rheyy-services
+    files_map = {
+        "automation": "script/flunch/logs/automation.log",
+        "mails": "script/flunch/logs/mails_recus.txt",
+        "token": "script/flunch/output/bearer_token.txt"
+    }
+    results = {}
+    for key, rel_path in files_map.items():
+        if os.path.exists(rel_path):
+            with open(rel_path, "r", encoding="utf-8") as f:
+                # On ne prend que les 5000 derniers caractères pour éviter de saturer le navigateur
+                content = f.read()
+                results[key] = content[-8000:] if len(content) > 8000 else content
+        else:
+            results[key] = f"Fichier '{key}' non encore généré."
+    return results
+
 # ==============================================================================
 
 @app.post("/auth/login")
@@ -278,10 +310,6 @@ async def get_stats(db: Session = Depends(get_db), admin: str = Depends(get_curr
         "generated_today": gen_today
     }
 
-@app.get("/admin/payments")
-async def get_payments(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
-    return db.query(Payment).order_by(Payment.created_at.desc()).limit(50).all()
-
 # ==============================================================================
 
 @app.post("/generate-mrz")
@@ -307,4 +335,3 @@ if __name__ == "__main__":
     import uvicorn
     init_db()
     uvicorn.run(app, host="0.0.0.0", port=8080)
-
