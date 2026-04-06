@@ -28,30 +28,21 @@ const { setupInterceptors, getToken, getSessionTokens } = require('./network');
         try { await page.click(CFG.SELECTORS.COOKIE_OK, { timeout: 5000 }); } catch (e) {}
 
         log("Saisie des identifiants...", "AUTH", CFG.COLORS.CYAN);
+        await page.click(CFG.SELECTORS.LOGIN_BTN);
+        await page.waitForSelector(CFG.SELECTORS.EMAIL_INPUT);
         
-        // Clic préliminaire optionnel (parfois le formulaire est affiché directement)
-        try { 
-            await page.waitForSelector(CFG.SELECTORS.LOGIN_BTN, { timeout: 3000 });
-            await page.click(CFG.SELECTORS.LOGIN_BTN, { force: true });
-        } catch (e) { }
-        
-        const emailInput = await page.waitForSelector(CFG.SELECTORS.EMAIL_INPUT, { state: 'visible', timeout: 30000 });
-        await emailInput.scrollIntoViewIfNeeded().catch(() => {});
-        
-        // On utilise fill avec force pour passer outre les problèmes de détection de visibilité
-        await page.fill(CFG.SELECTORS.EMAIL_INPUT, CFG.EMAIL, { force: true });
-        await page.fill(CFG.SELECTORS.PASS_INPUT, CFG.PASS, { force: true });
+        // On utilise fill pour plus de fiabilité sur serveur
+        await page.fill(CFG.SELECTORS.EMAIL_INPUT, CFG.EMAIL);
+        await page.fill(CFG.SELECTORS.PASS_INPUT, CFG.PASS);
         
         log("Validation formulaire...", "AUTH", CFG.COLORS.CYAN);
-        
-        // Attendre que le bouton ne soit plus désactivé nativement
-        try {
-            await page.waitForSelector(`${CFG.SELECTORS.SUBMIT_BTN}:not([disabled])`, { timeout: 8000 });
-        } catch(e) {
-            log("Bouton toujours désactivé (ou état ignoré), tentative forcée...", "AUTH", CFG.COLORS.YELLOW);
-        }
+        // On attend que le bouton ne soit plus grisé (disabled)
+        await page.waitForFunction((selector) => {
+            const btn = document.evaluate(selector.replace('xpath=', ''), document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+            return btn && !btn.disabled;
+        }, CFG.SELECTORS.SUBMIT_BTN, { timeout: 10000 }).catch(() => log("Bouton toujours désactivé, tentative forcée...", "AUTH", CFG.COLORS.YELLOW));
 
-        await page.click(CFG.SELECTORS.SUBMIT_BTN, { force: true });
+        await page.click(CFG.SELECTORS.SUBMIT_BTN);
 
         // Attente A2F
         try {
