@@ -8,12 +8,17 @@ const init = () => {
 };
 
 const log = (msg, category, color = "") => {
-    // Format : [15:30:05] [CATEGORIE] Message
     const time = new Date().toLocaleTimeString();
     const entry = `[${time}] [${category.padEnd(8)}] ${msg}`;
     
-    console.log(entry); // Console pour Railway
-    fs.appendFileSync(LOG_FILE, `${entry}\n`); // Fichier pour l'interface Admin
+    // LOG FICHIER : On écrit TOUT pour le debug
+    fs.appendFileSync(LOG_FILE, `${entry}\n`);
+
+    // LOG CONSOLE (Railway) : On ne garde que l'essentiel et le Propre
+    const consoleCategories = ["SYSTEM", "NAV", "AUTH", "A2F", "SUCCESS", "CRITICAL"];
+    if (consoleCategories.includes(category.trim())) {
+        console.log(`[${category.trim()}] ${msg}`);
+    }
 };
 
 module.exports = { init, log };

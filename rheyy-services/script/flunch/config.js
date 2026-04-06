@@ -34,13 +34,13 @@ module.exports = {
     USER_AGENT: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36",
 
     SELECTORS: {
-        COOKIE_OK:     'text="OK pour moi"',
-        LOGIN_BTN:     'xpath=/html/body/div[2]/main/div/div[1]/div/form/button',
-        EMAIL_INPUT:   'xpath=/html/body/div[1]/div[2]/form/div[1]/input',
-        PASS_INPUT:    'xpath=/html/body/div[1]/div[2]/form/div[2]/input',
-        SUBMIT_BTN:    'xpath=/html/body/div[1]/div[2]/form/div[6]/button',
-        A2F_INPUT:     'xpath=/html/body/div/div[2]/form/div[1]/input',
-        A2F_SUBMIT:    'xpath=/html/body/div/div[2]/form/div[2]/button'
+        COOKIE_OK:     'button:has-text("OK pour moi")',
+        LOGIN_BTN:     'button:has-text("Se connecter")',
+        EMAIL_INPUT:   '#username',
+        PASS_INPUT:    '#password',
+        SUBMIT_BTN:    '#submitBtn',
+        A2F_INPUT:     '#otp',
+        A2F_SUBMIT:    'button:has-text("Valider")'
     },
 
     URLS: {

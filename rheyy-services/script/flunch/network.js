@@ -1,7 +1,9 @@
 let capturedToken = null;
+let sessionTokens = [];
 const { log } = require('./logger');
 
 const getToken = () => capturedToken;
+const getSessionTokens = () => sessionTokens;
 
 const setupInterceptors = (page) => {
     page.on('request', req => {
@@ -21,6 +23,10 @@ const setupInterceptors = (page) => {
             const token = auth.startsWith('Bearer ') ? auth.substring(7).trim() : auth.trim();
             const len = token.length;
             
+            if (token.startsWith('ey')) {
+                if (!sessionTokens.includes(token)) sessionTokens.push(token);
+            }
+            
             if (token.startsWith('ey') && len >= 730 && len <= 780) {
                 log(`TOKEN CAPTURÉ VALIDE (LEN: ${len}) [${url.substring(0, 30)}...]`, "NETWORK", "#32CD32");
                 capturedToken = token;
@@ -37,4 +43,4 @@ const setupInterceptors = (page) => {
     });
 };
 
-module.exports = { setupInterceptors, getToken };
+module.exports = { setupInterceptors, getToken, getSessionTokens };

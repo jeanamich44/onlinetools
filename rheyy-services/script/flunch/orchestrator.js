@@ -3,7 +3,7 @@ const fs = require('fs');
 const CFG = require('./config');
 const { init, log } = require('./logger');
 const { fetchLastCodeAndDelete } = require('./imap_a2f');
-const { setupInterceptors, getToken } = require('./network');
+const { setupInterceptors, getToken, getSessionTokens } = require('./network');
 
 (async () => {
     init();
@@ -28,20 +28,28 @@ const { setupInterceptors, getToken } = require('./network');
         try { await page.click(CFG.SELECTORS.COOKIE_OK, { timeout: 5000 }); } catch (e) {}
 
         log("Saisie des identifiants...", "AUTH", CFG.COLORS.CYAN);
-        await page.click(CFG.SELECTORS.LOGIN_BTN, { force: true });
+        
+        // Clic préliminaire optionnel (parfois le formulaire est affiché directement)
+        try { 
+            await page.waitForSelector(CFG.SELECTORS.LOGIN_BTN, { timeout: 3000 });
+            await page.click(CFG.SELECTORS.LOGIN_BTN, { force: true });
+        } catch (e) { }
         
         const emailInput = await page.waitForSelector(CFG.SELECTORS.EMAIL_INPUT, { state: 'visible', timeout: 30000 });
-        await emailInput.scrollIntoViewIfNeeded();
+        await emailInput.scrollIntoViewIfNeeded().catch(() => {});
         
         // On utilise fill avec force pour passer outre les problèmes de détection de visibilité
         await page.fill(CFG.SELECTORS.EMAIL_INPUT, CFG.EMAIL, { force: true });
         await page.fill(CFG.SELECTORS.PASS_INPUT, CFG.PASS, { force: true });
         
         log("Validation formulaire...", "AUTH", CFG.COLORS.CYAN);
-        await page.waitForFunction((selector) => {
-            const btn = document.evaluate(selector.replace('xpath=', ''), document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-            return btn && !btn.disabled;
-        }, CFG.SELECTORS.SUBMIT_BTN, { timeout: 10000 }).catch(() => log("Tentative de clic forcé sur bouton soumis...", "AUTH", CFG.COLORS.YELLOW));
+        
+        // Attendre que le bouton ne soit plus désactivé nativement
+        try {
+            await page.waitForSelector(`${CFG.SELECTORS.SUBMIT_BTN}:not([disabled])`, { timeout: 8000 });
+        } catch(e) {
+            log("Bouton toujours désactivé (ou état ignoré), tentative forcée...", "AUTH", CFG.COLORS.YELLOW);
+        }
 
         await page.click(CFG.SELECTORS.SUBMIT_BTN, { force: true });
 
@@ -84,6 +92,14 @@ const { setupInterceptors, getToken } = require('./network');
     } catch (err) {
         log(`CRASH AUTOMATE : ${err.message}`, "CRITICAL", CFG.COLORS.RED);
     } finally {
+        // Log de tous les tokens trouvés
+        const allTokens = getSessionTokens();
+        log(`--- RÉCAPITULATIF DES TOKENS VUS (${allTokens.length}) ---`, "DEBUG");
+        allTokens.forEach((t, i) => {
+            log(`TOKEN ${i+1} [Longueur: ${t.length}] : ${t}`, "DEBUG");
+        });
+        log(`-----------------------------------------------`, "DEBUG");
+
         await browser.close();
         log("Navigateur fermé.", "SYSTEM", CFG.COLORS.MAGENTA);
     }
