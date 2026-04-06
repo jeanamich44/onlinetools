@@ -281,11 +281,24 @@
                 container.innerHTML = tokens.map((t, idx) => {
                     const decoded = decodeJWT(t.trim());
                     let detailsHtml = "";
+                    let expiryHtml = "";
+                    
                     if (decoded) {
                         detailsHtml = `<div id="details-${idx}" style="display: none; margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.5); border-radius: 8px; border: 1px solid rgba(59, 130, 246, 0.1); font-size: 0.75rem;">
                             <div style="color: #60a5fa; margin-bottom: 10px; font-weight: 700; border-bottom: 1px solid rgba(59, 130, 246, 0.1); padding-bottom: 5px;">JWT Payload Décodé</div>
                             <pre style="color: #e2e8f0; white-space: pre-wrap; margin:0; line-height: 1.6;">${JSON.stringify(decoded, null, 2)}</pre>
                         </div>`;
+                        
+                        if (decoded.exp) {
+                            const expiryDate = new Date(decoded.exp * 1000);
+                            const isExpired = expiryDate < new Date();
+                            const color = isExpired ? '#ef4444' : '#10b981';
+                            const badgeBg = isExpired ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)';
+                            expiryHtml = `<span style="font-size: 0.65rem; color: ${color}; font-weight: 700; background: ${badgeBg}; padding: 2px 8px; border-radius: 4px; display: flex; align-items: center; gap: 4px;">
+                                <i data-lucide="${isExpired ? 'clock' : 'check'}" style="width:10px; height:10px;"></i>
+                                Expire le: ${expiryDate.toLocaleString('fr-FR')}
+                            </span>`;
+                        }
                     }
 
                     return `
@@ -293,7 +306,7 @@
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                                 <div style="display: flex; gap: 10px; align-items: center;">
                                     <span style="font-size: 0.65rem; color: #60a5fa; font-weight: 900; background: rgba(59, 130, 246, 0.1); padding: 2px 8px; border-radius: 4px;">TOKEN #${idx + 1}</span>
-                                    ${decoded?.exp ? `<span style="font-size: 0.65rem; color: #94a3b8;">Expire le: ${new Date(decoded.exp * 1000).toLocaleString('fr-FR')}</span>` : ''}
+                                    ${expiryHtml}
                                 </div>
                                 <div style="display: flex; gap: 8px;">
                                     <button onclick="toggleTokenDetails(${idx})" class="btn-action" style="width: auto; height: 32px; padding: 0 12px; font-size: 0.75rem; background: rgba(59, 130, 246, 0.1); color: #93c5fd; border-radius: 6px;">
