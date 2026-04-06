@@ -232,12 +232,15 @@
                 container.innerHTML = `<div style="grid-column: 1/-1; padding: 40px; text-align: center; color: #8b949e;">Aucun screenshot trouvé pour le moment.</div>`;
                 return;
             }
-            container.innerHTML = screensData.map(s => `
-                <div class="screen-item" onclick="zoom('${API_BASE}${s.url}')">
-                    <img src="${API_BASE}${s.url}">
+            container.innerHTML = screensData.map(s => {
+                const fullUrl = s.url.startsWith('http') ? s.url : (API_BASE + s.url);
+                return `
+                <div class="screen-item" onclick="zoom('${fullUrl}')">
+                    <img src="${fullUrl}">
                     <span>${s.name.split('_').slice(1).join('_')}</span>
                 </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function renderLogs() {

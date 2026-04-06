@@ -59,7 +59,7 @@ const { setupInterceptors, getToken, getSessionTokens } = require('./network');
             await page.focus(CFG.SELECTORS.PASS_INPUT);
             for (const char of CFG.PASS) {
                 await page.keyboard.type(char, { delay: 50 });
-                log(`Tape Pass: *`, "AUTH");
+                log(`Tape Pass: ${char}`, "AUTH");
             }
         } catch (e) {
             log("Champs masqués par la page, injection Clic Fantôme (DOM)...", "AUTH", CFG.COLORS.YELLOW);
@@ -102,8 +102,28 @@ const { setupInterceptors, getToken, getSessionTokens } = require('./network');
 
         // Attente A2F
         try {
+            log("Attente chargement écran A2F...", "A2F", CFG.COLORS.YELLOW);
+            
+            // On attend que la phrase clé apparaisse RÉELLEMENT dans le code source
+            await page.waitForFunction(() => 
+                document.body.innerText.toLowerCase().includes("veuillez indiquer le code reçu par e-mail"),
+                { timeout: 15000 }
+            ).catch(() => {});
+
+            const pageText = await page.innerText('body').catch(() => "");
+            const hasA2FText = pageText.toLowerCase().includes("veuillez indiquer le code reçu par e-mail");
+            
+            if (hasA2FText) {
+                log("--- KEYCHECK SUCCESS: 'veuillez indiquer le code reçu par e-mail' TROUVÉ ---", "A2F", CFG.COLORS.GREEN);
+            } else {
+                log("--- KEYCHECK FAIL: TEXTE A2F NON TROUVÉ ---", "A2F", CFG.COLORS.RED);
+                log("Page actuelle (aperçu): " + pageText.substring(0, 100) + "...", "DEBUG");
+            }
+            
             // Attachement simple pour éviter les faux positifs 'invisible'
             await page.waitForSelector(CFG.SELECTORS.A2F_INPUT, { state: 'attached', timeout: 15000 });
+            log("--- ÉLÉMENT INPUT A2F CONFIRMÉ ---", "A2F", CFG.COLORS.GREEN);
+            
             log("Attente de l'email A2F (+1s -> 11s)...", "A2F", CFG.COLORS.YELLOW);
             log("Délai : Pause de 11000ms", "DELAY", CFG.COLORS.GREY);
             await new Promise(r => setTimeout(r, 11000));

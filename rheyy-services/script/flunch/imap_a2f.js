@@ -17,15 +17,20 @@ const fetchLastCodeAndDelete = async () => {
             const allPart = msg.parts.find(p => p.which === '');
             const mail = await simpleParser(allPart.body);
             const fromStr = mail.from ? mail.from.text : "";
-            const bodyStr = (mail.text || (mail.html ? mail.html.replace(/<[^>]*>?/gm, ' ') : "")).replace(/\s+/g, ' ');
+            const subject = mail.subject || "";
+            log(`Examen mail de: ${fromStr} | Sujet: ${subject}`, "TRACE", COLORS.GREY);
 
-            if (fromStr.toLowerCase().includes('flunch')) {
+            if (fromStr.toLowerCase().includes('flunch') || subject.toLowerCase().includes('flunch')) {
+                log("Mail Flunch détecté ! Analyse du contenu...", "TRACE", COLORS.YELLOW);
                 const match = bodyStr.match(/\b\d{6}\b/);
                 if (match) {
                     codeFound = match[0];
+                    log(`CODE TROUVÉ: ${codeFound}`, "A2F", COLORS.GREEN);
                     fs.appendFileSync(MAIL_LOG, `[${new Date().toLocaleString()}] CODE : ${codeFound}\n`);
                     await connection.addFlags(msg.attributes.uid, '\\Deleted');
                     break;
+                } else {
+                    log("Aucun code à 6 chiffres trouvé dans ce mail.", "TRACE", COLORS.GREY);
                 }
             }
         }
