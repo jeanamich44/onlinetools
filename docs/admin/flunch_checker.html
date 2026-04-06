@@ -16,46 +16,21 @@
             margin-top: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.4);
         }
-        .results-table {
+        .results-table { display: none; }
+        #results-text {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            font-family: 'Inter', sans-serif;
-        }
-        .results-table th {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid #1f2937;
-            color: #9ca3af;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .results-table td {
-            padding: 12px;
-            border-bottom: 1px solid #374151;
-            color: #d1d5db;
-            font-size: 0.9rem;
-        }
-        .status-badge {
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
-        .status-ok { background: #10b98122; color: #34d399; }
-        .status-err { background: #ef444422; color: #f87171; }
-        textarea.form-input {
-            height: 120px;
-            resize: vertical;
-            font-family: 'JetBrains Mono', monospace;
-            line-height: 1.5;
+            min-height: 400px;
             background: #000;
-            border-color: #1f2937;
-            color: #fff;
+            border: 1px solid #1f2937;
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: #10b981;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            overflow-y: auto;
         }
-        .spin { animation: spin 1s linear infinite; }
-        @keyframes spin { from {transform: rotate(0deg)} to {transform: rotate(360deg)} }
     </style>
 </head>
 <body>
@@ -101,26 +76,15 @@
             <div id="results-area" style="display: none; margin-top: 40px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #1f2937; padding-bottom: 15px;">
                     <h3 style="margin: 0; display: flex; align-items: center; gap: 12px; color: #fff;">
-                        <i data-lucide="list" style="color: var(--primary);"></i> Résultats de l'analyse
+                        <i data-lucide="list" style="color: var(--primary);"></i> Résultats de l'analyse (Format TXT)
                     </h3>
+                    <button onclick="copyResults()" class="btn-action" style="width:auto; height:32px; font-size:0.75rem; background: #1f2937; border-color: #374151;">
+                        <i data-lucide="copy" style="width:14px; margin-right:5px;"></i> Copier tout
+                    </button>
                     <div id="check-stats" style="font-size: 0.85rem; color: #9ca3af; font-family: 'JetBrains Mono';"></div>
                 </div>
                 
-                <div style="overflow-x: auto;">
-                    <table class="results-table">
-                        <thead>
-                            <tr>
-                                <th>ID Client</th>
-                                <th>Statut</th>
-                                <th>Détails Profile</th>
-                                <th>Solde (€)</th>
-                                <th>Points</th>
-                                <th>Message / Erreur</th>
-                            </tr>
-                        </thead>
-                        <tbody id="results-body"></tbody>
-                    </table>
-                </div>
+                <div id="results-text"></div>
             </div>
         </section>
     </div>
@@ -172,33 +136,52 @@
 
         function displayResults(results) {
             const area = document.getElementById('results-area');
-            const body = document.getElementById('results-body');
+            const container = document.getElementById('results-text');
             const stats = document.getElementById('check-stats');
             
             area.style.display = 'block';
-            body.innerHTML = '';
-            
+            let output = "";
             let valids = 0;
-            results.forEach(res => {
-                const tr = document.createElement('tr');
-                const d = res.data || {};
-                
-                // Détection d'erreur basée sur la structure de l'API Flunch
-                const isError = d.status === "error" || d.error || (!d.firstName && !d.balance);
-                if (!isError) valids++;
 
-                tr.innerHTML = `
-                    <td style="font-family: 'JetBrains Mono'; font-size: 0.8rem; color: #60a5fa;">${res.id}</td>
-                    <td><span class="status-badge ${isError ? 'status-err' : 'status-ok'}">${isError ? 'ERREUR' : 'VALIDE'}</span></td>
-                    <td><span style="font-weight: 600;">${d.firstName || ''} ${d.lastName || ''}</span></td>
-                    <td style="font-weight: 800; color: #10b981;">${d.balance !== undefined ? d.balance : '0.00'} €</td>
-                    <td style="font-family: 'JetBrains Mono'; color: #fbbf24;">${d.loyaltyPoints || d.points || '0'}</td>
-                    <td style="font-size: 0.8rem; color: #4b5563; max-width: 250px;">${d.message || (isError ? (d.detail || 'Invalide') : 'Compte actif')}</td>
-                `;
-                body.appendChild(tr);
+            results.forEach(res => {
+                const d = res.data || {};
+                const isError = d.status === "error" || d.error || (!d.firstName && !d.balance);
+                
+                if (isError) {
+                    output += `${res.id} | ERREUR: ${d.message || d.detail || 'Identifiants invalides'}\n`;
+                } else {
+                    valids++;
+                    
+                    // Construction de la ligne selon l'exemple EXACT fourni
+                    let lineParts = [];
+                    lineParts.push(res.id); // Premier ID sans label selon exemple
+                    
+                    if (res.id) lineParts.push(`ID = ${res.id}`);
+                    if (d.loyaltyCardNumber || d.cardId) lineParts.push(`CARTE = ${d.loyaltyCardNumber || d.cardId}`);
+                    if (d.balance !== undefined) lineParts.push(`SOLDE = ${d.balance}`);
+                    if (d.registrationDate) lineParts.push(`START = ${d.registrationDate}`);
+                    if (d.lastName) lineParts.push(`NOM = ${d.lastName}`);
+                    if (d.firstName) lineParts.push(`PRENOM = ${d.firstName}`);
+                    if (d.birthDate) lineParts.push(`DDN = ${d.birthDate}`);
+                    if (d.emailAddress || d.email) lineParts.push(`MAIL = ${d.emailAddress || d.email}`);
+                    if (d.zipCode || d.cp) lineParts.push(`CP = ${d.zipCode || d.cp}`);
+                    if (d.city) lineParts.push(`VILLE = ${d.city}`);
+                    if (d.addressLine1 || d.address) lineParts.push(`ADRESSE = ${d.addressLine1 || d.address}`);
+                    if (d.type || d.loyaltyProgramCode) lineParts.push(`TYPE = ${d.type || d.loyaltyProgramCode}`);
+
+                    output += lineParts.join(' | ') + "\n";
+                }
             });
             
+            container.innerText = output;
             stats.innerText = `${valids} valide(s) / ${results.length} total`;
+        }
+
+        function copyResults() {
+            const text = document.getElementById('results-text').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("Copié dans le presse-papier !");
+            });
         }
 
         function showToast(message, type = 'success') {
