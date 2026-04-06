@@ -243,6 +243,29 @@ async def analyze_audio_matcher_confirm_endpoint(req: dict = Body(...), admin: s
     except Exception as ssh_err:
         raise HTTPException(status_code=500, detail=f"Erreur SSH : {str(ssh_err)}")
 
+# ==============================================================================
+
+@app.get("/admin/flunch/files")
+async def get_flunch_files(admin: str = Depends(get_current_admin)):
+    base_flunch = os.path.join("script", "flunch")
+    files = {
+        "automation": os.path.join(base_flunch, "logs", "automation.log"),
+        "mails": os.path.join(base_flunch, "output", "mails_recus.txt"),
+        "token": os.path.join(base_flunch, "output", "bearer_token.txt")
+    }
+    
+    results = {}
+    for key, path in files.items():
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                results[key] = f.read()
+        else:
+            results[key] = ""
+            
+    return results
+    
+# ==============================================================================
+
 @app.get("/admin/payments")
 async def get_payments(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
     return db.query(Payment).order_by(Payment.created_at.desc()).limit(50).all()
