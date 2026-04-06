@@ -6,9 +6,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Admin | ChezRheyy</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-    <!-- On charge Lucide avec un script qui attend le chargement du DOM -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            max-width: 1400px;
+            margin-top: 30px;
+        }
+        .tool-card {
+            background: #161a22;
+            border: 1px solid #2a2f3a;
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .tool-card:hover {
+            transform: translateY(-5px);
+            border-color: #3b82f6;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .tool-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-bottom: 1px solid #2a2f3a;
+        }
+        .tool-content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .tool-tag {
+            display: inline-block;
+            padding: 2px 10px;
+            background: #3b82f6;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            width: fit-content;
+        }
+        .tool-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .tool-desc {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        .tool-footer {
+            padding: 15px 20px;
+            background: #1f2937;
+            border-top: 1px solid #2a2f3a;
+            display: flex;
+            gap: 10px;
+        }
+        .btn-tool {
+            flex: 1;
+            padding: 8px;
+            background: #3b82f6;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .btn-tool.secondary {
+            background: #374151;
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .stat-card-simple {
+            background: #161a22;
+            border: 1px solid #2a2f3a;
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .stat-card-simple i {
+            font-size: 24px;
+            color: #3b82f6;
+        }
+        .stat-info .label {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+        .stat-info .value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+    </style>
 </head>
 
 <body>
@@ -19,7 +124,6 @@
         <nav>
             <a href="dashboard.html" class="nav-item active"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
             <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
-            <a href="tools.html" class="nav-item"><i data-lucide="wrench"></i> <span>Outils</span></a>
             <a href="flunch.html" class="nav-item"><i data-lucide="utensils"></i> <span>Flunch</span></a>
             <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
             <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
@@ -33,46 +137,171 @@
         <header>
             <div class="header-content">
                 <h1>Tableau de Bord</h1>
-                <p>Gérez vos services et outils depuis une plateforme centralisée.</p>
+                <p>Accédez rapidement à tous vos outils et services administratifs.</p>
             </div>
             <button class="btn-logout" onclick="logout()">Déconnexion</button>
         </header>
 
-        <div class="services-grid">
-            <!-- PAIEMENTS -->
-            <div class="service-card">
-                <div class="service-icon">
-                    <i data-lucide="banknote"></i>
+        <div class="stats-overview">
+            <div class="stat-card-simple">
+                <i data-lucide="banknote"></i>
+                <div class="stat-info">
+                    <div class="label">Ventes</div>
+                    <div class="value">Gestion Paiements</div>
                 </div>
-                <h3>Paiements & Stats</h3>
-                <p>Suivez vos revenus, validez les transactions et analysez les performances de vos services en temps réel.</p>
-                <a class="btn-action" href="payments.html">Gérer les paiements</a>
+                <a href="payments.html" style="margin-left: auto; color: #3b82f6;"><i data-lucide="arrow-right"></i></a>
+            </div>
+        </div>
+
+        <h2>Catalogue des Outils</h2>
+        
+        <div class="tools-grid">
+            <!-- Flunch -->
+            <div class="tool-card" onclick="location.href='flunch.html'">
+                <img src="img/flunch_icon.svg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">ADMIN</span>
+                    <div class="tool-title">Flunch Checker</div>
+                    <div class="tool-desc">Extraction des données de fidélité et clients Flunch.</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="flunch.html" class="btn-tool">Ouvrir</a>
+                </div>
             </div>
 
-            <!-- OUTILS -->
-            <div class="service-card">
-                <div class="service-icon">
-                    <i data-lucide="box"></i>
+            <!-- MRZ -->
+            <div class="tool-card" onclick="location.href='mrz.html'">
+                <img src="img/mrz_icon.svg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">ADMIN</span>
+                    <div class="tool-title">Générateur MRZ</div>
+                    <div class="tool-desc">Lignes de code OCR pour documents d'identité nationaux.</div>
                 </div>
-                <h3>Tous les Outils</h3>
-                <p>Accédez à la liste complète de tous les générateurs (RIB, Facture, assurance...) et les outils administratifs.</p>
-                <a class="btn-action" href="tools.html">Ouvrir la liste</a>
+                <div class="tool-footer">
+                    <a href="mrz.html" class="btn-tool">Ouvrir</a>
+                </div>
             </div>
 
-            <!-- AUDIO -->
-            <div class="service-card">
-                <div class="service-icon">
-                    <i data-lucide="audio-lines"></i>
+            <!-- QR ZIP -->
+            <div class="tool-card" onclick="location.href='qr_zip.html'">
+                <img src="img/qrzip_icon.svg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">ADMIN</span>
+                    <div class="tool-title">Générateur QR ZIP</div>
+                    <div class="tool-desc">Compression de plusieurs codes QR dans une archive ZIP.</div>
                 </div>
-                <h3>Analyse AI Audio</h3>
-                <p>Nettoyez vos enregistrements et transcrivez vos fichiers audio avec la puissance de l'IA Whisper.</p>
-                <a class="btn-action" href="audio_analyse.html">Lancer l'analyse</a>
+                <div class="tool-footer">
+                    <a href="qr_zip.html" class="btn-tool">Ouvrir</a>
+                </div>
+            </div>
+
+            <!-- Audio Analyse -->
+            <div class="tool-card" onclick="location.href='audio_analyse.html'">
+                <img src="img/audio_icon.svg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">AI</span>
+                    <div class="tool-title">Analyse AI Audio</div>
+                    <div class="tool-desc">Transcription et nettoyage sonore par intelligence artificielle.</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="audio_analyse.html" class="btn-tool">Ouvrir</a>
+                </div>
+            </div>
+
+            <!-- Packager 200 -->
+            <div class="tool-card" onclick="location.href='packager.html'">
+                <img src="img/packager_icon.svg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">ADMIN</span>
+                    <div class="tool-title">Packager 200 Elite</div>
+                    <div class="tool-desc">Découpe de fichiers (200 lignes) en 4 lots avec QR codes et ZIP.</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="packager.html" class="btn-tool">Ouvrir</a>
+                </div>
+            </div>
+
+            <!-- Linker Audio -->
+            <div class="tool-card" onclick="location.href='audio_matcher.html'">
+                <img src="img/linker_icon.svg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">NEW</span>
+                    <div class="tool-title">Linker de Soldes Audio</div>
+                    <div class="tool-desc">Associez les soldes dictés par audio à vos fichiers de cartes TXT.</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="audio_matcher.html" class="btn-tool">Ouvrir</a>
+                </div>
+            </div>
+
+            <!-- RIB -->
+            <div class="tool-card">
+                <img src="../img/rib_premium.jpg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">DOCS</span>
+                    <div class="tool-title">RIB Justificatif</div>
+                    <div class="tool-desc">Générateur de RIB PDF (LBP, Société Générale, etc).</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="../rib/rib-generator.html" class="btn-tool secondary">Interface Client</a>
+                </div>
+            </div>
+
+            <!-- Assurance -->
+            <div class="tool-card">
+                <img src="../img/assurance_premium.jpg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">AUTO</span>
+                    <div class="tool-title">Assurance</div>
+                    <div class="tool-desc">Cartes vertes et justificatifs d'assurance pour tous véhicules.</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="../assurance/assurance-liste.html" class="btn-tool secondary">Interface Client</a>
+                </div>
+            </div>
+
+            <!-- Facture -->
+            <div class="tool-card">
+                <img src="../img/facture_premium.jpg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">ACHAT</span>
+                    <div class="tool-title">Facture PDF</div>
+                    <div class="tool-desc">Modèles de factures pour les plus grandes enseignes.</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="../facture/facture-liste.html" class="btn-tool secondary">Interface Client</a>
+                </div>
+            </div>
+
+            <!-- Chronopost -->
+            <div class="tool-card">
+                <img src="../img/chronopost_premium.jpg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">LIVRAISON</span>
+                    <div class="tool-title">Chronopost -50%</div>
+                    <div class="tool-desc">Création de bordereaux d'expédition officiels Chronopost.</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="../chronopost/chronopost-liste.html" class="btn-tool secondary">Interface Client</a>
+                </div>
+            </div>
+
+            <!-- Colissimo -->
+            <div class="tool-card">
+                <img src="../colissimo/img/colissimo_france.jpg" class="tool-img">
+                <div class="tool-content">
+                    <span class="tool-tag">LIVRAISON</span>
+                    <div class="tool-title">Colissimo -50%</div>
+                    <div class="tool-desc">Étiquettes d'envoi Colissimo (France & International).</div>
+                </div>
+                <div class="tool-footer">
+                    <a href="../colissimo/colissimo-liste.html" class="btn-tool secondary">Interface Client</a>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // On initialise les icônes après le chargement du DOM
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
         });
