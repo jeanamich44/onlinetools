@@ -12,6 +12,6 @@ pillow
 av
 numpy
 faster-whisper
-noisereducex
+noisereduce
 paramiko
 colorama
