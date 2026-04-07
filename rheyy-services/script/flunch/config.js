@@ -52,5 +52,12 @@ module.exports = {
     COLORS: {
         RESET: "\x1b[0m", MAGENTA: "\x1b[35m", CYAN: "\x1b[36m", 
         YELLOW: "\x1b[33m", GREEN: "\x1b[32m", RED: "\x1b[31m", GREY: "\x1b[90m"
+    },
+
+    // INFOS PROXY DECODO (ISP/Résidentiel)
+    PROXY: {
+        server:   "http://isp.decodo.com:10001",
+        username: "sppk7sflb0",
+        password: "Ggx9ftN_15Obdzx5uU"
     }
 };

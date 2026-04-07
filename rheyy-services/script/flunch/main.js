@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 const { 
-    HEADLESS, VIEWPORT, USER_AGENT, URLS, COLORS, SELECTORS, EMAIL, PASS 
+    HEADLESS, VIEWPORT, USER_AGENT, URLS, COLORS, SELECTORS, EMAIL, PASS, PROXY 
 } = require('./config');
 const { log, clearLog } = require('./logger');
 const { takeScreenshot } = require('./screenshot');
@@ -18,7 +18,7 @@ const run = async () => {
     const targetId = process.argv[2] || "Non spécifié";
     log(`[SERVEUR] Lancement du processus de connexion pour l'ID: ${targetId}`, "SYSTEM", COLORS.CYAN, true);
 
-    const browser = await chromium.launch({ headless: HEADLESS, args: BROWSER_ARGS });
+
     const context = await browser.newContext({ viewport: VIEWPORT, userAgent: USER_AGENT });
     const page = await context.newPage();
 
