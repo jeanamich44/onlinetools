@@ -77,33 +77,33 @@ const run = async () => {
 
     try {
         // [0] VERIFICATION IP
-        log("Vérification de l'IP du Proxy...", "STEP", COLORS.MAGENTA, true);
+        log("Vérification de l'IP du Proxy...", "STEP", COLORS.MAGENTA, false);
         await page.goto(URLS.IP_TEST, { waitUntil: 'domcontentloaded', timeout: 30000 });
         await shoot("0_verification_ip");
         await new Promise(r => setTimeout(r, 2000)); // Petit délai de lecture
 
         // [1] CHARGEMENT DE LA PAGE
-        log("Chargement de la page de connexion Flunch...", "STEP", COLORS.MAGENTA, true);
+        log("Chargement de la page de connexion Flunch...", "STEP", COLORS.MAGENTA, false);
         await page.goto(URLS.LOGIN, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
         // [2] DELAI 4S
-        log("Délai de 4s (stabilisation)...", "WAIT", COLORS.YELLOW, true);
+        log("Délai de 4s (stabilisation)...", "WAIT", COLORS.YELLOW, false);
         await new Promise(r => setTimeout(r, 4000));
 
         // [3] CLIQUER COOKIE_OK
-        log("Clic sur 'OK pour moi' (Cookies)...", "ACTION", COLORS.CYAN, true);
+        log("Clic sur 'OK pour moi' (Cookies)...", "ACTION", COLORS.CYAN, false);
         await page.click(SELECTORS.COOKIE_OK);
 
         // [4] DELAI 2S
-        log("Délai de 2s...", "WAIT", COLORS.YELLOW, true);
+        log("Délai de 2s...", "WAIT", COLORS.YELLOW, false);
         await new Promise(r => setTimeout(r, 2000));
 
         // [5] CLIQUER LOGIN_BTN
-        log("Clic sur le bouton de connexion principal...", "ACTION", COLORS.CYAN, true);
+        log("Clic sur le bouton de connexion principal...", "ACTION", COLORS.CYAN, false);
         await page.click(SELECTORS.LOGIN_BTN);
 
         // [6] DELAI 5S
-        log("Délai de 5s (chargement formulaire)...", "WAIT", COLORS.YELLOW, true);
+        log("Délai de 5s (chargement formulaire)...", "WAIT", COLORS.YELLOW, false);
         await new Promise(r => setTimeout(r, 5000));
 
         // [7] SAISIE HUMAINE EMAIL
@@ -144,7 +144,21 @@ const run = async () => {
             throw new Error("Timeout A2F Email");
         }
 
-        log("Processus terminé avec succès, code récupéré.", "SUCCESS", COLORS.GREEN, true);
+        log("Processus IMAP terminé, code récupéré.", "SUCCESS", COLORS.GREEN, true);
+
+        // [13] SAISIE DU CODE A2F
+        await humanType(page, SELECTORS.A2F_INPUT, a2fCode, "A2F_CODE");
+
+        // [14] SUBMIT DU CODE A2F
+        log("Clic sur la validation du code...", "ACTION", COLORS.CYAN, true);
+        await page.click(SELECTORS.A2F_SUBMIT);
+
+        // [15] DELAI 5S (Validation et Redirection)
+        log("Délai de 5s (validation A2F)...", "WAIT", COLORS.YELLOW, true);
+        await new Promise(r => setTimeout(r, 5000));
+        await shoot("7_dashboard_final");
+
+        log("Connexion au compte réussie !", "SUCCESS", COLORS.GREEN, true);
 
     } catch (err) {
         log(`ERREUR DURANT LE PROCESSUS: ${err.message}`, "ERROR", COLORS.RED, true);

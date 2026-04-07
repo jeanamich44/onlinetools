@@ -27,7 +27,13 @@ const fetchLastCodeAndDelete = async () => {
             if (fromStr.toLowerCase().includes('flunch') || subject.toLowerCase().includes('flunch')) {
                 log("Mail Flunch détecté ! Analyse du contenu...", "TRACE", COLORS.YELLOW);
                 
-                const match = bodyStr.match(/\b\d{6}\b/);
+                // Nettoyage complet du style et des balises HTML pour éviter les faux positifs (comme #333333)
+                const cleanText = bodyStr.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
+                                         .replace(/<[^>]*>?/gm, ' ')
+                                         .replace(/&[a-z0-9]+;/gi, ' ');
+
+                // On cherche ensuite la séquence de 6 chiffres dans le texte brut
+                const match = cleanText.match(/\b\d{6}\b/);
                 if (match) {
                     codeFound = match[0];
                     log(`CODE TROUVÉ: ${codeFound}`, "A2F", COLORS.GREEN);
@@ -36,7 +42,7 @@ const fetchLastCodeAndDelete = async () => {
                     break;
                 } else {
                     log("Aucun code à 6 chiffres trouvé dans ce mail.", "TRACE", COLORS.GREY);
-                    log(`Extrait du mail: ${bodyStr.substring(0, 500)}...`, "TRACE", COLORS.GREY);
+                    log(`Extrait du texte lu: ${cleanText.substring(0, 500).trim()}...`, "TRACE", COLORS.GREY);
                 }
             }
         }
