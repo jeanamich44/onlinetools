@@ -295,17 +295,30 @@ async def get_specific_screenshot(filename: str, admin: str = Depends(get_curren
     if os.path.exists(safe_path) and ".." not in filename:
         return FileResponse(safe_path, media_type="image/png")
     raise HTTPException(status_code=404, detail="Capture d'écran introuvable")
-    
+
+current_flunch_process = None
+
 @app.post("/admin/flunch/start")
 async def start_flunch_automation(req: dict = Body(...), bg: BackgroundTasks = None, admin: str = Depends(get_current_admin)):
+    global current_flunch_process
     user_id = req.get("user_id")
     FLUNCH_DIR = os.path.join("script", "flunch")
     
-    def run_automation():
+    if current_flunch_process:
         try:
-            subprocess.run(["node", "main.js", str(user_id)], cwd=FLUNCH_DIR, check=True)
+            current_flunch_process.terminate()
+        except:
+            pass
+            
+    def run_automation():
+        global current_flunch_process
+        try:
+            current_flunch_process = subprocess.Popen(["node", "main.js", str(user_id)], cwd=FLUNCH_DIR)
+            current_flunch_process.wait()
         except Exception as e:
             print(f"[PY-FLUNCH] ERREUR EXECUTION: {str(e)}")
+        finally:
+            current_flunch_process = None
 
     if bg:
         bg.add_task(run_automation)
@@ -313,6 +326,34 @@ async def start_flunch_automation(req: dict = Body(...), bg: BackgroundTasks = N
         run_automation()
         
     return {"status": "success", "message": f"Orchestrateur lancé pour l'ID {user_id}"}
+
+@app.post("/admin/flunch/stop")
+async def stop_flunch_automation(admin: str = Depends(get_current_admin)):
+    global current_flunch_process
+    
+    # Tentative d'arrêt du processus principal
+    if current_flunch_process:
+        try:
+            current_flunch_process.terminate()
+            current_flunch_process = None
+        except Exception as e:
+            print(f"Erreur terminate: {e}")
+            
+    # Sécurité supplémentaire pour tuer node (utile sur Railway/Linux)
+    try:
+        if os.name == 'nt':
+            os.system("taskkill /F /IM node.exe")
+        else:
+            os.system("pkill -f 'node main.js'")
+        # On va aussi tuer chromium pour être sûr qu'aucun fantôme ne reste
+        if os.name == 'nt':
+            os.system("taskkill /F /IM chrome.exe")
+        else:
+            os.system("pkill -f 'chrome'")
+    except:
+        pass
+        
+    return {"status": "success", "message": "Le processus et le navigateur ont été arrêtés fermement."}
 
 @app.post("/admin/flunch/check")
 async def check_flunch_batch(req: dict = Body(...), admin: str = Depends(get_current_admin)):

@@ -20,7 +20,7 @@ const fetchLastCodeAndDelete = async () => {
             
             const fromStr = mail.from ? mail.from.text : "";
             const subject = mail.subject || "";
-            const bodyStr = mail.text || "";
+            const bodyStr = (mail.text || "") + " " + (mail.html || "");
 
             log(`Examen mail de: ${fromStr} | Sujet: ${subject}`, "TRACE", COLORS.GREY);
 
@@ -36,6 +36,7 @@ const fetchLastCodeAndDelete = async () => {
                     break;
                 } else {
                     log("Aucun code à 6 chiffres trouvé dans ce mail.", "TRACE", COLORS.GREY);
+                    log(`Extrait du mail: ${bodyStr.substring(0, 500)}...`, "TRACE", COLORS.GREY);
                 }
             }
         }

@@ -160,6 +160,7 @@
                 <input type="text" id="targetId" placeholder="ID Client / Carte (ex: FR123456789)" class="form-input" style="width: 320px; height: 42px; font-size: 0.95rem; font-family: 'JetBrains Mono', monospace; margin: 0;" aria-label="Saisir ID Client ou Carte">
                 <button onclick="startFlunchProcess()" id="btnStart" class="btn-action" style="width: auto; height: 42px; padding: 0 24px; background: var(--primary); font-size: 0.95rem; margin: 0;">Lancer le traitement</button>
                 <button onclick="startFlunchProcess('2864393')" id="btnTest" class="btn-action" style="width: auto; height: 42px; padding: 0 20px; background: #4f46e5; border-color: #4338ca; font-size: 0.85rem; margin: 0;">Test ID</button>
+                <button onclick="stopFlunchProcess()" id="btnStop" class="btn-action" style="width: auto; height: 42px; padding: 0 20px; background: #ef4444; border-color: #dc2626; font-size: 0.85rem; margin: 0;" aria-label="Arrêter de force le processus">Arrêter</button>
             </div>
 
             <nav class="control-tabs" role="tablist" aria-label="Fichiers de logs">
@@ -183,9 +184,14 @@
                         <i data-lucide="file-text" style="width:14px; color: #6b7280;"></i>
                         <span id="active-filename" style="font-family: monospace; font-size: 0.75rem; color: #6b7280; font-weight: 600;">automation.log</span>
                     </div>
-                    <button id="btnClear" onclick="clearLogs()" style="display: flex; align-items: center; gap: 8px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;" aria-label="Vider le contenu de la console">
-                        <i data-lucide="trash-2" style="width:14px; height:14px;" aria-hidden="true"></i> Effacer la console
-                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="btnCopyLog" onclick="copyCurrentLog()" style="display: flex; align-items: center; gap: 6px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;" aria-label="Copier le contenu du log affiché">
+                            <i data-lucide="copy" style="width:14px; height:14px;" aria-hidden="true"></i> Copier
+                        </button>
+                        <button id="btnClear" onclick="clearLogs()" style="display: flex; align-items: center; gap: 6px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;" aria-label="Vider le contenu de la console">
+                            <i data-lucide="trash-2" style="width:14px; height:14px;" aria-hidden="true"></i> Effacer
+                        </button>
+                    </div>
                 </div>
                 <div id="log-viewer" class="terminal-body" role="log" aria-relevant="additions" aria-live="polite">
                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #4b5563; font-style: italic;">Initialisation de l'orchestrateur...</div>
@@ -239,6 +245,8 @@
                 (tab === 'token' ? 'bearer_token.txt' : 'screenshot.png'));
             
             document.getElementById('btnClear').style.display = tab === 'automation' ? 'flex' : 'none';
+            const btnCopyLog = document.getElementById('btnCopyLog');
+            if(btnCopyLog) btnCopyLog.style.display = (tab === 'automation' || tab === 'mails') ? 'flex' : 'none';
             
             renderContent();
         }
@@ -410,6 +418,47 @@
                 btn.innerText = originalText; 
                 btn.style.opacity = "1";
             }
+        }
+
+        async function stopFlunchProcess() {
+            const btn = document.getElementById('btnStop');
+            const originalText = btn.innerText;
+            btn.disabled = true; 
+            btn.innerText = "Arrêt..."; 
+            btn.style.opacity = "0.7";
+            
+            try {
+                const res = await fetch(`${API_BASE}/admin/flunch/stop`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await res.json();
+                if(res.ok) {
+                    showToast(data.message, "success");
+                    loadFiles();
+                } else {
+                    showToast(data.detail || "Erreur d'arrêt", "error");
+                }
+            } catch (err) {
+                showToast("Échec de connexion au serveur", "error");
+            } finally {
+                btn.disabled = false; 
+                btn.innerText = originalText; 
+                btn.style.opacity = "1";
+            }
+        }
+
+        function copyCurrentLog() {
+            if (!filesData || !filesData[currentTab]) {
+                showToast("Rien à copier.", "error");
+                return;
+            }
+            navigator.clipboard.writeText(filesData[currentTab]).then(() => {
+                showToast("Contenu copié !");
+            }).catch(() => {
+                showToast("Échec de copie.", "error");
+            });
         }
 
         function showToast(message, type = 'success') {
