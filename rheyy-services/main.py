@@ -270,13 +270,6 @@ async def get_flunch_files(admin: str = Depends(get_current_admin)):
             
     return results
 
-@app.get("/admin/flunch/screenshot")
-async def get_flunch_screenshot(admin: str = Depends(get_current_admin)):
-    path = os.path.join("script", "flunch", "output", "screenshot.png")
-    if os.path.exists(path):
-        return FileResponse(path, media_type="image/png")
-    raise HTTPException(status_code=404, detail="Capture d'écran non disponible")
-
 @app.get("/admin/flunch/screenshots")
 async def list_flunch_screenshots(admin: str = Depends(get_current_admin)):
     output_dir = os.path.join("script", "flunch", "output")
@@ -356,7 +349,7 @@ async def stop_flunch_automation(admin: str = Depends(get_current_admin)):
     return {"status": "success", "message": "Le processus et le navigateur ont été arrêtés fermement."}
 
 @app.post("/admin/flunch/check")
-async def check_flunch_batch(req: dict = Body(...), admin: str = Depends(get_current_admin)):
+async def check_flunch_batch(req: dict = Body(...)):
     id_string = req.get("ids", "")
     if not id_string:
         raise HTTPException(status_code=400, detail="Aucun ID fourni")
