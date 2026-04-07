@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 const { 
-    HEADLESS, VIEWPORT, USER_AGENT, URLS, COLORS, SELECTORS, EMAIL, PASS, PROXIES, DELAYS 
+    HEADLESS, VIEWPORT, USER_AGENT, URLS, COLORS, SELECTORS, EMAIL, PASS, PROXIES, DELAYS, TOKEN_FILE 
 } = require('./config');
 const { log, clearLog } = require('./logger');
 const { takeScreenshot } = require('./screenshot');
@@ -168,9 +168,39 @@ const run = async () => {
         await new Promise(r => setTimeout(r, DELAYS.POST_PROFILE_NAV));
         await shoot("8_page_profil");
 
-        // [18] CLIC ACTION PROFIL ET DELAI 1S
+        // [18] INTERCEPTION REQUETE ET CLIC PROFIL
+        log("Attente de la requête API update_client_data...", "STEP", COLORS.MAGENTA, true);
+        
+        const requestPromise = page.waitForRequest(
+            request => request.url().includes('update_client_data'),
+            { timeout: 15000 }
+        ).catch(() => null);
+
         log("Clic sur le bouton cible dans le profil...", "ACTION", COLORS.CYAN, true);
-        await page.click("xpath=/html/body/div[2]/div/div[1]/form/button[1]/div");
+        await page.click(SELECTORS.PROFILE_ACTION_BTN);
+
+        const apiRequest = await requestPromise;
+
+        if (apiRequest) {
+            log("Requête API interceptée, analyse du header Authorization...", "INFO", COLORS.YELLOW, true);
+            const headers = await apiRequest.allHeaders();
+            const authHeader = headers['authorization'];
+            
+            if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+                const token = authHeader.substring(7).trim();
+                fs.appendFileSync(TOKEN_FILE, token + "\n");
+                
+                if (token.length >= 730 && token.length <= 780) {
+                    log(`TOKEN VALIDÉ ET SAUVEGARDÉ (${token.length} caractères)`, "SUCCESS", COLORS.GREEN, true);
+                } else {
+                    log(`Token sauvegardé, mais sa longueur est atypique (${token.length} caractères)`, "TRACE", COLORS.YELLOW, true);
+                }
+            } else {
+                log("Header Authorization 'Bearer' introuvable dans la requête.", "ERROR", COLORS.RED, true);
+            }
+        } else {
+            log("Aucune requête contenant 'update_client_data' interceptée.", "ERROR", COLORS.RED, true);
+        }
 
         log(`Délai de ${DELAYS.POST_PROFILE_ACTION / 1000}s...`, "WAIT", COLORS.YELLOW, true);
         await new Promise(r => setTimeout(r, DELAYS.POST_PROFILE_ACTION));

@@ -41,7 +41,8 @@ module.exports = {
         PASS_INPUT:    'xpath=/html/body/div[1]/div[2]/form/div[2]/input',
         SUBMIT_BTN:    'xpath=/html/body/div[1]/div[2]/form/div[6]/button',
         A2F_INPUT:     'xpath=/html/body/div/div[2]/form/div[1]/input',
-        A2F_SUBMIT:    'xpath=/html/body/div/div[2]/form/div[2]/button'
+        A2F_SUBMIT:    'xpath=/html/body/div/div[2]/form/div[2]/button',
+        PROFILE_ACTION_BTN: 'xpath=/html/body/div[2]/div/div[1]/form/button[1]/div'
     },
 
     URLS: {
