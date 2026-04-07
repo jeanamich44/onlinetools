@@ -6,6 +6,7 @@ const {
 } = require('./config');
 const { log, clearLog } = require('./logger');
 const { takeScreenshot } = require('./screenshot');
+const { fetchLastCodeAndDelete } = require('./imap_a2f');
 
 const BROWSER_ARGS = [
     '--no-sandbox',
@@ -84,7 +85,6 @@ const run = async () => {
         // [1] CHARGEMENT DE LA PAGE
         log("Chargement de la page de connexion Flunch...", "STEP", COLORS.MAGENTA, true);
         await page.goto(URLS.LOGIN, { waitUntil: 'domcontentloaded', timeout: 30000 });
-        await shoot("1_chargement_page");
 
         // [2] DELAI 4S
         log("Délai de 4s (stabilisation)...", "WAIT", COLORS.YELLOW, true);
@@ -93,7 +93,6 @@ const run = async () => {
         // [3] CLIQUER COOKIE_OK
         log("Clic sur 'OK pour moi' (Cookies)...", "ACTION", COLORS.CYAN, true);
         await page.click(SELECTORS.COOKIE_OK);
-        await shoot("2_cookies_acceptes");
 
         // [4] DELAI 2S
         log("Délai de 2s...", "WAIT", COLORS.YELLOW, true);
@@ -102,7 +101,6 @@ const run = async () => {
         // [5] CLIQUER LOGIN_BTN
         log("Clic sur le bouton de connexion principal...", "ACTION", COLORS.CYAN, true);
         await page.click(SELECTORS.LOGIN_BTN);
-        await shoot("3_clic_login_bouton");
 
         // [6] DELAI 5S
         log("Délai de 5s (chargement formulaire)...", "WAIT", COLORS.YELLOW, true);
@@ -110,7 +108,6 @@ const run = async () => {
 
         // [7] SAISIE HUMAINE EMAIL
         await humanType(page, SELECTORS.EMAIL_INPUT, EMAIL, "EMAIL");
-        await shoot("4_saisie_email_terminee");
 
         // [8] DELAI 3S
         log("Délai de 3s...", "WAIT", COLORS.YELLOW, true);
@@ -120,7 +117,34 @@ const run = async () => {
         await humanType(page, SELECTORS.PASS_INPUT, PASS, "PASSWORD");
         await shoot("5_saisie_pass_terminee");
 
-        log("Formulaire de connexion rempli.", "SUCCESS", COLORS.GREEN, true);
+        // [10] CLIC SUBMIT_BTN
+        log("Clic sur Se Connecter...", "ACTION", COLORS.CYAN, true);
+        await page.click(SELECTORS.SUBMIT_BTN);
+        
+        // [11] DELAI 3S (attente de l'A2F ou chargement)
+        log("Délai de 3s...", "WAIT", COLORS.YELLOW, true);
+        await new Promise(r => setTimeout(r, 3000));
+        await shoot("6_a2f_page");
+
+        log("Formulaire de connexion envoyé. Vérification IMAP pour l'A2F...", "STEP", COLORS.MAGENTA, true);
+
+        // [12] RECUPERATION CODE IMAP (Boucle de 60 secondes max)
+        let a2fCode = null;
+        for (let attempt = 1; attempt <= 12; attempt++) {
+            log(`Tentative IMAP numéro ${attempt}/12...`, "INFO", COLORS.YELLOW, true);
+            a2fCode = await fetchLastCodeAndDelete();
+            if (a2fCode) {
+                break;
+            }
+            await new Promise(r => setTimeout(r, 5000)); // Attendre 5s entre chaque essai
+        }
+
+        if (!a2fCode) {
+            log("Délai d'attente du mail expiré après 60 secondes.", "ERROR", COLORS.RED, true);
+            throw new Error("Timeout A2F Email");
+        }
+
+        log("Processus terminé avec succès, code récupéré.", "SUCCESS", COLORS.GREEN, true);
 
     } catch (err) {
         log(`ERREUR DURANT LE PROCESSUS: ${err.message}`, "ERROR", COLORS.RED, true);
