@@ -50,6 +50,20 @@ module.exports = {
         PROFILE: 'https://www.flunch.fr/fidelite/mon-profil'
     },
 
+    // Délais utilisés à chaque étape du script principal (en millisecondes)
+    DELAYS: {
+        POST_IP_TEST:           2000,  // [0] Après la visite de l'IP proxy
+        POST_HOMEPAGE:          4000,  // [1] Après chargement de l'accueil Flunch (attente popup cookies)
+        POST_COOKIE:            2000,  // [3] Après clic sur "OK pour moi" (cookies)
+        POST_LOGIN_FORM_OPEN:   5000,  // [5] Après clic pour ouvrir le formulaire (attente chargement iframe/form)
+        POST_EMAIL_INPUT:       3000,  // [7] Entre la saisie de l'email et du mot de passe
+        POST_SUBMIT_LOGIN:      3000,  // [10] Après le clic sur "Se connecter", attente d'apparition de la page A2F
+        IMAP_RETRY:             5000,  // [12] Délai d'attente entre deux vérifications de boite mail
+        POST_A2F_SUBMIT:        5000,  // [14] Après saisie du code A2F et clic sur valider
+        POST_PROFILE_NAV:       5000,  // [17] Délai de chargement de la page Mon Profil
+        POST_PROFILE_ACTION:    1000   // [18] Délai final après le clic sur le mouton ciblé dans le profil
+    },
+
     COLORS: {
         RESET: "\x1b[0m", MAGENTA: "\x1b[35m", CYAN: "\x1b[36m", 
         YELLOW: "\x1b[33m", GREEN: "\x1b[32m", RED: "\x1b[31m", GREY: "\x1b[90m"
