@@ -45,6 +45,7 @@ module.exports = {
     },
 
     URLS: {
+        IP_TEST: 'https://ip.decodo.com/json',
         LOGIN:   'https://www.flunch.fr/fidelite/connexion',
         PROFILE: 'https://www.flunch.fr/fidelite/mon-profil'
     },
@@ -54,10 +55,22 @@ module.exports = {
         YELLOW: "\x1b[33m", GREEN: "\x1b[32m", RED: "\x1b[31m", GREY: "\x1b[90m"
     },
 
-    // INFOS PROXY DECODO (ISP/Résidentiel)
-    PROXY: {
-        server:   "http://isp.decodo.com:10001",
-        username: "sppk7sflb0",
-        password: "Ggx9ftN_15Obdzx5uU"
-    }
+    // INFOS PROXIES RESIDENTIELS DECODO
+    PROXIES: [
+        {
+            server:   "http://gate.decodo.com:10001",
+            username: "user-sppp614s0d-asn-3215",
+            password: "3vc9xbnLP9+D0dbTho"
+        },
+        {
+            server:   "http://gate.decodo.com:10002",
+            username: "user-sppp614s0d-asn-3215",
+            password: "3vc9xbnLP9+D0dbTho"
+        },
+        {
+            server:   "http://gate.decodo.com:10003",
+            username: "user-sppp614s0d-asn-3215",
+            password: "3vc9xbnLP9+D0dbTho"
+        }
+    ]
 };

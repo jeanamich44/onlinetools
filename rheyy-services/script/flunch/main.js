@@ -2,7 +2,7 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 const { 
-    HEADLESS, VIEWPORT, USER_AGENT, URLS, COLORS, SELECTORS, EMAIL, PASS, PROXY 
+    HEADLESS, VIEWPORT, USER_AGENT, URLS, COLORS, SELECTORS, EMAIL, PASS, PROXIES 
 } = require('./config');
 const { log, clearLog } = require('./logger');
 const { takeScreenshot } = require('./screenshot');
@@ -13,18 +13,54 @@ const BROWSER_ARGS = [
     '--disable-dev-shm-usage'
 ];
 
+/**
+ * Simule une frappe humaine caractère par caractère avec logs et délais aléatoires.
+ */
+const humanType = async (page, selector, text, fieldName) => {
+    log(`Début de saisie humaine pour ${fieldName}...`, "STEP", COLORS.MAGENTA, true);
+    
+    // On s'assure que le champ est prêt
+    await page.waitForSelector(selector, { state: 'visible', timeout: 15000 });
+    await page.focus(selector);
+
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        await page.keyboard.type(char);
+        
+        // Log du caractère saisi (on cache le caractère si c'est un mot de passe pour la sécurité)
+        const displayChar = fieldName.toLowerCase().includes('pass') ? '*' : char;
+        log(`[${fieldName}] Saisie : '${displayChar}' (${i + 1}/${text.length})`, "TRACE", COLORS.GREY, false);
+        
+        // Délai aléatoire entre 100ms et 350ms
+        await new Promise(r => setTimeout(r, Math.random() * (350 - 100) + 100));
+    }
+    
+    log(`${fieldName} saisi avec succès.`, "OK", COLORS.GREEN, true);
+};
+
 const run = async () => {
     clearLog();
     const targetId = process.argv[2] || "Non spécifié";
     log(`[SERVEUR] Lancement du processus de connexion pour l'ID: ${targetId}`, "SYSTEM", COLORS.CYAN, true);
 
+    // Choix aléatoire d'un proxy dans la liste
+    const proxyConfig = PROXIES && PROXIES.length > 0 
+        ? PROXIES[Math.floor(Math.random() * PROXIES.length)] 
+        : null;
+
+    if (proxyConfig) {
+        log(`[PROXY] Utilisation du proxy: ${proxyConfig.server.substring(proxyConfig.server.lastIndexOf(':')+1)}`, "INFO", COLORS.CYAN, true);
+    } else {
+        log(`[PROXY] Aucun proxy configuré.`, "INFO", COLORS.YELLOW, true);
+    }
+
     const browser = await chromium.launch({ 
         headless: HEADLESS, 
         args: BROWSER_ARGS,
-        proxy: PROXY.server ? {
-            server: PROXY.server,
-            username: PROXY.username,
-            password: PROXY.password
+        proxy: proxyConfig ? {
+            server: proxyConfig.server,
+            username: proxyConfig.username,
+            password: proxyConfig.password
         } : undefined
     });
 
@@ -39,8 +75,14 @@ const run = async () => {
     };
 
     try {
+        // [0] VERIFICATION IP
+        log("Vérification de l'IP du Proxy...", "STEP", COLORS.MAGENTA, true);
+        await page.goto(URLS.IP_TEST, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        await shoot("0_verification_ip");
+        await new Promise(r => setTimeout(r, 2000)); // Petit délai de lecture
+
         // [1] CHARGEMENT DE LA PAGE
-        log("Chargement de la page de connexion...", "STEP", COLORS.MAGENTA, true);
+        log("Chargement de la page de connexion Flunch...", "STEP", COLORS.MAGENTA, true);
         await page.goto(URLS.LOGIN, { waitUntil: 'domcontentloaded', timeout: 30000 });
         await shoot("1_chargement_page");
 
@@ -66,19 +108,17 @@ const run = async () => {
         log("Délai de 5s (chargement formulaire)...", "WAIT", COLORS.YELLOW, true);
         await new Promise(r => setTimeout(r, 5000));
 
-        // [7] ECRIRE EMAIL
-        log(`Saisie de l'email : ${EMAIL}`, "ACTION", COLORS.CYAN, true);
-        await page.fill(SELECTORS.EMAIL_INPUT, EMAIL);
-        await shoot("4_saisie_email");
+        // [7] SAISIE HUMAINE EMAIL
+        await humanType(page, SELECTORS.EMAIL_INPUT, EMAIL, "EMAIL");
+        await shoot("4_saisie_email_terminee");
 
         // [8] DELAI 3S
         log("Délai de 3s...", "WAIT", COLORS.YELLOW, true);
         await new Promise(r => setTimeout(r, 3000));
 
-        // [9] ECRIRE PASS
-        log("Saisie du mot de passe...", "ACTION", COLORS.CYAN, true);
-        await page.fill(SELECTORS.PASS_INPUT, PASS);
-        await shoot("5_saisie_pass");
+        // [9] SAISIE HUMAINE PASS
+        await humanType(page, SELECTORS.PASS_INPUT, PASS, "PASSWORD");
+        await shoot("5_saisie_pass_terminee");
 
         log("Formulaire de connexion rempli.", "SUCCESS", COLORS.GREEN, true);
 
