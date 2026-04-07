@@ -70,22 +70,25 @@ module.exports = {
         YELLOW: "\x1b[33m", GREEN: "\x1b[32m", RED: "\x1b[31m", GREY: "\x1b[90m"
     },
 
-    // INFOS PROXIES RESIDENTIELS DECODO
-    PROXIES: [
-        {
-            server:   "http://gate.decodo.com:10001",
-            username: "user-sppp614s0d-asn-3215",
-            password: "3vc9xbnLP9+D0dbTho"
-        },
-        {
-            server:   "http://gate.decodo.com:10002",
-            username: "user-sppp614s0d-asn-3215",
-            password: "3vc9xbnLP9+D0dbTho"
-        },
-        {
-            server:   "http://gate.decodo.com:10003",
-            username: "user-sppp614s0d-asn-3215",
-            password: "3vc9xbnLP9+D0dbTho"
+    // INFOS PROXIES RESIDENTIELS (Chargés depuis proxy.txt)
+    PROXIES: (() => {
+        try {
+            const proxyLines = fs.readFileSync(path.join(SCRIPT_DIR, 'proxy.txt'), 'utf8')
+                .split('\n')
+                .map(l => l.trim().replace(/\.$/, '')) // Nettoie le point final s'il se trouve à la fin du block (ex copi collé)
+                .filter(l => l.length > 0 && !l.startsWith('#'));
+            
+            return proxyLines.map(line => {
+                const url = new URL(line);
+                return {
+                    server: `${url.protocol}//${url.host}`, // ex: https://fr.decodo.com:40001
+                    username: decodeURIComponent(url.username),
+                    password: decodeURIComponent(url.password)
+                };
+            });
+        } catch (err) {
+            console.error("Erreur de chargement de proxy.txt (le fichier n'existe probablement pas ou format incorrect):", err.message);
+            return []; // Retourne un array vide ou des valeurs par défaut si erreur
         }
-    ]
+    })()
 };

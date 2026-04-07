@@ -43,13 +43,31 @@ const run = async () => {
     const targetId = process.argv[2] || "Non spécifié";
     log(`[SERVEUR] Lancement du processus de connexion pour l'ID: ${targetId}`, "SYSTEM", COLORS.CYAN, true);
 
-    // Choix aléatoire d'un proxy dans la liste
-    const proxyConfig = PROXIES && PROXIES.length > 0 
-        ? PROXIES[Math.floor(Math.random() * PROXIES.length)] 
-        : null;
+    // Choix séquentiel d'un proxy dans la liste
+    let proxyConfig = null;
+    if (PROXIES && PROXIES.length > 0) {
+        const indexFile = path.join(__dirname, 'logs', 'proxy_index.txt');
+        let proxyIndex = 0;
+        
+        try {
+            if (fs.existsSync(indexFile)) {
+                proxyIndex = parseInt(fs.readFileSync(indexFile, 'utf8').trim(), 10) || 0;
+            }
+        } catch(e) {}
+        
+        // On s'assure que l'index ne dépasse pas, s'il arrive à 100 on repasse à 0 (modulo)
+        proxyIndex = proxyIndex % PROXIES.length;
+        proxyConfig = PROXIES[proxyIndex];
+        
+        // On sauvegarde l'index + 1 pour le prochain test
+        try {
+            fs.writeFileSync(indexFile, (proxyIndex + 1).toString(), 'utf8');
+        } catch(e) {}
+    }
 
     if (proxyConfig) {
-        log(`[PROXY] Utilisation du proxy: ${proxyConfig.server.substring(proxyConfig.server.lastIndexOf(':')+1)}`, "INFO", COLORS.CYAN, true);
+        // Optionnel : afficher l'ID pour voir où on en est (ex: proxy 0/100)
+        log(`[PROXY] Utilisation du proxy n°${PROXIES.indexOf(proxyConfig) + 1}/${PROXIES.length} (Port: ${proxyConfig.server.substring(proxyConfig.server.lastIndexOf(':')+1)})`, "INFO", COLORS.CYAN, true);
     } else {
         log(`[PROXY] Aucun proxy configuré.`, "INFO", COLORS.YELLOW, true);
     }
