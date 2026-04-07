@@ -364,7 +364,8 @@
                 if (line.includes('[SUCCESS]')) { tagClass = 'tag-success'; tagName = 'SUCCESS'; }
                 if (line.includes('[ERROR]') || line.includes('[CRITICAL]')) { tagClass = 'tag-error'; tagName = 'ERROR'; }
                 
-                const timeMatch = line.match(/\[(\d{1,2}:\d{2}:\d{2} [AP]M)\]/);
+                // Le format attendu généré par logger.js est [DD/MM/YYYY HH:MM:SS] ou [MM/DD/YYYY HH:MM:SS AM/PM]
+                const timeMatch = line.match(/\[.*? ([0-9:]+(?: [AP]M)?)\]/);
                 const timeStr = timeMatch ? timeMatch[1] : '--:--:--';
                 const cleanLine = line.replace(/\[.*?\]/g, '').trim();
 
@@ -596,11 +597,6 @@
                 el.style.display = 'none';
             }
         }
-
-        // Auto-refresh logs
-        setInterval(() => {
-            if (currentTab === 'automation') loadFiles();
-        }, 5000);
 
         window.onload = loadFiles;
     </script>
