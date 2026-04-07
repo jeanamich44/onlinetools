@@ -276,6 +276,25 @@ async def get_flunch_screenshot(admin: str = Depends(get_current_admin)):
     if os.path.exists(path):
         return FileResponse(path, media_type="image/png")
     raise HTTPException(status_code=404, detail="Capture d'écran non disponible")
+
+@app.get("/admin/flunch/screenshots")
+async def list_flunch_screenshots(admin: str = Depends(get_current_admin)):
+    output_dir = os.path.join("script", "flunch", "output")
+    if not os.path.exists(output_dir):
+        return []
+    try:
+        files = [f for f in os.listdir(output_dir) if f.startswith("screenshot_") and f.endswith(".png")]
+        files.sort(reverse=True)
+        return files
+    except Exception:
+        return []
+
+@app.get("/admin/flunch/screenshot/{filename}")
+async def get_specific_screenshot(filename: str, admin: str = Depends(get_current_admin)):
+    safe_path = os.path.join("script", "flunch", "output", filename)
+    if os.path.exists(safe_path) and ".." not in filename:
+        return FileResponse(safe_path, media_type="image/png")
+    raise HTTPException(status_code=404, detail="Capture d'écran introuvable")
     
 @app.post("/admin/flunch/start")
 async def start_flunch_automation(req: dict = Body(...), bg: BackgroundTasks = None, admin: str = Depends(get_current_admin)):

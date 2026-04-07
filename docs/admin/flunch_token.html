@@ -256,11 +256,31 @@
 
             if (currentTab === 'screenshot') {
                 container.innerHTML = `
-                    <div id="screenshot-container" style="display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 10px;">
-                        <div class="loader-spinner" style="padding: 40px; color: #4b5563; font-style: italic;">Chargement de la capture...</div>
+                    <div style="display: flex; height: 100%; border-radius: 12px; overflow: hidden; background: rgba(0,0,0,0.2);">
+                        <!-- Sidebar: Liste des captures -->
+                        <div style="width: 280px; border-right: 1px solid rgba(59, 130, 246, 0.1); background: rgba(17, 24, 39, 0.4); display: flex; flex-direction: column;">
+                            <div style="padding: 15px; border-bottom: 1px solid rgba(59, 130, 246, 0.1); display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.75rem; font-weight: 700; color: #60a5fa; text-transform: uppercase; letter-spacing: 0.05em;">Captures</span>
+                                <button onclick="loadScreenshots()" class="btn-action" style="width:30px; height:30px; padding:0; border-radius: 6px;">
+                                    <i data-lucide="refresh-cw" style="width:14px; height:14px;"></i>
+                                </button>
+                            </div>
+                            <div id="screenshot-list" style="flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                                <div style="padding: 20px; text-align: center; color: #4b5563; font-style: italic; font-size: 0.8rem;">Chargement...</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Main: Visualiseur -->
+                        <div id="screenshot-viewer" style="flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; background: rgba(0,0,0,0.4);">
+                            <div style="color: #4b5563; text-align: center;">
+                                <i data-lucide="image" style="width:48px; height:48px; opacity: 0.2; margin-bottom: 15px;"></i>
+                                <p style="font-style: italic;">Sélectionnez une capture à gauche pour l'afficher.</p>
+                            </div>
+                        </div>
                     </div>`;
                 
-                fetchScreenshot();
+                lucide.createIcons();
+                loadScreenshots();
                 return;
             }
 
@@ -432,31 +452,89 @@
             }
         }
 
-        async function fetchScreenshot() {
-            const sc = document.getElementById('screenshot-container');
-            if (!sc) return;
-
+        async function loadScreenshots() {
+            const list = document.getElementById('screenshot-list');
+            if (!list) return;
             try {
-                const res = await fetch(`${API_BASE}/admin/flunch/screenshot?t=${Date.now()}`, {
+                const res = await fetch(`${API_BASE}/admin/flunch/screenshots`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-
-                if (!res.ok) {
-                    if (res.status === 404) throw new Error("Aucune capture d'écran disponible.");
-                    if (res.status === 401) throw new Error("Session expirée. Veuillez vous reconnecter.");
-                    throw new Error(`Erreur ${res.status}`);
+                const files = await res.json();
+                
+                if (!files || files.length === 0) {
+                    list.innerHTML = `<div style="padding: 20px; color: #4b5563; font-style: italic; font-size: 0.8rem; text-align: center;">Aucune capture trouvée.</div>`;
+                    return;
                 }
+                
+                list.innerHTML = files.map(f => {
+                    // Extraction du timestamp depuis le nom screenshot_TIMESTAMP.png
+                    const parts = f.split('_');
+                    const tsRaw = parts.length > 1 ? parts[1].split('.')[0] : Date.now();
+                    const date = new Date(parseInt(tsRaw)).toLocaleString('fr-FR', {
+                        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit'
+                    });
+                    
+                    return `
+                        <button onclick="displayScreenshot('${f}')" 
+                                style="background: rgba(255,255,255,0.03); border: 1px solid rgba(59, 130, 246, 0.1); color: #e2e8f0; padding: 10px 15px; border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s;"
+                                onmouseover="this.style.background='rgba(59, 130, 246, 0.08)'"
+                                onmouseout="this.style.background='rgba(255,255,255,0.03)'">
+                            <div style="font-size: 0.7rem; font-weight: 700; color: #60a5fa; margin-bottom: 3px; display: flex; align-items: center; gap: 5px;">
+                                <i data-lucide="image" style="width:10px;"></i> CAPTURE
+                            </div>
+                            <div style="font-size: 0.7rem; color: #9ca3af; font-family: monospace;">${date}</div>
+                        </button>
+                    `;
+                }).join('');
+                lucide.createIcons();
+            } catch (err) {
+                list.innerHTML = `<div style="padding: 20px; color: #ef4444; font-size: 0.8rem;">Erreur de chargement.</div>`;
+            }
+        }
 
+        async function displayScreenshot(filename) {
+            const viewer = document.getElementById('screenshot-viewer');
+            if (!viewer) return;
+            
+            viewer.innerHTML = `<div style="color: #4b5563; font-style: italic; display: flex; align-items: center; gap: 10px;">
+                <div class="loader-spinner" style="width:14px; height:14px; border:2px solid #3b82f6; border-top-color:transparent; border-radius:50%; animation:spin 1s linear infinite;"></div>
+                Chargement de la capture...
+            </div>`;
+            
+            try {
+                const res = await fetch(`${API_BASE}/admin/flunch/screenshot/${filename}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!res.ok) throw new Error("Erreur de chargement");
+                
                 const blob = await res.blob();
                 const url = URL.createObjectURL(blob);
-
-                sc.innerHTML = `
-                    <img src="${url}" 
-                         style="max-width: 100%; border-radius: 8px; border: 1px solid #374151; box-shadow: 0 4px 20px rgba(0,0,0,0.4);" 
-                         alt="Dernière capture d'écran">
-                `;
+                
+                viewer.innerHTML = `
+                    <div style="width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;">
+                        <div style="width: 100%; flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #000; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
+                            <img src="${url}" style="max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 10px 40px rgba(0,0,0,0.6);">
+                        </div>
+                        <div style="display: flex; gap: 10px; width: 100%; justify-content: space-between; align-items: center; padding-top: 5px;">
+                            <span style="font-size: 0.75rem; color: #6b7280; font-family: monospace;">${filename}</span>
+                            <div style="display: flex; gap: 8px;">
+                                <a href="${url}" target="_blank" class="btn-action" style="width: auto; height: 32px; padding: 0 14px; font-size: 0.75rem; display: flex; align-items: center; gap: 6px;">
+                                    <i data-lucide="external-link" style="width:12px;"></i> Plein écran
+                                </a>
+                                <button onclick="URL.revokeObjectURL('${url}'); displayScreenshot('${filename}')" class="btn-action" style="width: auto; height: 32px; padding: 0 10px; background: transparent; border-color: transparent;">
+                                    <i data-lucide="refresh-cw" style="width:12px;"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>`;
+                lucide.createIcons();
             } catch (err) {
-                sc.innerHTML = `<div style="color:#ef4444; font-style:italic; padding:40px;">${err.message}</div>`;
+                viewer.innerHTML = `<div style="color: #ef4444; text-align: center;">
+                    <i data-lucide="alert-circle" style="width:32px; height:32px; margin-bottom:10px;"></i>
+                    <p>Impossible de charger l'image.</p>
+                </div>`;
+                lucide.createIcons();
             }
         }
 
