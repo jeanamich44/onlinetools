@@ -234,9 +234,14 @@
                     Supporte le Drag & Drop (.txt).<br>Parsing automatique des champs demandés.
                 </p>
 
-                <button onclick="startBulkCheck()" id="btnCheck" class="btn-check">
-                    <i data-lucide="play-circle" style="width:20px;"></i> Lancer l'analyse
-                </button>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button onclick="startBulkCheck()" id="btnCheck" class="btn-check" style="margin-top: 0;">
+                        <i data-lucide="play-circle" style="width:20px;"></i> Lancer l'analyse
+                    </button>
+                    <button onclick="startBulkCheck('2864393')" id="btnTest" class="btn-check" style="margin-top: 0; width: auto; background: #4f46e5; padding: 0 15px;">
+                        Test ID
+                    </button>
+                </div>
             </div>
 
             <!-- Panneau Résultats (Droite) -->

@@ -154,13 +154,12 @@
         </header>
 
         <section class="service-card" style="max-width: 1400px;">
-            <!-- Traitement individuel par ID ultra compact -->
+            <!-- Lancement Gérateur Token ultra compact -->
             <div style="display: flex; gap: 15px; margin-bottom: 25px; align-items: center; background: rgba(59, 130, 246, 0.05); padding: 12px 20px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.1);">
-                <i data-lucide="user-plus" style="width:20px; color: var(--primary);"></i>
-                <input type="text" id="targetId" placeholder="ID Client / Carte (ex: FR123456789)" class="form-input" style="width: 320px; height: 42px; font-size: 0.95rem; font-family: 'JetBrains Mono', monospace; margin: 0;" aria-label="Saisir ID Client ou Carte">
-                <button onclick="startFlunchProcess()" id="btnStart" class="btn-action" style="width: auto; height: 42px; padding: 0 24px; background: var(--primary); font-size: 0.95rem; margin: 0;">Lancer le traitement</button>
-                <button onclick="startFlunchProcess('2864393')" id="btnTest" class="btn-action" style="width: auto; height: 42px; padding: 0 20px; background: #4f46e5; border-color: #4338ca; font-size: 0.85rem; margin: 0;">Test ID</button>
-                <button onclick="stopFlunchProcess()" id="btnStop" class="btn-action" style="width: auto; height: 42px; padding: 0 20px; background: #ef4444; border-color: #dc2626; font-size: 0.85rem; margin: 0;" aria-label="Arrêter de force le processus">Arrêter</button>
+                <i data-lucide="bot" style="width:20px; color: var(--primary);"></i>
+                <div style="flex: 1; color: var(--text-heading); font-size: 0.95rem; font-weight: 500;">Générateur de Token d'accès sécurisé</div>
+                <button onclick="startFlunchProcess()" id="btnStart" class="btn-action" style="width: auto; height: 42px; padding: 0 24px; background: var(--primary); font-size: 0.95rem; margin: 0;">Démarrer la génération A2F</button>
+                <button onclick="stopFlunchProcess()" id="btnStop" class="btn-action" style="width: auto; height: 42px; padding: 0 20px; background: #ef4444; border-color: #dc2626; font-size: 0.85rem; margin: 0;" aria-label="Arrêter de force le processus">Arrêter le script partiel</button>
             </div>
 
             <nav class="control-tabs" role="tablist" aria-label="Fichiers de logs">
@@ -381,31 +380,21 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        async function startFlunchProcess(forcedId) {
-            const input = document.getElementById('targetId');
-            const userId = forcedId || input.value.trim();
-            if(!userId) { 
-                showToast("Veuillez entrer un ID valide.", "error"); 
-                input.focus();
-                return; 
-            }
-            
-            const btn = forcedId ? document.getElementById('btnTest') : document.getElementById('btnStart');
+        async function startFlunchProcess() {
+            const btn = document.getElementById('btnStart');
             const originalText = btn.innerText;
             btn.disabled = true; 
-            btn.innerText = "Lancement..."; 
+            btn.innerText = "Lancement en cours..."; 
             btn.style.opacity = "0.7";
             
             try {
                 const res = await fetch(`${API_BASE}/admin/flunch/start`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId })
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
                 if(res.ok) {
-                    showToast("Processus démarré pour l'ID: " + userId);
-                    if(!forcedId) input.value = "";
+                    showToast("Orchestrateur démarré avec succès !");
                     switchTab('automation');
                     loadFiles();
                 } else {

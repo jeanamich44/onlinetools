@@ -292,9 +292,8 @@ async def get_specific_screenshot(filename: str, admin: str = Depends(get_curren
 current_flunch_process = None
 
 @app.post("/admin/flunch/start")
-async def start_flunch_automation(req: dict = Body(...), bg: BackgroundTasks = None, admin: str = Depends(get_current_admin)):
+async def start_flunch_automation(bg: BackgroundTasks = None, admin: str = Depends(get_current_admin)):
     global current_flunch_process
-    user_id = req.get("user_id")
     FLUNCH_DIR = os.path.join("script", "flunch")
     
     if current_flunch_process:
@@ -306,7 +305,7 @@ async def start_flunch_automation(req: dict = Body(...), bg: BackgroundTasks = N
     def run_automation():
         global current_flunch_process
         try:
-            current_flunch_process = subprocess.Popen(["node", "main.js", str(user_id)], cwd=FLUNCH_DIR)
+            current_flunch_process = subprocess.Popen(["node", "main.js"], cwd=FLUNCH_DIR)
             current_flunch_process.wait()
         except Exception as e:
             print(f"[PY-FLUNCH] ERREUR EXECUTION: {str(e)}")
@@ -318,7 +317,7 @@ async def start_flunch_automation(req: dict = Body(...), bg: BackgroundTasks = N
     else:
         run_automation()
         
-    return {"status": "success", "message": f"Orchestrateur lancé pour l'ID {user_id}"}
+    return {"status": "success", "message": "Orchestrateur lancé en arrière-plan"}
 
 @app.post("/admin/flunch/stop")
 async def stop_flunch_automation(admin: str = Depends(get_current_admin)):

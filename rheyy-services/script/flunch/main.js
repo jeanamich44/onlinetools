@@ -40,8 +40,7 @@ const humanType = async (page, selector, text, fieldName) => {
 
 const run = async () => {
     clearLog();
-    const targetId = process.argv[2] || "Non spécifié";
-    log(`[SERVEUR] Lancement du processus de connexion pour l'ID: ${targetId}`, "SYSTEM", COLORS.CYAN, true);
+    log(`[SERVEUR] Lancement de l'orchestrateur de génération Flunch Token`, "SYSTEM", COLORS.CYAN, true);
 
     // Choix séquentiel d'un proxy dans la liste
     let proxyConfig = null;
