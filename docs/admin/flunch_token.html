@@ -158,7 +158,7 @@
             <div style="display: flex; gap: 15px; margin-bottom: 25px; align-items: center; background: rgba(59, 130, 246, 0.05); padding: 12px 20px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.1);">
                 <i data-lucide="bot" style="width:20px; color: var(--primary);"></i>
                 <div style="flex: 1; color: var(--text-heading); font-size: 0.95rem; font-weight: 500;">Générateur de Token d'accès sécurisé</div>
-                <button onclick="startFlunchProcess()" id="btnStart" class="btn-action" style="width: auto; height: 42px; padding: 0 24px; background: var(--primary); font-size: 0.95rem; margin: 0;">Démarrer la génération A2F</button>
+                <button onclick="startFlunchProcess()" id="btnStart" class="btn-action" style="width: auto; height: 42px; padding: 0 24px; background: var(--primary); font-size: 0.95rem; margin: 0;">Démarrer la génération</button>
                 <button onclick="stopFlunchProcess()" id="btnStop" class="btn-action" style="width: auto; height: 42px; padding: 0 20px; background: #ef4444; border-color: #dc2626; font-size: 0.85rem; margin: 0;" aria-label="Arrêter de force le processus">Arrêter le script partiel</button>
             </div>
 
@@ -168,6 +168,9 @@
                 </button>
                 <button onclick="switchTab('mails')" id="btn-mails" class="tab-btn" role="tab" aria-selected="false" aria-controls="log-viewer">
                     <i data-lucide="mail" style="width:20px" aria-hidden="true"></i> Historique Codes
+                </button>
+                <button onclick="switchTab('autorenew')" id="btn-autorenew" class="tab-btn" role="tab" aria-selected="false" aria-controls="log-viewer">
+                    <i data-lucide="refresh-ccw" style="width:20px" aria-hidden="true"></i> Service Auto-Renew
                 </button>
                 <button onclick="switchTab('token')" id="btn-token" class="tab-btn" role="tab" aria-selected="false" aria-controls="log-viewer">
                     <i data-lucide="key" style="width:20px" aria-hidden="true"></i> Jeton Actuel (JWT)
@@ -238,14 +241,17 @@
             activeBtn.classList.add('active');
             activeBtn.setAttribute('aria-selected', 'true');
             
-            document.getElementById('active-filename').innerText = 
-                tab === 'automation' ? 'automation.log' : 
-                (tab === 'mails' ? 'mails_recus.txt' : 
-                (tab === 'token' ? 'bearer_token.txt' : 'screenshot.png'));
+            let filename = 'automation.log';
+            if (tab === 'automation') filename = 'automation.log';
+            else if (tab === 'autorenew') filename = 'auto_renew_service.log';
+            else if (tab === 'mails') filename = 'mails_recus.txt';
+            else if (tab === 'token') filename = 'bearer_token.txt';
+            else if (tab === 'screenshot') filename = 'captures_ecran';
+            document.getElementById('active-filename').innerText = filename;
             
             document.getElementById('btnClear').style.display = tab === 'automation' ? 'flex' : 'none';
             const btnCopyLog = document.getElementById('btnCopyLog');
-            if(btnCopyLog) btnCopyLog.style.display = (tab === 'automation' || tab === 'mails') ? 'flex' : 'none';
+            if(btnCopyLog) btnCopyLog.style.display = (tab === 'automation' || tab === 'mails' || tab === 'autorenew') ? 'flex' : 'none';
             
             renderContent();
         }
@@ -360,8 +366,12 @@
                 
                 if (line.includes('[SYSTEM]')) { tagClass = 'tag-system'; tagName = 'SYSTEM'; }
                 if (line.includes('[AUTH]') || line.includes('[A2F]')) { tagClass = 'tag-auth'; tagName = 'AUTH'; }
-                if (line.includes('[SUCCESS]')) { tagClass = 'tag-success'; tagName = 'SUCCESS'; }
+                if (line.includes('[SUCCESS]') || line.includes('[FINISH]')) { tagClass = 'tag-success'; tagName = 'OK'; }
                 if (line.includes('[ERROR]') || line.includes('[CRITICAL]')) { tagClass = 'tag-error'; tagName = 'ERROR'; }
+                if (line.includes('[TRIGGER]')) { tagClass = 'tag-auth'; tagName = 'RENEW'; }
+                if (line.includes('[WARN]')) { tagClass = 'tag-auth'; tagName = 'WARN'; }
+                if (line.includes('[CHECK]') || line.includes('[SLEEP]')) { tagClass = 'tag-trace'; tagName = 'CHECK'; }
+                if (line.includes('[ACTION]')) { tagClass = 'tag-system'; tagName = 'BOOT'; }
                 
                 // Le format attendu généré par logger.js est [DD/MM/YYYY HH:MM:SS] ou [MM/DD/YYYY HH:MM:SS AM/PM]
                 const timeMatch = line.match(/\[.*? ([0-9:]+(?: [AP]M)?)\]/);

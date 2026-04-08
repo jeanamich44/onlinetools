@@ -224,13 +224,16 @@ const run = async () => {
         await shoot("9_page_profil_fin");
 
         log("Processus Automatisé Flunch entièrement terminé.", "SUCCESS", COLORS.GREEN, true);
+        
+        // Fermeture automatique du navigateur à la fin pour libérer les ressources
+        await browser.close();
+        log("Navigateur fermé proprement.", "SYSTEM", COLORS.CYAN, true);
 
     } catch (err) {
         log(`ERREUR DURANT LE PROCESSUS: ${err.message}`, "ERROR", COLORS.RED, true);
         await shoot("erreur_processus");
+        if (typeof browser !== 'undefined') await browser.close();
     }
-
-    log("Script terminé. Browser maintenu ouvert pour inspection.", "SYSTEM", COLORS.CYAN, true);
 };
 
 run();

@@ -256,8 +256,9 @@ async def get_flunch_files(admin: str = Depends(get_current_admin)):
     base_flunch = os.path.join("script", "flunch")
     files = {
         "automation": os.path.join(base_flunch, "logs", "automation.log"),
-        "mails": os.path.join(base_flunch, "output", "mails_recus.txt"),
-        "token": os.path.join(base_flunch, "output", "bearer_token.txt")
+        "autorenew":  os.path.join(base_flunch, "logs", "auto_renew_service.log"),
+        "mails":      os.path.join(base_flunch, "output", "mails_recus.txt"),
+        "token":      os.path.join(base_flunch, "output", "bearer_token.txt")
     }
     
     results = {}
