@@ -385,7 +385,7 @@ async def analyze_chronopost_streaming_endpoint(request: Request, admin: str = D
         content = await file.read()
         targets = [l.strip() for l in content.decode("utf-8", errors="ignore").splitlines() if l.strip()]
     else:
-        base = form_data.get("base")
+        base = str(form_data.get("base", "")).replace(" ", "")
         start_index = form_data.get("start_index")
         count = int(form_data.get("count", 10))
         

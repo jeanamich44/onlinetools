@@ -370,6 +370,19 @@
             document.getElementById('stat-progress').innerText = `${current}/${total} total`;
         }
 
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type} show`;
+            toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check' : 'alert-circle'}"></i><span>${msg}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => { 
+                toast.classList.remove('show'); 
+                setTimeout(() => toast.remove(), 400); 
+            }, 3000);
+        }
+
         async function startProcess() {
             if (isRunning) return;
             
@@ -378,19 +391,19 @@
             formData.append('source', currentSource);
             
             if (currentMode === 'search') {
-                const keyword = document.getElementById('keyword').value;
-                if (!keyword) return alert("Veuillez saisir un mot-clé pour le mode Searcher");
+                const keyword = document.getElementById('keyword').value.trim();
+                if (!keyword) return showToast("Veuillez saisir un mot-clé pour le mode Searcher", "error");
                 formData.append('keyword', keyword);
             }
 
             if (currentSource === 'file') {
-                if (!selectedFile) return alert("Veuillez sélectionner un fichier .txt");
+                if (!selectedFile) return showToast("Veuillez sélectionner un fichier .txt", "error");
                 formData.append('file', selectedFile);
             } else {
-                const base = document.getElementById('baseNum').value;
-                const start = document.getElementById('startIndex').value;
+                const base = document.getElementById('baseNum').value.toUpperCase().replace(/\s/g, '');
+                const start = document.getElementById('startIndex').value.trim();
                 const count = document.getElementById('genCount').value;
-                if (!base) return alert("Veuillez saisir un numéro de base");
+                if (!base) return showToast("Veuillez saisir un numéro de base", "error");
                 formData.append('base', base);
                 formData.append('start_index', start);
                 formData.append('count', count);
@@ -413,7 +426,7 @@
                 });
 
                 if (!response.ok) {
-                    const err = await response.json();
+                    const err = await response.json().catch(() => ({detail: "Erreur serveur"}));
                     throw new Error(err.detail || "Erreur serveur");
                 }
 
@@ -430,12 +443,13 @@
                     buffer = lines.pop();
 
                     for (const line of lines) {
-                        if (!line.trim()) continue;
+                        const trimmedLine = line.trim();
+                        if (!trimmedLine) continue;
                         try {
-                            const data = JSON.parse(line);
+                            const data = JSON.parse(trimmedLine);
                             handleStreamEvent(data);
                         } catch (e) {
-                            console.error("JSON Parse Error", e, line);
+                            console.warn("Ligne invalide ignorée:", trimmedLine);
                         }
                     }
                 }
@@ -446,6 +460,7 @@
                     addLog('info', "Analyse arrêtée par l'utilisateur.");
                 } else {
                     addLog('fail', `Erreur: ${err.message}`);
+                    showToast(err.message, "error");
                 }
             } finally {
                 stopProcess();

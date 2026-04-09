@@ -42,7 +42,8 @@ FAIL_KEYS = [
 
 def dissect_tracking(tracking_number):
     pattern = r'^([A-Z]{2})(\d+)([A-Z]{2})$'
-    match = re.match(pattern, str(tracking_number).upper())
+    num_clean = str(tracking_number).upper().replace(" ", "")
+    match = re.match(pattern, num_clean)
     if match:
         return match.group(1), match.group(2), match.group(3)
     return None, None, None
