@@ -299,8 +299,8 @@
             }
         });
 
-        async function startBulkCheck() {
-            const ids = idsInput.value.trim();
+        async function startBulkCheck(forcedIds) {
+            const ids = forcedIds || idsInput.value.trim();
             if (!ids) return showToast("Veuillez entrer des IDs", "error");
 
             const btn = document.getElementById('btnCheck');

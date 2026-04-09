@@ -6,8 +6,8 @@ const { TOKEN_FILE } = require('./config');
 /**
  * CONFIGURATION
  */
-const CHECK_INTERVAL_MS = 60000;      // Vérification chaque minute
-const RENEW_THRESHOLD_MINUTES = 60;   // 1 heure avant expiration
+const CHECK_INTERVAL_MS = 30 * 60 * 1000; // Vérification toutes les 30 minutes
+const RENEW_THRESHOLD_MINUTES = 60;        // Seuil d'anticipation (1 heure)
 const AUTO_RENEW_LOG = path.join(__dirname, 'logs', 'auto_renew_service.log');
 
 let isRunning = false;

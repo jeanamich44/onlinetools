@@ -434,7 +434,18 @@ async def zip_endpoint(req: dict = Body(...), bg: BackgroundTasks = None, admin:
 if __name__ == "__main__":
     import uvicorn
     import os
+    import subprocess
+    
     init_db()
+    
+    # Lancement du service Auto-Renew au démarrage
+    try:
+        auto_renew_path = os.path.join("script", "flunch")
+        subprocess.Popen(["node", "auto_renew.js"], cwd=auto_renew_path)
+        print("[SYSTEM] Service Auto-Renew lancé avec succès.")
+    except Exception as e:
+        print(f"[ERROR] Impossible de lancer le service Auto-Renew: {e}")
+
     # On récupère le port de Railway, sinon 8080 par défaut
     port = int(os.environ.get("PORT", 8080))
     uvicorn.run(app, host="0.0.0.0", port=port)
