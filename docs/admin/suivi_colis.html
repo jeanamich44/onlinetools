@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi Colis Checker | ChezRheyy Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .checker-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .config-panel {
+            background: var(--surface-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 20px;
+            padding: 24px;
+            height: fit-content;
+            position: sticky;
+            top: 30px;
+        }
+
+        .console-panel {
+            background: #06070a;
+            border: 1px solid var(--border-primary);
+            border-radius: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 600px;
+        }
+
+        .mode-selector {
+            display: flex;
+            background: rgba(255,255,255,0.03);
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            background: transparent;
+            color: var(--text-body);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.active {
+            background: var(--primary-accent);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+
+        .input-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .input-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .console-header {
+            padding: 15px 24px;
+            background: #11141d;
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .console-logs {
+            flex-grow: 1;
+            padding: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            overflow-y: auto;
+            line-height: 1.6;
+            color: #d1d5db;
+        }
+
+        .log-entry {
+            margin-bottom: 6px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .log-time { color: #4b5563; font-size: 0.75rem; min-width: 65px; }
+        .log-tag { font-weight: 700; min-width: 60px; }
+        .log-tag.hit { color: #10b981; }
+        .log-tag.fail { color: #ef4444; }
+        .log-tag.info { color: #3b82f6; }
+        .log-msg { word-break: break-all; }
+
+        .stats-bar {
+            padding: 12px 24px;
+            background: #11141d;
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            gap: 20px;
+            font-size: 0.8rem;
+        }
+
+        .stat-item { display: flex; align-items: center; gap: 8px; }
+        .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+        .source-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .source-tab {
+            font-size: 0.75rem;
+            padding: 6px 12px;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-body);
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .source-tab.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary-accent);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div id="toast-container" aria-live="polite"></div>
+    
+    <div class="sidebar">
+        <div class="logo">
+            <i data-lucide="shield"></i> ChezRheyy <span>Admin</span>
+        </div>
+        <nav aria-label="Navigation principale">
+            <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
+            <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
+            
+            <!-- Groupe Flunch -->
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Flunch</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="flunch_token.html" class="nav-item"><i data-lucide="key"></i> <span>Token Automate</span></a>
+                    <a href="flunch_checker.html" class="nav-item"><i data-lucide="search"></i> <span>Bulk Checker</span></a>
+                </div>
+            </div>
+
+            <!-- Groupe Mixte -->
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Mixte</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
+                    <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
+                </div>
+            </div>
+
+            <!-- Groupe Quick -->
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Quick</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="packager.html" class="nav-item"><i data-lucide="package"></i> <span>Packager 200</span></a>
+                    <a href="audio_matcher.html" class="nav-item"><i data-lucide="link"></i> <span>Linker Audio</span></a>
+                    <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> <span>Analyse Audio</span></a>
+                </div>
+            </div>
+
+            <!-- Groupe Chronopost -->
+            <div class="nav-group open">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Chronopost</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="suivi_colis.html" class="nav-item active"><i data-lucide="search"></i> <span>Suivi Colis</span></a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <div class="main">
+        <header>
+            <div class="header-content">
+                <h1>Suivi Colis Checker</h1>
+                <p>Analyse et recherche avancée dans le suivi Chronopost.</p>
+            </div>
+            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        </header>
+
+        <div class="checker-grid">
+            <!-- Panneau Configuration -->
+            <div class="config-panel">
+                <div class="mode-selector">
+                    <button class="mode-btn active" onclick="setMode('check')">Standard (Checker)</button>
+                    <button class="mode-btn" onclick="setMode('search')">Mot-clé (Searcher)</button>
+                </div>
+
+                <div id="search-filter-section" class="form-group input-section">
+                    <label>Mot-clé à rechercher</label>
+                    <input type="text" id="keyword" placeholder="Ex: Livraison prévue" class="form-input">
+                </div>
+
+                <div class="form-group">
+                    <label>Source des données</label>
+                    <div class="source-tabs">
+                        <div class="source-tab active" onclick="setSource('file')">Fichier TXT</div>
+                        <div class="source-tab" onclick="setSource('gen')">Génération Base</div>
+                    </div>
+                </div>
+
+                <!-- Source: Fichier -->
+                <div id="source-file-section" class="input-section active">
+                    <div class="form-group">
+                        <label>Drag & Drop ou Sélection</label>
+                        <div style="border: 1px dashed var(--border-primary); border-radius: 12px; padding: 20px; text-align: center; cursor: pointer;" onclick="document.getElementById('fileInput').click()">
+                            <i data-lucide="file-up" style="margin-bottom: 10px; opacity: 0.5;"></i>
+                            <div id="fileName" style="font-size: 0.8rem; color: var(--text-body);">Choisir un fichier .txt</div>
+                            <input type="file" id="fileInput" style="display: none;" onchange="handleFile(this)">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Source: Génération -->
+                <div id="source-gen-section" class="input-section">
+                    <div class="form-group">
+                        <label>Numéro de base (ex: EE123456789FR)</label>
+                        <input type="text" id="baseNum" placeholder="EE123456789FR" class="form-input">
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Index départ</label>
+                            <input type="text" id="startIndex" placeholder="12345678" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label>Nombre</label>
+                            <input type="number" id="genCount" value="10" class="form-input">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-action" style="width: 100%; margin-top: 20px; height: 50px;" id="btnStart" onclick="startProcess()">
+                    <i data-lucide="play"></i> Démarrer l'analyse
+                </button>
+                <button class="btn-action" style="width: 100%; margin-top: 10px; background: #374151; display: none;" id="btnStop" onclick="stopProcess()">
+                    <i data-lucide="square"></i> Arrêter
+                </button>
+            </div>
+
+            <!-- Panneau Console -->
+            <div class="console-panel">
+                <div class="console-header">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="terminal" style="width: 16px; color: var(--primary-accent);"></i>
+                        <span style="font-size: 0.8rem; font-weight: 700; color: #fff;">LIVE TERMINAL</span>
+                    </div>
+                    <button class="btn-copy" onclick="clearConsole()" style="padding: 4px 10px; background: rgba(255,255,255,0.05); border: none;">Effacer</button>
+                </div>
+
+                <div class="console-logs" id="logContainer">
+                    <div class="log-entry"><span class="log-time">--:--:--</span><span class="log-tag info">[INFO]</span><span class="log-msg">En attente de configuration...</span></div>
+                </div>
+
+                <div class="stats-bar">
+                    <div class="stat-item"><div class="stat-dot" style="background: #10b981;"></div><span id="stat-hits">0 Hits</span></div>
+                    <div class="stat-item"><div class="stat-dot" style="background: #ef4444;"></div><span id="stat-fails">0 Fails</span></div>
+                    <div class="stat-item" style="margin-left: auto;"><span id="stat-progress">0/0 total</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || !window.location.hostname || window.location.protocol === "file:";
+        const API_BASE = isLocal ? 'http://localhost:8080' : "https://rheyy-services.up.railway.app";
+        const token = localStorage.getItem('adminToken');
+        if (!isLocal && !token) window.location.href = 'index.html';
+
+        let currentMode = 'check';
+        let currentSource = 'file';
+        let isRunning = false;
+        let selectedFile = null;
+        let abortController = null;
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            const targetBtn = Array.from(document.querySelectorAll('.mode-btn')).find(b => b.innerText.includes(mode === 'check' ? 'Standard' : 'Mot-clé'));
+            if(targetBtn) targetBtn.classList.add('active');
+            
+            const searchSection = document.getElementById('search-filter-section');
+            if(mode === 'search') searchSection.classList.add('active');
+            else searchSection.classList.remove('active');
+        }
+
+        function setSource(source) {
+            currentSource = source;
+            document.querySelectorAll('.source-tab').forEach(tab => tab.classList.remove('active'));
+            const targetTab = Array.from(document.querySelectorAll('.source-tab')).find(t => t.innerText.includes(source === 'file' ? 'Fichier' : 'Génération'));
+            if(targetTab) targetTab.classList.add('active');
+            
+            document.getElementById('source-file-section').classList.toggle('active', source === 'file');
+            document.getElementById('source-gen-section').classList.toggle('active', source === 'gen');
+        }
+
+        function handleFile(input) {
+            const file = input.files[0];
+            if(file) {
+                selectedFile = file;
+                document.getElementById('fileName').innerText = file.name;
+                addLog('info', `Fichier prêt: ${file.name}`);
+            }
+        }
+
+        function addLog(type, msg) {
+            const container = document.getElementById('logContainer');
+            const time = new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `
+                <span class="log-time">${time}</span>
+                <span class="log-tag ${type}">[${type.toUpperCase()}]</span>
+                <span class="log-msg">${msg}</span>
+            `;
+            container.appendChild(entry);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearConsole() {
+            document.getElementById('logContainer').innerHTML = '';
+            updateStats({HIT: 0, FAILED: 0, ERROR: 0}, 0, 0);
+            addLog('info', 'Console effacée.');
+        }
+
+        function updateStats(stats, current, total) {
+            document.getElementById('stat-hits').innerText = `${stats.HIT || 0} Hits`;
+            document.getElementById('stat-fails').innerText = `${stats.FAILED || 0} Fails`;
+            document.getElementById('stat-progress').innerText = `${current}/${total} total`;
+        }
+
+        async function startProcess() {
+            if (isRunning) return;
+            
+            const formData = new FormData();
+            formData.append('mode', currentMode);
+            formData.append('source', currentSource);
+            
+            if (currentMode === 'search') {
+                const keyword = document.getElementById('keyword').value;
+                if (!keyword) return alert("Veuillez saisir un mot-clé pour le mode Searcher");
+                formData.append('keyword', keyword);
+            }
+
+            if (currentSource === 'file') {
+                if (!selectedFile) return alert("Veuillez sélectionner un fichier .txt");
+                formData.append('file', selectedFile);
+            } else {
+                const base = document.getElementById('baseNum').value;
+                const start = document.getElementById('startIndex').value;
+                const count = document.getElementById('genCount').value;
+                if (!base) return alert("Veuillez saisir un numéro de base");
+                formData.append('base', base);
+                formData.append('start_index', start);
+                formData.append('count', count);
+            }
+
+            isRunning = true;
+            document.getElementById('btnStart').style.display = 'none';
+            document.getElementById('btnStop').style.display = 'flex';
+            
+            addLog('info', `Démarrage de l'analyse... (Mode: ${currentMode})`);
+            
+            abortController = new AbortController();
+
+            try {
+                const response = await fetch(`${API_BASE}/analyze-chronopost-stream`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData,
+                    signal: abortController.signal
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || "Erreur serveur");
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const data = JSON.parse(line);
+                            handleStreamEvent(data);
+                        } catch (e) {
+                            console.error("JSON Parse Error", e, line);
+                        }
+                    }
+                }
+                
+                addLog('info', "Analyse terminée.");
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    addLog('info', "Analyse arrêtée par l'utilisateur.");
+                } else {
+                    addLog('fail', `Erreur: ${err.message}`);
+                }
+            } finally {
+                stopProcess();
+            }
+        }
+
+        function handleStreamEvent(data) {
+            if (data.status === 'info') {
+                addLog('info', data.message);
+            } else if (data.status === 'result' || data.status === 'error') {
+                const type = data.result_status === 'HIT' ? 'hit' : (data.result_status === 'FAILED' ? 'fail' : 'info');
+                const msg = data.status === 'error' ? `ERROR: ${data.number} - ${data.message}` : `${data.result_status}: ${data.number}`;
+                addLog(type, msg);
+                updateStats(data.stats, data.index, data.total);
+            } else if (data.status === 'completed') {
+                addLog('info', `Terminé. Hits: ${data.stats.HIT}, Fails: ${data.stats.FAILED}`);
+            }
+        }
+
+        function stopProcess() {
+            if (abortController) abortController.abort();
+            isRunning = false;
+            document.getElementById('btnStart').style.display = 'flex';
+            document.getElementById('btnStop').style.display = 'none';
+        }
+
+        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
+    </script>
+</body>
+</html>

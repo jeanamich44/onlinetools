@@ -38,6 +38,7 @@ from script.ssh_utils import (
     REMOTE_FILE_DATA
 )
 from script.flunch_checker import fetch_flunch_data
+from script.chronopost_checker import check_chronopost_stream, dissect_tracking, generate_sequence
 
 # [ CONFIGURATION ] ============================================================
 
@@ -365,7 +366,47 @@ async def check_flunch_batch(req: dict = Body(...)):
         results.append({"id": client_id, "data": data})
         
     return {"results": results}
+
+# [ CHRONOPOST ] ===============================================================
+
+@app.post("/analyze-chronopost-stream")
+async def analyze_chronopost_streaming_endpoint(request: Request, admin: str = Depends(get_current_admin)):
+    form_data = await request.form()
+    mode = form_data.get("mode", "check")
+    keyword = form_data.get("keyword")
+    source = form_data.get("source", "file")
     
+    targets = []
+    
+    if source == "file":
+        file = form_data.get("file")
+        if not file:
+            raise HTTPException(status_code=400, detail="Fichier manquant")
+        content = await file.read()
+        targets = [l.strip() for l in content.decode("utf-8", errors="ignore").splitlines() if l.strip()]
+    else:
+        base = form_data.get("base")
+        start_index = form_data.get("start_index")
+        count = int(form_data.get("count", 10))
+        
+        prefix, digits, suffix = dissect_tracking(base)
+        if not prefix:
+            raise HTTPException(status_code=400, detail="Format de base invalide")
+        
+        if not start_index:
+            start_index = digits
+            
+        targets = generate_sequence(prefix, digits, suffix, start_index, count)
+        
+    if not targets:
+        raise HTTPException(status_code=400, detail="Aucune cible à analyser")
+
+    async def event_generator():
+        for res_json in check_chronopost_stream(targets, mode, keyword):
+            yield res_json
+
+    return StreamingResponse(event_generator(), media_type="application/x-ndjson")
+
 # [ ADMIN - PAYMENTS ] =========================================================
 
 @app.get("/admin/payments")

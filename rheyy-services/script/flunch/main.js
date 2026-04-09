@@ -126,7 +126,7 @@ const run = async () => {
         await humanType(page, SELECTORS.EMAIL_INPUT, EMAIL, "EMAIL");
 
         // [8] DELAI POST_EMAIL_INPUT
-        log(`Délai de ${DELAYS.POST_EMAIL_INPUT / 1000}s...`, "WAIT", COLORS.YELLOW, true);
+        log(`Délai de ${DELAYS.POST_EMAIL_INPUT / 1000}s...`, "WAIT", COLORS.YELLOW, false);
         await new Promise(r => setTimeout(r, DELAYS.POST_EMAIL_INPUT));
 
         // [9] SAISIE HUMAINE PASS
@@ -138,7 +138,7 @@ const run = async () => {
         await page.click(SELECTORS.SUBMIT_BTN);
         
         // [11] DELAI POST_SUBMIT_LOGIN
-        log(`Délai de ${DELAYS.POST_SUBMIT_LOGIN / 1000}s...`, "WAIT", COLORS.YELLOW, true);
+        log(`Délai de ${DELAYS.POST_SUBMIT_LOGIN / 1000}s...`, "WAIT", COLORS.YELLOW, false);
         await new Promise(r => setTimeout(r, DELAYS.POST_SUBMIT_LOGIN));
         await shoot("6_a2f_page");
 
@@ -170,7 +170,7 @@ const run = async () => {
         await page.click(SELECTORS.A2F_SUBMIT);
 
         // [15] DELAI POST_A2F_SUBMIT
-        log(`Délai de ${DELAYS.POST_A2F_SUBMIT / 1000}s (validation A2F)...`, "WAIT", COLORS.YELLOW, true);
+        log(`Délai de ${DELAYS.POST_A2F_SUBMIT / 1000}s (validation A2F)...`, "WAIT", COLORS.YELLOW, false);
         await new Promise(r => setTimeout(r, DELAYS.POST_A2F_SUBMIT));
         await shoot("7_dashboard_final");
 
@@ -181,7 +181,7 @@ const run = async () => {
         await page.goto(URLS.PROFILE, { waitUntil: 'domcontentloaded', timeout: 30000 });
 
         // [17] DELAI POST_PROFILE_NAV
-        log(`Délai de ${DELAYS.POST_PROFILE_NAV / 1000}s sur le Profil...`, "WAIT", COLORS.YELLOW, true);
+        log(`Délai de ${DELAYS.POST_PROFILE_NAV / 1000}s sur le Profil...`, "WAIT", COLORS.YELLOW, false);
         await new Promise(r => setTimeout(r, DELAYS.POST_PROFILE_NAV));
         await shoot("8_page_profil");
 
@@ -219,7 +219,7 @@ const run = async () => {
             log("Aucune requête contenant 'update_client_data' interceptée.", "ERROR", COLORS.RED, true);
         }
 
-        log(`Délai de ${DELAYS.POST_PROFILE_ACTION / 1000}s...`, "WAIT", COLORS.YELLOW, true);
+        log(`Délai de ${DELAYS.POST_PROFILE_ACTION / 1000}s...`, "WAIT", COLORS.YELLOW, false);
         await new Promise(r => setTimeout(r, DELAYS.POST_PROFILE_ACTION));
         await shoot("9_page_profil_fin");
 

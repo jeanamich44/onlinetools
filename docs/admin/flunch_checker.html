@@ -190,16 +190,57 @@
         <div class="logo">
             <i data-lucide="shield"></i> ChezRheyy <span>Admin</span>
         </div>
-        <nav>
+        <nav aria-label="Navigation principale">
             <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
             <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
-            <a href="flunch_token.html" class="nav-item"><i data-lucide="key"></i> <span>Flunch Token</span></a>
-            <a href="flunch_checker.html" class="nav-item active"><i data-lucide="search"></i> <span>Flunch Checker</span></a>
-            <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
-            <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
-            <a href="packager.html" class="nav-item"><i data-lucide="package"></i> <span>Packager 200</span></a>
-            <a href="audio_matcher.html" class="nav-item"><i data-lucide="link"></i> <span>Linker Audio</span></a>
-            <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> <span>Analyse Audio</span></a>
+            
+            <!-- Groupe Flunch -->
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Flunch</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="flunch_token.html" class="nav-item"><i data-lucide="key"></i> <span>Token Automate</span></a>
+                    <a href="flunch_checker.html" class="nav-item active"><i data-lucide="search"></i> <span>Bulk Checker</span></a>
+                </div>
+            </div>
+
+            <!-- Groupe Mixte -->
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Mixte</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
+                    <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
+                </div>
+            </div>
+
+            <!-- Groupe Quick -->
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Quick</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="packager.html" class="nav-item"><i data-lucide="package"></i> <span>Packager 200</span></a>
+                    <a href="audio_matcher.html" class="nav-item"><i data-lucide="link"></i> <span>Linker Audio</span></a>
+                    <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> <span>Analyse Audio</span></a>
+                </div>
+            </div>
+
+            <!-- Groupe Chronopost -->
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Chronopost</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="suivi_colis.html" class="nav-item"><i data-lucide="search"></i> <span>Suivi Colis</span></a>
+                </div>
+            </div>
         </nav>
     </div>
 
