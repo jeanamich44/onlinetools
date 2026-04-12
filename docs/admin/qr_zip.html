@@ -19,6 +19,17 @@
             <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
             <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
             
+            <!-- Groupe Panel -->
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Panel</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="dashboard.html" class="nav-item"><i data-lucide="settings"></i> <span>Configuration</span></a>
+                </div>
+            </div>
+
             <!-- Groupe Flunch -->
             <div class="nav-group">
                 <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
@@ -28,18 +39,6 @@
                 <div class="nav-group-content">
                     <a href="flunch_token.html" class="nav-item"><i data-lucide="key"></i> <span>Token Automate</span></a>
                     <a href="flunch_checker.html" class="nav-item"><i data-lucide="search"></i> <span>Bulk Checker</span></a>
-                </div>
-            </div>
-
-            <!-- Groupe Mixte -->
-            <div class="nav-group">
-                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
-                    <span>Mixte</span>
-                    <i data-lucide="chevron-down" class="chevron"></i>
-                </div>
-                <div class="nav-group-content">
-                    <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
-                    <a href="qr_zip.html" class="nav-item active"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
                 </div>
             </div>
 
@@ -64,6 +63,18 @@
                 </div>
                 <div class="nav-group-content">
                     <a href="suivi_colis.html" class="nav-item"><i data-lucide="search"></i> <span>Suivi Colis</span></a>
+                </div>
+            </div>
+
+            <!-- Groupe Mixte -->
+            <div class="nav-group open">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Mixte</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
+                    <a href="qr_zip.html" class="nav-item active"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
                 </div>
             </div>
         </nav>

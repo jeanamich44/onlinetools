@@ -19,6 +19,17 @@
             <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
             <a href="payments.html" class="nav-item active"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
             
+            <!-- Groupe Panel -->
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Panel</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="dashboard.html" class="nav-item"><i data-lucide="settings"></i> <span>Configuration</span></a>
+                </div>
+            </div>
+
             <!-- Groupe Flunch -->
             <div class="nav-group">
                 <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
@@ -28,18 +39,6 @@
                 <div class="nav-group-content">
                     <a href="flunch_token.html" class="nav-item"><i data-lucide="key"></i> <span>Token Automate</span></a>
                     <a href="flunch_checker.html" class="nav-item"><i data-lucide="search"></i> <span>Bulk Checker</span></a>
-                </div>
-            </div>
-
-            <!-- Groupe Mixte -->
-            <div class="nav-group">
-                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
-                    <span>Mixte</span>
-                    <i data-lucide="chevron-down" class="chevron"></i>
-                </div>
-                <div class="nav-group-content">
-                    <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
-                    <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
                 </div>
             </div>
 
@@ -64,6 +63,18 @@
                 </div>
                 <div class="nav-group-content">
                     <a href="suivi_colis.html" class="nav-item"><i data-lucide="search"></i> <span>Suivi Colis</span></a>
+                </div>
+            </div>
+
+            <!-- Groupe Mixte -->
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Mixte</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
+                    <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
                 </div>
             </div>
         </nav>
@@ -95,7 +106,17 @@
         </div>
 
         <div class="table-card">
-            <h3>Dernières Transactions</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Transactions</h3>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label style="font-size: 0.8rem; color: #94a3b8;">Afficher</label>
+                    <select id="pageSizeSelect" class="form-input" style="width: 80px; padding: 5px; height: 35px; border-radius: 8px;" onchange="changePageSize()">
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+            </div>
             <table>
                 <thead>
                     <tr>
@@ -109,13 +130,21 @@
                 <tbody id="paymentTable">
                 </tbody>
             </table>
+
+            <div id="pagination" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+                <button class="btn-action" style="width: auto; padding: 8px 15px; background: #374151;" id="prevBtn" onclick="prevPage()">Précédent</button>
+                <div id="pageInfo" style="display: flex; align-items: center; color: #94a3b8; font-size: 0.9rem;">Page 1/1</div>
+                <button class="btn-action" style="width: auto; padding: 8px 15px; background: #374151;" id="nextBtn" onclick="nextPage()">Suivant</button>
+            </div>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
+            loadPayments();
         });
+
         const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
         const API_BASE = isLocal 
             ? "http://localhost:8080" 
@@ -123,6 +152,10 @@
         const token = localStorage.getItem('adminToken');
 
         if (!isLocal && !token) window.location.href = 'index.html';
+
+        let allPayments = [];
+        let currentPage = 1;
+        let pageSize = 20;
 
         async function loadPayments() {
             try {
@@ -134,35 +167,70 @@
                 if (!statsRes.ok) throw new Error("Unauthorized");
 
                 const stats = await statsRes.json();
-                document.getElementById('revenue').innerText = `${stats.total_revenue} €`;
+                document.getElementById('revenue').innerText = `${parseFloat(stats.total_revenue).toFixed(3)} €`;
                 document.getElementById('paid_count').innerText = stats.paid_payments;
                 document.getElementById('pdf_today').innerText = stats.generated_today;
                 document.getElementById('total_count').innerText = stats.total_payments;
 
-                const payments = await paymentsRes.json();
-                const table = document.getElementById('paymentTable');
-                table.innerHTML = payments.map(p => `
-                    <tr>
-                        <td>${new Date(p.created_at).toLocaleDateString()}</td>
-                        <td>${p.checkout_ref.substring(0, 8)}...</td>
-                        <td>${p.product_name}</td>
-                        <td>${p.amount} €</td>
-                        <td><span class="status-badge ${p.status === 'PAID' ? 'status-paid' : 'status-pending'}">${p.status}</span></td>
-                    </tr>
-                `).join('');
+                allPayments = await paymentsRes.json();
+                renderTable();
 
             } catch (err) {
                 console.error(err);
-                logout();
+                if (!isLocal) logout();
             }
         }
 
-        function logout() {
-            localStorage.removeItem('adminToken');
-            window.location.href = 'index.html';
+        function renderTable() {
+            const table = document.getElementById('paymentTable');
+            const totalPages = Math.ceil(allPayments.length / pageSize);
+            
+            if (currentPage > totalPages) currentPage = totalPages || 1;
+            
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const paginatedItems = allPayments.slice(start, end);
+
+            table.innerHTML = paginatedItems.map(p => `
+                <tr>
+                    <td>${new Date(p.created_at).toLocaleDateString()} ${new Date(p.created_at).toLocaleTimeString()}</td>
+                    <td>${p.checkout_ref.substring(0, 8)}...</td>
+                    <td>${p.product_name}</td>
+                    <td>${parseFloat(p.amount).toFixed(2)} €</td>
+                    <td><span class="status-badge ${p.status === 'PAID' ? 'status-paid' : 'status-pending'}">${p.status}</span></td>
+                </tr>
+            `).join('');
+
+            document.getElementById('pageInfo').innerText = `Page ${currentPage}/${totalPages || 1}`;
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages || totalPages === 0;
+            
+            document.getElementById('prevBtn').style.opacity = currentPage === 1 ? '0.5' : '1';
+            document.getElementById('nextBtn').style.opacity = (currentPage === totalPages || totalPages === 0) ? '0.5' : '1';
         }
 
-        loadPayments();
+        function changePageSize() {
+            pageSize = parseInt(document.getElementById('pageSizeSelect').value);
+            currentPage = 1;
+            renderTable();
+        }
+
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(allPayments.length / pageSize);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
+        }
+
+        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
     </script>
 </body>
 
