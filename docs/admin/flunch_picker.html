@@ -3,21 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flunch Extraction | ChezRheyy</title>
+    <title>Flunch Picker | ChezRheyy</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="../css/admin.css">
     <style>
-        .keyword-chip {
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            padding: 4px 12px;
-            border-radius: 20px;
+        .btn-copy {
+            background: #1f2937;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
             font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--primary);
+            border: 1px solid #374151;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-copy:hover {
+            background: #374151;
+            border-color: #4b5563;
         }
     </style>
 </head>
@@ -50,8 +53,8 @@
                 <div class="nav-group-content">
                     <a href="flunch_token.html" class="nav-item"><i data-lucide="key"></i> <span>Token Automate</span></a>
                     <a href="flunch_checker.html" class="nav-item"><i data-lucide="search"></i> <span>Bulk Checker</span></a>
-                    <a href="flunch_ssh.html" class="nav-item"><i data-lucide="terminal"></i> <span>Flunch Picker</span></a>
-                    <a href="flunch_keyword.html" class="nav-item active"><i data-lucide="file-search"></i> <span>Flunch Extraction</span></a>
+                    <a href="flunch_picker.html" class="nav-item active"><i data-lucide="terminal"></i> <span>Flunch Picker</span></a>
+                    <a href="flunch_extraction.html" class="nav-item"><i data-lucide="file-search"></i> <span>Flunch Extraction</span></a>
                 </div>
             </div>
 
@@ -93,43 +96,29 @@
     <div class="main">
         <header>
             <div class="header-content">
-                <h1>Flunch Extraction</h1>
-                <p>Extraction intelligente de valeurs (id, carte, solde...) depuis vos logs.</p>
+                <h1>Flunch Picker</h1>
+                <p>Récupération aléatoire de lignes depuis le serveur distant.</p>
             </div>
             <button class="btn-logout" onclick="logout()">Déconnexion</button>
         </header>
 
-        <div class="checker-grid">
-            <div class="config-panel">
-                <div class="form-group">
-                    <label>Mots-clés (séparés par virgule)</label>
-                    <input type="text" id="keywords" value="id, carte, solde" class="form-input" placeholder="Ex: id, carte, solde, nom">
-                </div>
-                
-                <div class="form-group">
-                    <label>Texte source (Logs)</label>
-                    <textarea id="sourceText" class="form-input" style="height: 300px; font-family: monospace; font-size: 0.85rem;" placeholder="Collez vos logs ici..."></textarea>
-                </div>
-
-                <button class="btn-action" style="width: 100%; margin-top: 20px; height: 50px;" onclick="startExtraction()">
-                    <i data-lucide="scissors"></i> Extraire les données
-                </button>
+        <div class="service-card" style="max-width: 800px;">
+            <div class="form-group">
+                <label>Nom de lignes à extraire</label>
+                <input type="number" id="count" value="50" class="form-input" min="1" max="1000">
             </div>
+            
+            <button class="btn-action" style="width: 100%; margin-top: 20px; height: 50px;" id="btnStart" onclick="startExtraction()">
+                <i data-lucide="download"></i> Lancer l'extraction
+            </button>
+        </div>
 
-            <div class="console-panel">
-                <div class="console-header">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <i data-lucide="terminal" style="width: 16px; color: var(--primary-accent);"></i>
-                        <span style="font-size: 0.8rem; font-weight: 700; color: #fff;">RESULTATS</span>
-                    </div>
-                </div>
-                <div id="resultsContainer" style="padding: 20px; height: calc(100% - 100px); overflow-y: auto;">
-                    <div style="color: #4b5563; text-align: center; margin-top: 50px;">
-                        <i data-lucide="file-search" style="width: 48px; height: 48px; margin-bottom: 10px; opacity: 0.5;"></i>
-                        <p>En attente d'extraction...</p>
-                    </div>
-                </div>
+        <div class="table-card" style="margin-top: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Résultats</h3>
+                <button class="btn-copy" onclick="copyResults()" style="padding: 8px 15px; font-size: 0.8rem;">Copier tout</button>
             </div>
+            <textarea id="resultArea" class="form-input" style="height: 400px; font-family: monospace; background: #0b0f19; border-color: #1f2937;" readonly></textarea>
         </div>
     </div>
 
@@ -141,22 +130,21 @@
         if (!isLocal && !token) window.location.href = 'index.html';
 
         async function startExtraction() {
-            const text = document.getElementById('sourceText').value;
-            const keywordsInput = document.getElementById('keywords').value;
-            const keywords = keywordsInput.split(',').map(k => k.trim()).filter(k => k);
+            const btn = document.getElementById('btnStart');
+            const count = document.getElementById('count').value;
             
-            if (!text || keywords.length === 0) {
-                return showToast("Veuillez fournir du texte et au moins un mot-clé", "error");
-            }
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Extraction en cours...';
+            lucide.createIcons();
             
             try {
-                const res = await fetch(`${API_BASE}/admin/flunch/keyword-extract`, {
+                const res = await fetch(`${API_BASE}/admin/flunch/ssh-random`, {
                     method: 'POST',
                     headers: { 
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ text, keywords })
+                    body: JSON.stringify({ count: parseInt(count) })
                 });
 
                 if (!res.ok) {
@@ -165,48 +153,23 @@
                 }
 
                 const data = await res.json();
-                renderResults(data);
-                showToast("Extraction terminée !", "success");
+                document.getElementById('resultArea').value = data.lines.join('\n');
+                showToast(`${data.lines.length} lignes extraites avec succès !`, "success");
             } catch (err) {
                 showToast(err.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="download"></i> Lancer l\'extraction';
+                lucide.createIcons();
             }
         }
 
-        function renderResults(data) {
-            const container = document.getElementById('resultsContainer');
-            container.innerHTML = '';
-            
-            for (const [key, values] of Object.entries(data)) {
-                if (values.length === 0) continue;
-                
-                const section = document.createElement('div');
-                section.style.marginBottom = '25px';
-                
-                section.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #1f2937; padding-bottom: 5px;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="color: var(--primary); font-weight: 700; font-size: 0.9rem;">${key}</span>
-                            <span style="background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; color: #94a3b8;">${values.length} found</span>
-                        </div>
-                        <button class="btn-copy" onclick="copyValue('${key}')" style="padding: 4px 10px; font-size: 0.7rem;">Copier</button>
-                    </div>
-                    <textarea id="output-${key}" class="form-input" style="height: 120px; font-family: monospace; font-size: 0.8rem; background: #0b0f19; border-color: #1f2937;" readonly>${values.join('\n')}</textarea>
-                `;
-                container.appendChild(section);
-            }
-            
-            if (container.innerHTML === '') {
-                container.innerHTML = '<p style="color: #ef4444; text-align: center; margin-top: 50px;">Aucune correspondance trouvée.</p>';
-            }
-            
-            lucide.createIcons();
-        }
-
-        function copyValue(key) {
-            const area = document.getElementById(`output-${key}`);
+        function copyResults() {
+            const area = document.getElementById('resultArea');
+            if (!area.value) return;
             area.select();
             document.execCommand('copy');
-            showToast(`${key} copié !`, "success");
+            showToast("Résultats copiés dans le presse-papier", "success");
         }
 
         function showToast(msg, type = 'success') {

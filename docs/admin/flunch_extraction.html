@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flunch Extraction | ChezRheyy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .keyword-chip {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+        }
+        .btn-copy {
+            background: #1f2937;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            border: 1px solid #374151;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-copy:hover {
+            background: #374151;
+            border-color: #4b5563;
+        }
+    </style>
+</head>
+<body>
+    <div id="toast-container"></div>
+
+    <div class="sidebar">
+        <div class="logo">
+            <i data-lucide="shield"></i> ChezRheyy <span>Admin</span>
+        </div>
+        <nav aria-label="Navigation principale">
+            <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
+            <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
+            
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Panel</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="dashboard.html" class="nav-item"><i data-lucide="settings"></i> <span>Configuration</span></a>
+                </div>
+            </div>
+
+            <div class="nav-group open">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Flunch</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="flunch_token.html" class="nav-item"><i data-lucide="key"></i> <span>Token Automate</span></a>
+                    <a href="flunch_checker.html" class="nav-item"><i data-lucide="search"></i> <span>Bulk Checker</span></a>
+                    <a href="flunch_picker.html" class="nav-item"><i data-lucide="terminal"></i> <span>Flunch Picker</span></a>
+                    <a href="flunch_extraction.html" class="nav-item active"><i data-lucide="file-search"></i> <span>Flunch Extraction</span></a>
+                </div>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Quick</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="packager.html" class="nav-item"><i data-lucide="package"></i> <span>Packager 200</span></a>
+                    <a href="audio_matcher.html" class="nav-item"><i data-lucide="link"></i> <span>Linker Audio</span></a>
+                    <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> <span>Analyse Audio</span></a>
+                </div>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Chronopost</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="suivi_colis.html" class="nav-item"><i data-lucide="search"></i> <span>Suivi Colis</span></a>
+                </div>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Mixte</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
+                    <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <div class="main">
+        <header>
+            <div class="header-content">
+                <h1>Flunch Extraction</h1>
+                <p>Extraction intelligente de valeurs (id, carte, solde...) depuis vos logs.</p>
+            </div>
+            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        </header>
+
+        <div class="checker-grid">
+            <div class="config-panel">
+                <div class="form-group">
+                    <label>Mots-clés (séparés par virgule)</label>
+                    <input type="text" id="keywords" value="id, carte, solde" class="form-input" placeholder="Ex: id, carte, solde, nom">
+                </div>
+                
+                <div class="form-group">
+                    <label>Texte source (Logs)</label>
+                    <textarea id="sourceText" class="form-input" style="height: 300px; font-family: monospace; font-size: 0.85rem;" placeholder="Collez vos logs ici..."></textarea>
+                </div>
+
+                <button class="btn-action" style="width: 100%; margin-top: 20px; height: 50px;" onclick="startExtraction()">
+                    <i data-lucide="scissors"></i> Extraire les données
+                </button>
+            </div>
+
+            <div class="console-panel">
+                <div class="console-header">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="terminal" style="width: 16px; color: var(--primary-accent);"></i>
+                        <span style="font-size: 0.8rem; font-weight: 700; color: #fff;">RESULTATS</span>
+                    </div>
+                </div>
+                <div id="resultsContainer" style="padding: 20px; height: calc(100% - 100px); overflow-y: auto;">
+                    <div style="color: #4b5563; text-align: center; margin-top: 50px;">
+                        <i data-lucide="file-search" style="width: 48px; height: 48px; margin-bottom: 10px; opacity: 0.5;"></i>
+                        <p>En attente d'extraction...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        const token = localStorage.getItem('adminToken');
+        if (!isLocal && !token) window.location.href = 'index.html';
+
+        function startExtraction() {
+            const text = document.getElementById('sourceText').value;
+            const keywordsInput = document.getElementById('keywords').value;
+            const keywords = keywordsInput.split(',').map(k => k.trim()).filter(k => k);
+            
+            if (!text || keywords.length === 0) {
+                return showToast("Veuillez fournir du texte et au moins un mot-clé", "error");
+            }
+            
+            const results = {};
+            keywords.forEach(k => { results[k.toUpperCase()] = []; });
+            
+            const lines = text.split('\n');
+            lines.forEach(line => {
+                keywords.forEach(k => {
+                    // Échapper les caractères spéciaux du mot-clé
+                    const escapedK = k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const regex = new RegExp(`${escapedK}\\s*=\\s*([^|]+)`, 'i');
+                    const match = line.match(regex);
+                    if (match) {
+                        results[k.toUpperCase()].push(match[1].trim());
+                    }
+                });
+            });
+            
+            renderResults(results);
+            showToast("Extraction terminée localement !", "success");
+        }
+
+        function renderResults(data) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = '';
+            
+            for (const [key, values] of Object.entries(data)) {
+                if (values.length === 0) continue;
+                
+                const section = document.createElement('div');
+                section.style.marginBottom = '25px';
+                
+                section.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #1f2937; padding-bottom: 5px;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="color: var(--primary); font-weight: 700; font-size: 0.9rem;">${key}</span>
+                            <span style="background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; color: #94a3b8;">${values.length} found</span>
+                        </div>
+                        <button class="btn-copy" onclick="copyValue('${key}')" style="padding: 4px 10px; font-size: 0.7rem;">Copier</button>
+                    </div>
+                    <textarea id="output-${key}" class="form-input" style="height: 120px; font-family: monospace; font-size: 0.8rem; background: #0b0f19; border-color: #1f2937;" readonly>${values.join('\n')}</textarea>
+                `;
+                container.appendChild(section);
+            }
+            
+            if (container.innerHTML === '') {
+                container.innerHTML = '<p style="color: #ef4444; text-align: center; margin-top: 50px;">Aucune correspondance trouvée.</p>';
+            }
+            
+            lucide.createIcons();
+        }
+
+        function copyValue(key) {
+            const area = document.getElementById(`output-${key}`);
+            area.select();
+            document.execCommand('copy');
+            showToast(`${key} copié !`, "success");
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type} show`;
+            toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check' : 'alert-circle'}"></i><span>${msg}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
+    </script>
+</body>
+</html>

@@ -18,10 +18,16 @@ REMOTE_BOT_DIR = r"C:\Users\Administrator\Desktop\BotNVX"
 import random
 
 def fetch_random_lines_remote(path, k):
-    content = fetch_remote_file_content(path)
-    lines = [l.strip() for l in content.splitlines() if l.strip()]
-    if not lines: return []
-    return random.sample(lines, min(k, len(lines)))
+    ssh = get_ssh_client()
+    try:
+        # On utilise Get-Random de PowerShell pour que le serveur fasse le travail lourd
+        cmd = f'powershell -Command "Get-Content \'{path}\' | Get-Random -Count {k}"'
+        stdin, stdout, stderr = ssh.exec_command(cmd)
+        output = stdout.read().decode('utf-8', errors='ignore')
+        lines = [l.strip() for l in output.splitlines() if l.strip()]
+        return lines
+    finally:
+        ssh.close()
 
 # ==============================================================================
 
