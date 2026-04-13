@@ -17,38 +17,42 @@ REMOTE_BOT_DIR = r"C:\Users\Administrator\Desktop\BotNVX"
 
 import random
 
+import base64
+
 def fetch_random_lines_remote(path, k):
     ssh = get_ssh_client()
     try:
-        # Script PowerShell optimisé pour les gros fichiers : 
-        # On cherche des positions d'octets au hasard (Seek) pour éviter de lire tout le fichier.
-        # k positions aléatoires -> lecture de la ligne suivante à chaque position.
+        # Script PowerShell robuste avec gestion propre du flux
         ps_script = f"""
-        $path = '{path}'
+        $path = "{path}"
         $k = {k}
-        $stream = [System.IO.File]::OpenRead($path)
-        $len = $stream.Length
-        $results = New-Object System.Collections.Generic.List[string]
-        $rand = New-Object System.Random
-        
-        for ($i=0; $i -lt $k; $i++) {{
-            $pos = $rand.NextDouble() * $len
-            $stream.Position = [math]::Floor($pos)
-            $reader = New-Object System.IO.StreamReader($stream)
-            # On ignore la ligne partielle en cours
-            $null = $reader.ReadLine()
-            # On récupère la ligne complète suivante
-            $line = $reader.ReadLine()
-            if ($line) {{ $results.Add($line) }}
+        try {{
+            $stream = [System.IO.File]::OpenRead($path)
+            $len = $stream.Length
+            $rand = New-Object System.Random
+            for ($i=0; $i -lt $k; $i++) {{
+                $pos = [int64]($rand.NextDouble() * ($len - 1024))
+                if ($pos -lt 0) {{ $pos = 0 }}
+                $stream.Position = $pos
+                $reader = New-Object System.IO.StreamReader($stream)
+                $null = $reader.ReadLine()
+                $line = $reader.ReadLine()
+                if ($line) {{ $line }}
+            }}
+            $stream.Close()
+        }} catch {{
+            $_.Exception.Message
         }}
-        $stream.Close()
-        $results
         """
-        # On compacte le script pour SSH
-        cmd = f'powershell -Command "{ps_script.replace(chr(10), ";").replace(chr(13), "")}"'
+        # Encodage Base64 (UTF-16LE requis par PowerShell -EncodedCommand)
+        encoded_script = base64.b64encode(ps_script.encode('utf-16-le')).decode('ascii')
+        cmd = f'powershell -EncodedCommand {encoded_script}'
+        
         stdin, stdout, stderr = ssh.exec_command(cmd)
         output = stdout.read().decode('utf-8', errors='ignore')
-        return [l.strip() for l in output.splitlines() if l.strip()]
+        
+        lines = [l.strip() for l in output.splitlines() if l.strip()]
+        return lines
     finally:
         ssh.close()
 
