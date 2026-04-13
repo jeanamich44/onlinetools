@@ -367,6 +367,36 @@ async def check_flunch_batch(req: dict = Body(...)):
         
     return {"results": results}
 
+import re
+@app.post("/admin/flunch/keyword-extract")
+async def flunch_keyword_extract(req: dict = Body(...), admin: str = Depends(get_current_admin)):
+    text = req.get("text", "")
+    keywords = req.get("keywords", [])
+    if not text or not keywords:
+        raise HTTPException(status_code=400, detail="Texte ou mots-clés manquants")
+        
+    lines = text.splitlines()
+    results = {k.upper(): [] for k in keywords}
+    
+    for line in lines:
+        for k in keywords:
+            # Logic from Quik & Flunch.py: rf"{re.escape(k)}\s*=\s*([^|]+)"
+            match = re.search(rf"{re.escape(k)}\s*=\s*([^|]+)", line, re.I)
+            if match:
+                results[k.upper()].append(match.group(1).strip())
+                
+    return results
+
+from script.ssh_utils import fetch_random_lines_remote, REMOTE_FILE_DBFLUNCH
+@app.post("/admin/flunch/ssh-random")
+async def flunch_ssh_random(req: dict = Body(...), admin: str = Depends(get_current_admin)):
+    count = int(req.get("count", 10))
+    try:
+        lines = fetch_random_lines_remote(REMOTE_FILE_DBFLUNCH, count)
+        return {"lines": lines}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"SSH Error: {str(e)}")
+
 # [ CHRONOPOST ] ===============================================================
 
 @app.post("/analyze-chronopost-stream")

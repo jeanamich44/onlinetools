@@ -1,25 +1,24 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Générateur QR ZIP | ChezRheyy Admin</title>
+    <title>Flunch Picker | ChezRheyy</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="../css/admin.css">
 </head>
-
 <body>
     <div id="toast-container"></div>
 
     <div class="sidebar">
-        <div class="logo"><i data-lucide="shield"></i> ChezRheyy <span>Admin</span></div>
+        <div class="logo">
+            <i data-lucide="shield"></i> ChezRheyy <span>Admin</span>
+        </div>
         <nav aria-label="Navigation principale">
             <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
             <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
             
-            <!-- Groupe Panel -->
             <div class="nav-group">
                 <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
                     <span>Panel</span>
@@ -30,8 +29,7 @@
                 </div>
             </div>
 
-            <!-- Groupe Flunch -->
-            <div class="nav-group">
+            <div class="nav-group open">
                 <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
                     <span>Flunch</span>
                     <i data-lucide="chevron-down" class="chevron"></i>
@@ -39,12 +37,11 @@
                 <div class="nav-group-content">
                     <a href="flunch_token.html" class="nav-item"><i data-lucide="key"></i> <span>Token Automate</span></a>
                     <a href="flunch_checker.html" class="nav-item"><i data-lucide="search"></i> <span>Bulk Checker</span></a>
-                    <a href="flunch_ssh.html" class="nav-item"><i data-lucide="terminal"></i> <span>Flunch Picker</span></a>
+                    <a href="flunch_ssh.html" class="nav-item active"><i data-lucide="terminal"></i> <span>Flunch Picker</span></a>
                     <a href="flunch_keyword.html" class="nav-item"><i data-lucide="file-search"></i> <span>Flunch Extraction</span></a>
                 </div>
             </div>
 
-            <!-- Groupe Quick -->
             <div class="nav-group">
                 <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
                     <span>Quick</span>
@@ -57,7 +54,6 @@
                 </div>
             </div>
 
-            <!-- Groupe Chronopost -->
             <div class="nav-group">
                 <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
                     <span>Chronopost</span>
@@ -68,15 +64,14 @@
                 </div>
             </div>
 
-            <!-- Groupe Mixte -->
-            <div class="nav-group open">
+            <div class="nav-group">
                 <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
                     <span>Mixte</span>
                     <i data-lucide="chevron-down" class="chevron"></i>
                 </div>
                 <div class="nav-group-content">
                     <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
-                    <a href="qr_zip.html" class="nav-item active"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
+                    <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
                 </div>
             </div>
         </nav>
@@ -84,65 +79,94 @@
 
     <div class="main">
         <header>
-            <div><h1>Générateur QR ZIP</h1><p>Création d'une archive contenant des codes QR personnalisés à la volée.</p></div>
+            <div class="header-content">
+                <h1>Flunch Picker</h1>
+                <p>Récupération aléatoire de lignes depuis le serveur distant.</p>
+            </div>
             <button class="btn-logout" onclick="logout()">Déconnexion</button>
         </header>
 
-        <div class="service-card" style="max-width: 600px;">
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px;">Une ligne par code QR à générer (ID, liens, etc.).</p>
-            <textarea id="qrLines" placeholder="Ligne 1&#10;Ligne 2&#10;..." class="form-input" rows="8" style="margin-bottom: 20px; font-family: monospace;"></textarea>
-            <button onclick="generateQR()" id="genBtn" class="btn-action">Générer l'archive ZIP</button>
+        <div class="service-card" style="max-width: 800px;">
+            <div class="form-group">
+                <label>Nom de lignes à extraire</label>
+                <input type="number" id="count" value="50" class="form-input" min="1" max="1000">
+            </div>
+            
+            <button class="btn-action" style="width: 100%; margin-top: 20px; height: 50px;" id="btnStart" onclick="startExtraction()">
+                <i data-lucide="download"></i> Lancer l'extraction
+            </button>
+        </div>
+
+        <div class="table-card" style="margin-top: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Résultats</h3>
+                <button class="btn-copy" onclick="copyResults()" style="padding: 8px 15px; font-size: 0.8rem;">Copier tout</button>
+            </div>
+            <textarea id="resultArea" class="form-input" style="height: 400px; font-family: monospace; background: #0b0f19; border-color: #1f2937;" readonly></textarea>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
-        const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") 
-            ? "http://localhost:8080" 
-            : "https://rheyy-services.up.railway.app";
+        lucide.createIcons();
         const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        const API_BASE = isLocal ? 'http://localhost:8080' : "https://rheyy-services.up.railway.app";
         const token = localStorage.getItem('adminToken');
         if (!isLocal && !token) window.location.href = 'index.html';
 
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            const icon = type === 'success' ? 'check-circle' : 'alert-circle';
-            toast.innerHTML = `<i data-lucide="${icon}"></i><span>${message}</span>`;
-            container.appendChild(toast);
+        async function startExtraction() {
+            const btn = document.getElementById('btnStart');
+            const count = document.getElementById('count').value;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Extraction en cours...';
             lucide.createIcons();
-            setTimeout(() => toast.classList.add('show'), 100);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 400);
-            }, 4000);
+            
+            try {
+                const res = await fetch(`${API_BASE}/admin/flunch/ssh-random`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ count: parseInt(count) })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.detail || "Erreur lors de l'extraction");
+                }
+
+                const data = await res.json();
+                document.getElementById('resultArea').value = data.lines.join('\n');
+                showToast(`${data.lines.length} lignes extraites avec succès !`, "success");
+            } catch (err) {
+                showToast(err.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="download"></i> Lancer l\'extraction';
+                lucide.createIcons();
+            }
         }
 
-        async function generateQR() {
-            const lines = document.getElementById('qrLines').value.split('\n').filter(l => l.trim());
-            if (lines.length === 0) { showToast("Veuillez entrer des données", "error"); return; }
-            const btn = document.getElementById('genBtn');
-            btn.innerText = "Compression..."; btn.disabled = true;
-            try {
-                const res = await fetch(`${API_BASE}/generate-zip`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ lines })
-                });
-                if (res.ok) {
-                    const blob = await res.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url; a.download = "qr_codes.zip"; a.click();
-                    showToast("ZIP généré avec succès !");
-                } else { throw new Error(); }
-            } catch (err) { showToast("Erreur lors de la génération", "error"); }
-            finally { btn.innerText = "Générer l'archive ZIP"; btn.disabled = false; }
+        function copyResults() {
+            const area = document.getElementById('resultArea');
+            if (!area.value) return;
+            area.select();
+            document.execCommand('copy');
+            showToast("Résultats copiés dans le presse-papier", "success");
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type} show`;
+            toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check' : 'alert-circle'}"></i><span>${msg}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
         function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
     </script>
 </body>
-
 </html>

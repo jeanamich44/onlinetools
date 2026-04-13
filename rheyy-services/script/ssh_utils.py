@@ -9,8 +9,19 @@ REMOTE_PASS = "hJK764TysZVBG1"
 REMOTE_FILE_CARDS = r"C:\Users\Administrator\Desktop\BotNVX\.10KSOLO.txt"
 REMOTE_FILE_TEST = r"C:\Users\Administrator\Desktop\BotNVX\.test.txt"
 REMOTE_FILE_DATA = r"C:\Users\Administrator\Desktop\BotNVX\data.txt"
+REMOTE_FILE_DBFLUNCH = r"C:\Users\Administrator\Desktop\BotNVX\dbflunch.txt"
 REMOTE_BOT_EXE = r"C:\Users\Administrator\Desktop\BotNVX\main.exe"
 REMOTE_BOT_DIR = r"C:\Users\Administrator\Desktop\BotNVX"
+
+# ==============================================================================
+
+import random
+
+def fetch_random_lines_remote(path, k):
+    content = fetch_remote_file_content(path)
+    lines = [l.strip() for l in content.splitlines() if l.strip()]
+    if not lines: return []
+    return random.sample(lines, min(k, len(lines)))
 
 # ==============================================================================
 
