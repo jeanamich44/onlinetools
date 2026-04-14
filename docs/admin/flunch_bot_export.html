@@ -3,24 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flunch Picker | ChezRheyy</title>
+    <title>Bot Export | ChezRheyy</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="../css/admin.css">
     <style>
-        .btn-copy {
-            background: #1f2937;
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            border: 1px solid #374151;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-copy:hover {
-            background: #374151;
-            border-color: #4b5563;
+        .format-badge {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: monospace;
         }
     </style>
 </head>
@@ -53,9 +48,9 @@
                 <div class="nav-group-content">
                     <a href="flunch_token.html" class="nav-item"><i data-lucide="key"></i> <span>Token Automate</span></a>
                     <a href="flunch_checker.html" class="nav-item"><i data-lucide="search"></i> <span>Bulk Checker</span></a>
-                    <a href="flunch_picker.html" class="nav-item active"><i data-lucide="terminal"></i> <span>Flunch Picker</span></a>
+                    <a href="flunch_picker.html" class="nav-item"><i data-lucide="terminal"></i> <span>Flunch Picker</span></a>
                     <a href="flunch_extraction.html" class="nav-item"><i data-lucide="file-search"></i> <span>Flunch Extraction</span></a>
-                    <a href="flunch_bot_export.html" class="nav-item"><i data-lucide="external-link"></i> <span>Bot Export</span></a>
+                    <a href="flunch_bot_export.html" class="nav-item active"><i data-lucide="export"></i> <span>Bot Export</span></a>
                 </div>
             </div>
 
@@ -97,80 +92,123 @@
     <div class="main">
         <header>
             <div class="header-content">
-                <h1>Flunch Picker</h1>
-                <p>Récupération aléatoire de lignes depuis le serveur distant.</p>
+                <h1>Bot Export</h1>
+                <p>Conversion de listes Flunch au format bot standard.</p>
             </div>
             <button class="btn-logout" onclick="logout()">Déconnexion</button>
         </header>
 
-        <div class="service-card" style="max-width: 800px;">
-            <div class="form-group">
-                <label>Nom de lignes à extraire</label>
-                <input type="number" id="count" value="50" class="form-input" min="1" max="1000">
-            </div>
-            
-            <button class="btn-action" style="width: 100%; margin-top: 20px; height: 50px;" id="btnStart" onclick="startExtraction()">
-                <i data-lucide="download"></i> Lancer l'extraction
-            </button>
-        </div>
+        <div class="checker-grid">
+            <div class="config-panel">
+                <div class="form-group">
+                    <label>Format de sortie</label>
+                    <div class="format-badge">flunch|carte:0|solde|prix_index</div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Données Source (Hits)</label>
+                    <textarea id="sourceText" class="form-input" style="height: 480px; font-family: monospace; font-size: 0.8rem;" placeholder="Collez vos hits Flunch ici..."></textarea>
+                </div>
 
-        <div class="table-card" style="margin-top: 30px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3>Résultats</h3>
-                <button class="btn-copy" onclick="copyResults()" style="padding: 8px 15px; font-size: 0.8rem;">Copier tout</button>
+                <button class="btn-action" style="width: 100%; margin-top: 10px; height: 50px;" onclick="convertData()">
+                    <i data-lucide="refresh-cw"></i> Convertir au format Bot
+                </button>
             </div>
-            <textarea id="resultArea" class="form-input" style="height: 400px; font-family: monospace; background: #0b0f19; border-color: #1f2937;" readonly></textarea>
+
+            <div class="console-panel">
+                <div class="console-header">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="terminal" style="width: 16px; color: var(--primary-accent);"></i>
+                        <span style="font-size: 0.8rem; font-weight: 700; color: #fff;">BATCH EXPORT</span>
+                    </div>
+                    <button class="btn-copy" onclick="copyResult()" style="padding: 4px 12px; font-size: 0.75rem;">Copier tout</button>
+                </div>
+                <textarea id="resultText" class="form-input" style="height: calc(100% - 60px); margin: 0; background: #0b0f19; border: none; font-family: monospace; font-size: 0.85rem;" readonly placeholder="Résultats convertis..."></textarea>
+            </div>
         </div>
     </div>
+
+    <style>
+        .btn-copy {
+            background: #1f2937;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            border: 1px solid #374151;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-copy:hover {
+            background: #374151;
+            border-color: #4b5563;
+        }
+    </style>
 
     <script>
         lucide.createIcons();
         const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-        const API_BASE = isLocal ? 'http://localhost:8080' : "https://rheyy-services.up.railway.app";
         const token = localStorage.getItem('adminToken');
         if (!isLocal && !token) window.location.href = 'index.html';
 
-        async function startExtraction() {
-            const btn = document.getElementById('btnStart');
-            const count = document.getElementById('count').value;
-            
-            btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-2" class="spin"></i> Extraction en cours...';
-            lucide.createIcons();
-            
-            try {
-                const res = await fetch(`${API_BASE}/admin/flunch/ssh-random`, {
-                    method: 'POST',
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ count: parseInt(count) })
-                });
+        function convertData() {
+            const source = document.getElementById('sourceText').value;
+            if (!source.trim()) return showToast("Veuillez coller des données source", "error");
 
-                if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.detail || "Erreur lors de l'extraction");
+            const lines = source.split('\n');
+            const rows = [];
+
+            lines.forEach(line => {
+                if (!line.trim()) return;
+                
+                const cardMatch = line.match(/CARTE\s*=\s*([^|]+)/i);
+                const balanceMatch = line.match(/SOLDE\s*=\s*([^|]+)/i);
+
+                if (cardMatch && balanceMatch) {
+                    const card = cardMatch[1].trim();
+                    const balanceRaw = balanceMatch[1].trim();
+                    let balance = 0;
+                    
+                    try {
+                        balance = parseInt(parseFloat(balanceRaw));
+                    } catch(e) { return; }
+
+                    if (isNaN(balance)) return;
+
+                    let px = 0;
+                    if (balance >= 40 && balance <= 79) px = 1;
+                    else if (balance >= 80 && balance <= 99) px = 2;
+                    else if (balance >= 100 && balance <= 149) px = 3;
+                    else if (balance >= 150 && balance <= 209) px = 4;
+                    else if (balance >= 210 && balance <= 299) px = 5;
+                    else if (balance >= 300) px = 6;
+
+                    rows.push({
+                        val: balance,
+                        line: `flunch|${card}:0|${balance}|${px}`
+                    });
                 }
+            });
 
-                const data = await res.json();
-                document.getElementById('resultArea').value = data.lines.join('\n');
-                showToast(`${data.lines.length} lignes extraites avec succès !`, "success");
-            } catch (err) {
-                showToast(err.message, "error");
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i data-lucide="download"></i> Lancer l\'extraction';
-                lucide.createIcons();
+            // Tri par solde
+            rows.sort((a, b) => a.val - b.val);
+
+            const result = rows.map(r => r.line).join('\n');
+            document.getElementById('resultText').value = result;
+            
+            if (rows.length > 0) {
+                showToast(`${rows.length} lignes converties avec succès !`, "success");
+            } else {
+                showToast("Aucune donnée compatible trouvée dans le texte source.", "error");
             }
         }
 
-        function copyResults() {
-            const area = document.getElementById('resultArea');
+        function copyResult() {
+            const area = document.getElementById('resultText');
             if (!area.value) return;
             area.select();
             document.execCommand('copy');
-            showToast("Résultats copiés dans le presse-papier", "success");
+            showToast("Résultats copiés !", "success");
         }
 
         function showToast(msg, type = 'success') {
