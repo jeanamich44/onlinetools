@@ -20,21 +20,27 @@ def index_to_letters(index):
 
 # ==============================================================================
 
-def generate_packaging_elite(lines_source: list[str], start_idx: int, title: str = None) -> str:
+import math
+
+def generate_packaging_elite(lines_source: list[str], start_idx: int, title: str = None, count: int = 200) -> str:
     uid = str(uuid.uuid4())
     base_tmp = f"temp_pack_{uid}"
     os.makedirs(base_tmp, exist_ok=True)
     
-    target_lines = lines_source[start_idx : start_idx + 200]
+    BATCH_SIZE = 20
+    count = min(count, 200)
+    
+    target_lines = lines_source[start_idx : start_idx + count]
     if not target_lines:
         raise ValueError("Aucune ligne trouvée.")
 
+    num_batches = math.ceil(len(target_lines) / BATCH_SIZE)
     final_zip_path = f"temp_pack_{uid}.zip"
     
     try:
-        for i in range(4):
+        for i in range(num_batches):
             batch_id = i + 1
-            batch_lines = target_lines[i * 50 : (i + 1) * 50]
+            batch_lines = target_lines[i * BATCH_SIZE : (i + 1) * BATCH_SIZE]
             if not batch_lines:
                 break
             

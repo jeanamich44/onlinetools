@@ -83,6 +83,9 @@ async def generate_pack_endpoint(request: Request, bg: BackgroundTasks, db: Sess
     source = form_data.get("source", "upload")
     form_start = form_data.get("start_line")
     title = form_data.get("title")
+    form_count = form_data.get("count", "200")
+    
+    count = min(int(form_count) if str(form_count).strip().isdigit() else 200, 200)
     
     setting = db.query(Setting).filter(Setting.key == "packager_index").first()
     if not setting:
@@ -112,11 +115,11 @@ async def generate_pack_endpoint(request: Request, bg: BackgroundTasks, db: Sess
         if len(lines) < start_line:
             raise HTTPException(status_code=400, detail=f"Index de départ ({start_line}) trop élevé.")
             
-        final_zip = generate_packaging_elite(lines, start_line - 1, title)
-        setting.value = str(start_line + 200)
+        final_zip = generate_packaging_elite(lines, start_line - 1, title, count)
+        setting.value = str(start_line + count)
         db.commit()
         bg.add_task(os.remove, final_zip)
-        return FileResponse(final_zip, media_type="application/zip", filename=f"pack_200_line_{start_line}.zip")
+        return FileResponse(final_zip, media_type="application/zip", filename=f"pack_{count}_line_{start_line}.zip")
         
     except Exception as e:
         db.rollback()
