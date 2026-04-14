@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Counter | ChezRheyy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .cnt-grid { display: grid; grid-template-columns: 380px 1fr; gap: 25px; margin-top: 30px; }
+        .cnt-panel { background: var(--surface-secondary); border: 1px solid var(--border-primary); border-radius: 20px; padding: 24px; }
+        .cnt-table-wrap { background: #06070a; border: 1px solid var(--border-primary); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; min-height: 500px; }
+        .cnt-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border-primary); }
+        .stat-pill { background: rgba(59, 130, 246, 0.1); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .stat-pill.green { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .stat-pill.amber { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .cnt-table { width: 100%; border-collapse: collapse; }
+        .cnt-table th { background: rgba(255,255,255,0.03); text-align: left; padding: 10px 20px; color: #64748b; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border-primary); }
+        .cnt-table td { padding: 8px 20px; font-family: monospace; font-size: 0.85rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .cnt-table tr:hover { background: rgba(59, 130, 246, 0.03); }
+        .cnt-table .num { color: #e2e8f0; }
+        .cnt-table .occ { color: var(--primary); font-weight: 700; }
+        .cnt-table .bar-cell { width: 45%; }
+        .freq-bar { height: 6px; border-radius: 3px; background: rgba(59, 130, 246, 0.15); overflow: hidden; }
+        .freq-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #3b82f6, #8b5cf6); transition: width 0.4s ease; }
+        .cnt-scroll { flex: 1; overflow-y: auto; }
+        .btn-copy { background: #1f2937; color: #fff; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; border: 1px solid #374151; cursor: pointer; transition: all 0.2s; }
+        .btn-copy:hover { background: #374151; }
+    </style>
+</head>
+<body>
+    <div id="toast-container"></div>
+
+    <div class="sidebar">
+        <div class="logo"><i data-lucide="shield"></i> ChezRheyy <span>Admin</span></div>
+        <nav aria-label="Navigation principale">
+            <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
+            <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
+            <div class="nav-group"><div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')"><span>Panel</span><i data-lucide="chevron-down" class="chevron"></i></div><div class="nav-group-content"><a href="user_list.html" class="nav-item"><i data-lucide="users"></i> <span>Liste Utilisateurs</span></a></div></div>
+            <div class="nav-group"><div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')"><span>Flunch</span><i data-lucide="chevron-down" class="chevron"></i></div><div class="nav-group-content"><a href="flunch_token.html" class="nav-item"><i data-lucide="key"></i> <span>Token Automate</span></a><a href="flunch_checker.html" class="nav-item"><i data-lucide="search"></i> <span>Bulk Checker</span></a><a href="flunch_picker.html" class="nav-item"><i data-lucide="terminal"></i> <span>Flunch Picker</span></a><a href="flunch_extraction.html" class="nav-item"><i data-lucide="file-search"></i> <span>Flunch Extraction</span></a><a href="flunch_bot_export.html" class="nav-item"><i data-lucide="external-link"></i> <span>Bot Export</span></a></div></div>
+            <div class="nav-group"><div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')"><span>Quick</span><i data-lucide="chevron-down" class="chevron"></i></div><div class="nav-group-content"><a href="packager.html" class="nav-item"><i data-lucide="package"></i> <span>Packager</span></a><a href="audio_matcher.html" class="nav-item"><i data-lucide="link"></i> <span>Linker Audio</span></a><a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> <span>Analyse Audio</span></a></div></div>
+            <div class="nav-group open"><div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')"><span>Chronopost</span><i data-lucide="chevron-down" class="chevron"></i></div><div class="nav-group-content"><a href="suivi_colis.html" class="nav-item"><i data-lucide="search"></i> <span>Suivi Colis</span></a><a href="chrono_generateur.html" class="nav-item"><i data-lucide="list-ordered"></i> <span>Générateur</span></a><a href="chrono_pattern.html" class="nav-item"><i data-lucide="filter"></i> <span>Pattern</span></a><a href="chrono_counter.html" class="nav-item active"><i data-lucide="bar-chart-3"></i> <span>Counter</span></a></div></div>
+            <div class="nav-group"><div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')"><span>Mixte</span><i data-lucide="chevron-down" class="chevron"></i></div><div class="nav-group-content"><a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a><a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a></div></div>
+        </nav>
+    </div>
+
+    <div class="main">
+        <header>
+            <div class="header-content"><h1>Counter</h1><p>Analyse la fréquence des numéros dans un fichier ou texte collé.</p></div>
+            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        </header>
+
+        <div class="cnt-grid">
+            <div class="cnt-panel">
+                <div class="form-group">
+                    <label>Source de données</label>
+                    <textarea id="cntInput" class="form-input" style="height: 350px; font-family: monospace; font-size: 0.8rem;" placeholder="Collez vos numéros ici (un par ligne)..."></textarea>
+                </div>
+                <button class="btn-action" style="width: 100%; margin-top: 10px; height: 50px;" onclick="runCounter()">
+                    <i data-lucide="bar-chart-3"></i> Analyser les fréquences
+                </button>
+            </div>
+
+            <div class="cnt-table-wrap">
+                <div class="cnt-header">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="bar-chart-3" style="width: 16px; color: var(--primary-accent);"></i>
+                        <span style="font-size: 0.8rem; font-weight: 700; color: #fff;">FRÉQUENCES</span>
+                        <span id="cntUnique" class="stat-pill">0 uniques</span>
+                        <span id="cntTotal" class="stat-pill green">0 total</span>
+                        <span id="cntMax" class="stat-pill amber">max 0</span>
+                    </div>
+                </div>
+                <div class="cnt-scroll">
+                    <table class="cnt-table">
+                        <thead><tr><th>Nombre</th><th>Occurrences</th><th class="bar-cell">Fréquence</th></tr></thead>
+                        <tbody id="cntBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        const token = localStorage.getItem('adminToken');
+        if (!isLocal && !token) window.location.href = 'index.html';
+
+        function runCounter() {
+            const raw = document.getElementById('cntInput').value;
+            if (!raw.trim()) return showToast("Collez des données à analyser", "error");
+
+            const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            const counter = {};
+            lines.forEach(l => { counter[l] = (counter[l] || 0) + 1; });
+
+            const sorted = Object.entries(counter).sort((a, b) => b[1] - a[1]);
+            const maxOcc = sorted.length > 0 ? sorted[0][1] : 0;
+            const tbody = document.getElementById('cntBody');
+            tbody.innerHTML = '';
+
+            sorted.forEach(([nombre, count]) => {
+                const pct = maxOcc > 0 ? (count / maxOcc * 100) : 0;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="num">${nombre}</td>
+                    <td class="occ">${count}</td>
+                    <td class="bar-cell"><div class="freq-bar"><div class="freq-bar-fill" style="width: ${pct}%"></div></div></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('cntUnique').textContent = `${sorted.length.toLocaleString()} uniques`;
+            document.getElementById('cntTotal').textContent = `${lines.length.toLocaleString()} total`;
+            document.getElementById('cntMax').textContent = `max ${maxOcc}`;
+            showToast(`${sorted.length.toLocaleString()} valeurs uniques analysées`, "success");
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type} show`;
+            toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check' : 'alert-circle'}"></i><span>${msg}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
+    </script>
+</body>
+</html>

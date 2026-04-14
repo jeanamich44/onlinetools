@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pattern | ChezRheyy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .gen-grid { display: grid; grid-template-columns: 380px 1fr; gap: 25px; margin-top: 30px; }
+        .gen-panel { background: var(--surface-secondary); border: 1px solid var(--border-primary); border-radius: 20px; padding: 24px; height: fit-content; }
+        .gen-output { background: #06070a; border: 1px solid var(--border-primary); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; min-height: 500px; }
+        .gen-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border-primary); }
+        .stat-pill { background: rgba(59, 130, 246, 0.1); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .toggle-row { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+        .toggle-switch { position: relative; width: 44px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider { position: absolute; inset: 0; background: #1f2937; border-radius: 24px; cursor: pointer; transition: 0.3s; }
+        .toggle-slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
+        .toggle-switch input:checked + .toggle-slider { background: var(--primary); }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+        .pair-chip { display: inline-block; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; color: var(--primary); font-family: monospace; font-weight: 700; margin: 2px; }
+        .btn-copy { background: #1f2937; color: #fff; padding: 6px 14px; border-radius: 8px; font-size: 0.75rem; border: 1px solid #374151; cursor: pointer; transition: all 0.2s; }
+        .btn-copy:hover { background: #374151; }
+    </style>
+</head>
+<body>
+    <div id="toast-container"></div>
+
+    <div class="sidebar">
+        <div class="logo"><i data-lucide="shield"></i> ChezRheyy <span>Admin</span></div>
+        <nav aria-label="Navigation principale">
+            <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
+            <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
+            <div class="nav-group"><div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')"><span>Panel</span><i data-lucide="chevron-down" class="chevron"></i></div><div class="nav-group-content"><a href="user_list.html" class="nav-item"><i data-lucide="users"></i> <span>Liste Utilisateurs</span></a></div></div>
+            <div class="nav-group"><div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')"><span>Flunch</span><i data-lucide="chevron-down" class="chevron"></i></div><div class="nav-group-content"><a href="flunch_token.html" class="nav-item"><i data-lucide="key"></i> <span>Token Automate</span></a><a href="flunch_checker.html" class="nav-item"><i data-lucide="search"></i> <span>Bulk Checker</span></a><a href="flunch_picker.html" class="nav-item"><i data-lucide="terminal"></i> <span>Flunch Picker</span></a><a href="flunch_extraction.html" class="nav-item"><i data-lucide="file-search"></i> <span>Flunch Extraction</span></a><a href="flunch_bot_export.html" class="nav-item"><i data-lucide="external-link"></i> <span>Bot Export</span></a></div></div>
+            <div class="nav-group"><div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')"><span>Quick</span><i data-lucide="chevron-down" class="chevron"></i></div><div class="nav-group-content"><a href="packager.html" class="nav-item"><i data-lucide="package"></i> <span>Packager</span></a><a href="audio_matcher.html" class="nav-item"><i data-lucide="link"></i> <span>Linker Audio</span></a><a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> <span>Analyse Audio</span></a></div></div>
+            <div class="nav-group open"><div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')"><span>Chronopost</span><i data-lucide="chevron-down" class="chevron"></i></div><div class="nav-group-content"><a href="suivi_colis.html" class="nav-item"><i data-lucide="search"></i> <span>Suivi Colis</span></a><a href="chrono_generateur.html" class="nav-item"><i data-lucide="list-ordered"></i> <span>Générateur</span></a><a href="chrono_pattern.html" class="nav-item active"><i data-lucide="filter"></i> <span>Pattern</span></a><a href="chrono_counter.html" class="nav-item"><i data-lucide="bar-chart-3"></i> <span>Counter</span></a></div></div>
+            <div class="nav-group"><div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')"><span>Mixte</span><i data-lucide="chevron-down" class="chevron"></i></div><div class="nav-group-content"><a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a><a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a></div></div>
+        </nav>
+    </div>
+
+    <div class="main">
+        <header>
+            <div class="header-content"><h1>Générateur Pattern</h1><p>Filtre les numéros par les 2 derniers chiffres selon des paires valides.</p></div>
+            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        </header>
+
+        <div class="gen-grid">
+            <div class="gen-panel">
+                <div class="form-group">
+                    <label>Début de plage</label>
+                    <input type="text" id="patStart" class="form-input" value="00000000" maxlength="8" style="font-family: monospace;">
+                </div>
+                <div class="form-group">
+                    <label>Fin de plage</label>
+                    <input type="text" id="patEnd" class="form-input" value="00000100" maxlength="8" style="font-family: monospace;">
+                </div>
+                <div class="form-group">
+                    <label>Paires valides (séparées par virgule)</label>
+                    <input type="text" id="patPairs" class="form-input" value="00,01,02,03,50" style="font-family: monospace;">
+                </div>
+                <div class="toggle-row">
+                    <label class="toggle-switch"><input type="checkbox" id="patShuffle"><span class="toggle-slider"></span></label>
+                    <span style="color: #94a3b8; font-size: 0.85rem;">Mélanger les résultats</span>
+                </div>
+                <button class="btn-action" style="width: 100%; margin-top: 20px; height: 50px;" onclick="runPattern()">
+                    <i data-lucide="filter"></i> Générer Filtré
+                </button>
+            </div>
+
+            <div class="gen-output">
+                <div class="gen-header">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="terminal" style="width: 16px; color: var(--primary-accent);"></i>
+                        <span style="font-size: 0.8rem; font-weight: 700; color: #fff;">RÉSULTATS FILTRÉS</span>
+                        <span id="patCount" class="stat-pill">0 lignes</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-copy" onclick="copyResult()">Copier</button>
+                        <button class="btn-copy" onclick="downloadResult()">Télécharger .txt</button>
+                    </div>
+                </div>
+                <textarea id="patResult" class="form-input" style="flex: 1; margin: 0; background: transparent; border: none; font-family: monospace; font-size: 0.85rem; resize: none;" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        const token = localStorage.getItem('adminToken');
+        if (!isLocal && !token) window.location.href = 'index.html';
+
+        function runPattern() {
+            const startVal = parseInt(document.getElementById('patStart').value);
+            const endVal = parseInt(document.getElementById('patEnd').value);
+            const pairsRaw = document.getElementById('patPairs').value;
+            const shuffle = document.getElementById('patShuffle').checked;
+
+            if (isNaN(startVal) || isNaN(endVal) || startVal < 0 || endVal > 99999999 || startVal > endVal) {
+                return showToast("Plage invalide (0 à 99999999, début ≤ fin)", "error");
+            }
+
+            if (endVal - startVal > 500000) {
+                return showToast("Plage trop large (max 500 000 numéros)", "error");
+            }
+
+            const pairs = new Set(pairsRaw.split(',').map(p => p.trim()).filter(p => p.length === 2));
+            if (pairs.size === 0) {
+                return showToast("Aucune paire valide fournie", "error");
+            }
+
+            const nums = [];
+            for (let i = startVal; i <= endVal; i++) {
+                const n = String(i).padStart(8, '0');
+                if (pairs.has(n.slice(-2))) {
+                    nums.push(n);
+                }
+            }
+
+            if (shuffle) {
+                for (let i = nums.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [nums[i], nums[j]] = [nums[j], nums[i]];
+                }
+            }
+
+            document.getElementById('patResult').value = nums.join('\n');
+            document.getElementById('patCount').textContent = `${nums.length.toLocaleString()} lignes`;
+            showToast(`${nums.length.toLocaleString()} numéros filtrés !`, "success");
+        }
+
+        function copyResult() {
+            const area = document.getElementById('patResult');
+            if (!area.value) return;
+            area.select();
+            document.execCommand('copy');
+            showToast("Copié !", "success");
+        }
+
+        function downloadResult() {
+            const content = document.getElementById('patResult').value;
+            if (!content) return;
+            const blob = new Blob([content], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'contratchr_pattern.txt';
+            a.click();
+            showToast("Fichier téléchargé !", "success");
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type} show`;
+            toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check' : 'alert-circle'}"></i><span>${msg}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
+    </script>
+</body>
+</html>
