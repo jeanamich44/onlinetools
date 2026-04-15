@@ -620,7 +620,7 @@ async def create_checkout_reseller(req: RechargeInitRequest, db: Session = Depen
             if resp.status != 200:
                 raise HTTPException(status_code=500, detail="Erreur création checkout")
             data = await resp.json()
-            return {"status": "success", "checkout_id": data["checkout_id"], "checkout_ref": data["checkout_ref"]}
+            return {"status": "success", "checkout_id": data["checkout_id"], "checkout_ref": data["checkout_ref"], "checkout_url": data["url"]}
 
 class RechargeVerifyRequest(BaseModel):
     checkout_ref: str
