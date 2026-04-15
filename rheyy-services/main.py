@@ -14,7 +14,7 @@ import os
 import subprocess
 import aiohttp
 
-from systeme.database import init_db, get_db, Payment, Admin, Setting, Reseller, Transaction
+from systeme.database import init_db, get_db, Payment, Admin, Setting, Reseller
 from systeme.security import (
     get_password_hash, 
     verify_password, 
@@ -604,8 +604,11 @@ async def list_all_transactions(db: Session = Depends(get_db), admin: str = Depe
 
 @app.get("/reseller/history")
 async def get_reseller_history(db: Session = Depends(get_db), current_reseller: Reseller = Depends(get_current_reseller)):
-    transactions = db.query(Transaction).filter(Transaction.reseller_id == current_reseller.id).order_by(Transaction.date.desc()).all()
-    return transactions
+    payments = db.query(Payment).filter(
+        Payment.user_data == current_reseller.username, 
+        Payment.status == "PAID"
+    ).order_by(Payment.created_at.desc()).all()
+    return payments
 
 
 class RechargeInitRequest(BaseModel):
@@ -620,6 +623,17 @@ async def create_checkout_reseller(req: RechargeInitRequest, db: Session = Depen
             if resp.status != 200:
                 raise HTTPException(status_code=500, detail="Erreur création checkout")
             data = await resp.json()
+            # On log aussi l'intention de paiement en local (PENDING)
+            new_p = Payment(
+                checkout_id=data["checkout_id"],
+                checkout_ref=data["checkout_ref"],
+                amount=req.amount,
+                status="PENDING",
+                user_data=current_reseller.username,
+                product_name="recharge"
+            )
+            db.add(new_p)
+            db.commit()
             return {"status": "success", "checkout_id": data["checkout_id"], "checkout_ref": data["checkout_ref"], "checkout_url": data["url"]}
 
 class RechargeVerifyRequest(BaseModel):
@@ -627,6 +641,12 @@ class RechargeVerifyRequest(BaseModel):
 
 @app.post("/reseller/verify-recharge")
 async def verify_recharge_reseller(req: RechargeVerifyRequest, db: Session = Depends(get_db), current_reseller: Reseller = Depends(get_current_reseller)):
+    # 1. Vérifier si on a déjà validé ce paiement en local
+    local_payment = db.query(Payment).filter(Payment.checkout_ref == req.checkout_ref).first()
+    
+    if local_payment and local_payment.status == "PAID":
+        return {"status": "success", "new_balance": current_reseller.balance, "message": "Déjà crédité"}
+
     API_DOCS_URL = f"https://generate-docs-production.up.railway.app/api/services/verify-recharge/{req.checkout_ref}"
     
     async with aiohttp.ClientSession() as session:
@@ -637,18 +657,26 @@ async def verify_recharge_reseller(req: RechargeVerifyRequest, db: Session = Dep
             
             if data["status"] == "PAID":
                 amount = float(data["amount"])
-                # Vérifier si on a déjà traité cette transaction (évite les doubles crédits)
-                existing = db.query(Transaction).filter(Transaction.reseller_id == current_reseller.id, Transaction.amount == amount, Transaction.type == f"recharge_{req.checkout_ref}").first()
                 
-                if not existing:
-                    current_reseller.balance += amount
-                    db.add(current_reseller)
-                    new_transaction = Transaction(reseller_id=current_reseller.id, amount=amount, type=f"recharge_{req.checkout_ref}", status="completed")
-                    db.add(new_transaction)
-                    db.commit()
-                    return {"status": "success", "new_balance": current_reseller.balance, "message": "Compte crédité"}
+                # Mise à jour du solde
+                current_reseller.balance += amount
+                db.add(current_reseller)
+                
+                # Mise à jour ou création du paiement local en "PAID"
+                if local_payment:
+                    local_payment.status = "PAID"
                 else:
-                    return {"status": "success", "new_balance": current_reseller.balance, "message": "Déjà crédité"}
+                    local_payment = Payment(
+                        checkout_ref=req.checkout_ref,
+                        amount=amount,
+                        status="PAID",
+                        user_data=current_reseller.username,
+                        product_name="recharge"
+                    )
+                    db.add(local_payment)
+                
+                db.commit()
+                return {"status": "success", "new_balance": current_reseller.balance, "message": "Compte crédité"}
             else:
                 return {"status": "pending", "payment_status": data["status"]}
 

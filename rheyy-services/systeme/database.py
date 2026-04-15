@@ -46,17 +46,6 @@ class Reseller(Base):
     note = Column(Text, default="")
     created_at = Column(DateTime, default=datetime.utcnow)
     last_login = Column(DateTime, nullable=True)
-    transactions = relationship("Transaction", back_populates="reseller")
-
-class Transaction(Base):
-    __tablename__ = "transactions"
-    id = Column(Integer, primary_key=True, index=True)
-    reseller_id = Column(Integer, ForeignKey("resellers.id"))
-    amount = Column(Float)
-    type = Column(String)
-    date = Column(DateTime, default=datetime.utcnow)
-    status = Column(String, default="completed")
-    reseller = relationship("Reseller", back_populates="transactions")
 
 class Admin(Base):
     __tablename__ = "admins"
