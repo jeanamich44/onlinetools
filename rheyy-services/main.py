@@ -19,6 +19,7 @@ from script.security import (
     verify_password, 
     create_access_token, 
     get_current_admin,
+    get_current_reseller,
     check_ip_whitelist,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
