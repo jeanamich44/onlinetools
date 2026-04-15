@@ -447,7 +447,33 @@ async def login(req: dict = Body(...), db: Session = Depends(get_db)):
 
 # [ ADMIN - STATS ] ============================================================
 
-@app.get("/admin/stats")
+# [ ENDPOINTS SERVICES ] =======================================================
+
+@app.get("/admin/settings")
+async def get_all_settings(db: Session = Depends(get_db), admin: Admin = Depends(get_current_admin)):
+    settings = db.query(Setting).all()
+    return {s.key: s.value for s in settings}
+
+@app.post("/admin/settings")
+async def update_settings(data: dict = Body(...), db: Session = Depends(get_db), admin: Admin = Depends(get_current_admin)):
+    for key, value in data.items():
+        setting = db.query(Setting).filter(Setting.key == key).first()
+        if setting:
+            setting.value = str(value)
+        else:
+            new_s = Setting(key=key, value=str(value))
+            db.add(new_s)
+    db.commit()
+    return {"status": "success"}
+
+@app.get("/public/settings")
+async def get_public_settings(db: Session = Depends(get_db)):
+    # On renvoie uniquement ce qui est utile au client/reseller
+    keys = ["site_name", "tg_support", "min_recharge", "max_recharge", "recharge_reseller_enabled"]
+    settings = db.query(Setting).filter(Setting.key.in_(keys)).all()
+    return {s.key: s.value for s in settings}
+
+@app.get("/service/cards")
 async def get_stats(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
     total_rev = db.query(func.sum(Payment.amount)).filter(Payment.status == "PAID").scalar() or 0
     paid_count = db.query(Payment).filter(Payment.status == "PAID").count()
@@ -616,6 +642,20 @@ class RechargeInitRequest(BaseModel):
 
 @app.post("/reseller/create-checkout")
 async def create_checkout_reseller(req: RechargeInitRequest, db: Session = Depends(get_db), current_reseller: Reseller = Depends(get_current_reseller)):
+    # Récupération des réglages
+    settings = {s.key: s.value for s in db.query(Setting).all()}
+    
+    # Vérification si activé
+    if settings.get("recharge_reseller_enabled") == "false":
+        raise HTTPException(status_code=403, detail="Le rechargement par SumUp est temporairement désactivé.")
+        
+    # Vérification des limites
+    min_r = float(settings.get("min_recharge", 1))
+    max_r = float(settings.get("max_recharge", 70))
+    
+    if req.amount < min_r or req.amount > max_r:
+        raise HTTPException(status_code=400, detail=f"Montant invalide. Le montant doit être compris entre {min_r}€ et {max_r}€.")
+
     API_DOCS_URL = "https://generate-docs-production.up.railway.app/api/services/create-recharge"
     
     async with aiohttp.ClientSession() as session:

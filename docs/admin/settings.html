@@ -94,11 +94,21 @@
                 </div>
                 <div class="settings-row">
                     <div class="info">
-                        <span class="title">Activer Rechargement</span>
-                        <span class="desc">Autoriser ou non les revendeurs à se recharger.</span>
+                        <span class="title">Paiement SITE WEB</span>
+                        <span class="desc">Activer/Désactiver les paiements sur la vitrine client.</span>
                     </div>
                     <label class="toggle-switch">
-                        <input type="checkbox" id="recharge_enabled" checked>
+                        <input type="checkbox" id="recharge_site_enabled">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="settings-row">
+                    <div class="info">
+                        <span class="title">Paiement RESELLER</span>
+                        <span class="desc">Activer/Désactiver le rechargement pour les revendeurs.</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="recharge_reseller_enabled">
                         <span class="slider"></span>
                     </label>
                 </div>
@@ -106,23 +116,20 @@
 
             <!-- Revendeurs -->
             <div class="settings-group">
-                <h3><i data-lucide="users"></i> Gestion Revendeurs</h3>
-                <div class="settings-row">
-                    <div class="info">
-                        <span class="title">Inscription Libre</span>
-                        <span class="desc">Permettre aux visiteurs de créer un compte (désactivé conseillé).</span>
-                    </div>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="registration_open">
-                        <span class="slider"></span>
-                    </label>
-                </div>
+                <h3><i data-lucide="users"></i> Support & Contact</h3>
                 <div class="settings-row">
                     <div class="info">
                         <span class="title">Support Telegram</span>
-                        <span class="desc">Lien vers le bot ou le profil de support.</span>
+                        <span class="desc">Lien vers le bot ou le profil de support affiché aux revendeurs.</span>
                     </div>
                     <input type="text" id="tg_support" class="input-text" value="https://t.me/RheyyFonda">
+                </div>
+                <div class="settings-row">
+                    <div class="info">
+                        <span class="title">Nom du Site</span>
+                        <span class="desc">Nom affiché sur toute la plateforme.</span>
+                    </div>
+                    <input type="text" id="site_name" class="input-text" value="Chez Rheyy">
                 </div>
             </div>
 
@@ -131,15 +138,63 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); loadSettings(); });
+        const API_BASE = "https://rheyy-services-production.up.railway.app"; // À adapter si besoin
+        const token = localStorage.getItem('adminToken');
+
+        document.addEventListener('DOMContentLoaded', () => { 
+            lucide.createIcons(); 
+            loadSettings(); 
+        });
 
         async function loadSettings() {
-            // Ici on fera un fetch vers l'API rheyy-services
-            console.log("Chargement des paramètres...");
+            try {
+                const r = await fetch(`${API_BASE}/admin/settings`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!r.ok) return;
+                const data = await r.json();
+                
+                if (data.maintenance_mode) document.getElementById('maintenance_mode').checked = data.maintenance_mode === "true";
+                if (data.site_name) document.getElementById('site_name').value = data.site_name;
+                if (data.min_recharge) document.getElementById('min_recharge').value = data.min_recharge;
+                if (data.max_recharge) document.getElementById('max_recharge').value = data.max_recharge;
+                if (data.recharge_site_enabled) document.getElementById('recharge_site_enabled').checked = data.recharge_site_enabled === "true";
+                if (data.recharge_reseller_enabled) document.getElementById('recharge_reseller_enabled').checked = data.recharge_reseller_enabled === "true";
+                if (data.tg_support) document.getElementById('tg_support').value = data.tg_support;
+                
+            } catch (e) {
+                console.error("Erreur chargement:", e);
+            }
         }
 
         async function saveSettings() {
-            alert("Paramètres enregistrés en local ! (L'API sera liée prochainement)");
+            const data = {
+                maintenance_mode: document.getElementById('maintenance_mode').checked,
+                site_name: document.getElementById('site_name').value,
+                min_recharge: document.getElementById('min_recharge').value,
+                max_recharge: document.getElementById('max_recharge').value,
+                recharge_site_enabled: document.getElementById('recharge_site_enabled').checked,
+                recharge_reseller_enabled: document.getElementById('recharge_reseller_enabled').checked,
+                tg_support: document.getElementById('tg_support').value
+            };
+
+            try {
+                const r = await fetch(`${API_BASE}/admin/settings`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (r.ok) {
+                    alert("Paramètres enregistrés avec succès !");
+                } else {
+                    alert("Erreur lors de l'enregistrement.");
+                }
+            } catch (e) {
+                alert("Erreur réseau.");
+            }
         }
     </script>
 </body>
