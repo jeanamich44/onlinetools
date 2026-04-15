@@ -372,7 +372,7 @@ async def check_flunch_batch(req: dict = Body(...)):
         
     return {"results": results}
 
-from script.ssh_utils import fetch_random_lines_remote, REMOTE_FILE_DBFLUNCH
+from systeme.utils import fetch_random_lines_remote, REMOTE_FILE_DBFLUNCH
 @app.post("/admin/flunch/ssh-random")
 async def flunch_ssh_random(req: dict = Body(...), admin: str = Depends(get_current_admin)):
     count = int(req.get("count", 10))
