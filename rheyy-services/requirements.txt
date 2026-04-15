@@ -16,3 +16,4 @@ noisereduce
 paramiko
 colorama
 curl_cffi
+aiohttp
