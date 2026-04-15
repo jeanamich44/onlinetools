@@ -12,6 +12,7 @@ import uuid
 import shutil
 import os
 import subprocess
+import aiohttp
 
 from systeme.database import init_db, get_db, Payment, Admin, Setting, Reseller, Transaction
 from systeme.security import (
@@ -583,6 +584,22 @@ async def list_resellers(db: Session = Depends(get_db), admin: str = Depends(get
         "last_login": str(r.last_login) if r.last_login else None
     } for r in resellers]
 
+@app.get("/admin/transactions")
+async def list_all_transactions(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
+    transactions = db.query(Transaction).order_by(Transaction.date.desc()).all()
+    res = []
+    for t in transactions:
+        reseller = db.query(Reseller).filter(Reseller.id == t.reseller_id).first()
+        res.append({
+            "id": t.id,
+            "reseller_username": reseller.username if reseller else "Inconnu",
+            "amount": t.amount,
+            "type": t.type,
+            "date": str(t.date),
+            "status": t.status
+        })
+    return res
+
 # [ ENDPOINTS RESELLERS ] ======================================================
 
 @app.get("/reseller/history")
@@ -590,16 +607,53 @@ async def get_reseller_history(db: Session = Depends(get_db), current_reseller: 
     transactions = db.query(Transaction).filter(Transaction.reseller_id == current_reseller.id).order_by(Transaction.date.desc()).all()
     return transactions
 
-@app.post("/reseller/recharge")
-async def recharge_reseller(amount: float, db: Session = Depends(get_db), current_reseller: Reseller = Depends(get_current_reseller)):
-    if amount <= 0:
-        raise HTTPException(status_code=400, detail="Montant invalide")
-    current_reseller.balance += amount
-    db.add(current_reseller)
-    new_transaction = Transaction(reseller_id=current_reseller.id, amount=amount, type="recharge")
-    db.add(new_transaction)
-    db.commit()
-    return {"status": "success", "new_balance": current_reseller.balance}
+class RechargeInitRequest(BaseModel):
+    amount: float
+
+@app.post("/reseller/create-checkout")
+async def create_checkout_reseller(req: RechargeInitRequest, db: Session = Depends(get_db), current_reseller: Reseller = Depends(get_current_reseller)):
+    if req.amount < 5:
+        raise HTTPException(status_code=400, detail="Montant minimum 5€")
+        
+    API_DOCS_URL = "https://generate-docs-production.up.railway.app/api/services/create-recharge"
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.post(API_DOCS_URL, json={"amount": req.amount, "user_id": current_reseller.username}) as resp:
+            if resp.status != 200:
+                raise HTTPException(status_code=500, detail="Erreur création checkout")
+            data = await resp.json()
+            return {"status": "success", "checkout_id": data["checkout_id"], "checkout_ref": data["checkout_ref"]}
+
+class RechargeVerifyRequest(BaseModel):
+    checkout_ref: str
+
+@app.post("/reseller/verify-recharge")
+async def verify_recharge_reseller(req: RechargeVerifyRequest, db: Session = Depends(get_db), current_reseller: Reseller = Depends(get_current_reseller)):
+    API_DOCS_URL = f"https://generate-docs-production.up.railway.app/api/services/verify-recharge/{req.checkout_ref}"
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.get(API_DOCS_URL) as resp:
+            if resp.status != 200:
+                raise HTTPException(status_code=404, detail="Paiement introuvable")
+            data = await resp.json()
+            
+            if data["status"] == "PAID":
+                amount = float(data["amount"])
+                # Vérifier si on a déjà traité cette transaction (évite les doubles crédits)
+                existing = db.query(Transaction).filter(Transaction.reseller_id == current_reseller.id, Transaction.amount == amount, Transaction.type == f"recharge_{req.checkout_ref}").first()
+                
+                if not existing:
+                    current_reseller.balance += amount
+                    db.add(current_reseller)
+                    new_transaction = Transaction(reseller_id=current_reseller.id, amount=amount, type=f"recharge_{req.checkout_ref}", status="completed")
+                    db.add(new_transaction)
+                    db.commit()
+                    return {"status": "success", "new_balance": current_reseller.balance, "message": "Compte crédité"}
+                else:
+                    return {"status": "success", "new_balance": current_reseller.balance, "message": "Déjà crédité"}
+            else:
+                return {"status": "pending", "payment_status": data["status"]}
+
 
 # [ MAIN - SERVER ] ============================================================
 
