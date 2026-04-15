@@ -32,15 +32,74 @@
         <div class="logo">
             <i data-lucide="shield"></i> ChezRheyy <span>Admin</span>
         </div>
-        <nav>
+        <nav aria-label="Navigation principale">
             <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
             <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
-            <div class="nav-group open">
-                <div class="nav-group-header"><span>Mixte</span><i data-lucide="chevron-down" class="chevron"></i></div>
+            
+            <!-- Groupe Panel -->
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Panel</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
                 <div class="nav-group-content">
-                    <a href="mrz.html" class="nav-item">MRZ</a>
-                    <a href="qr_zip.html" class="nav-item">QR ZIP</a>
-                    <a href="settings.html" class="nav-item active">Configuration</a>
+                    <a href="user_list.html" class="nav-item"><i data-lucide="users"></i> <span>Liste Utilisateurs</span></a>
+                    <a href="reseller_add.html" class="nav-item"><i data-lucide="user-plus"></i> <span>Add New</span></a>
+                </div>
+            </div>
+
+            <!-- Groupe Flunch -->
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Flunch</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="flunch_token.html" class="nav-item"><i data-lucide="key"></i> <span>Token Automate</span></a>
+                    <a href="flunch_checker.html" class="nav-item"><i data-lucide="search"></i> <span>Bulk Checker</span></a>
+                    <a href="flunch_picker.html" class="nav-item"><i data-lucide="terminal"></i> <span>Flunch Picker</span></a>
+                    <a href="flunch_extraction.html" class="nav-item"><i data-lucide="file-search"></i> <span>Flunch Extraction</span></a>
+                    <a href="flunch_bot_export.html" class="nav-item"><i data-lucide="external-link"></i> <span>Bot Export</span></a>
+                </div>
+            </div>
+
+            <!-- Groupe Quick -->
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Quick</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="packager.html" class="nav-item"><i data-lucide="package"></i> <span>Packager</span></a>
+                    <a href="audio_matcher.html" class="nav-item"><i data-lucide="link"></i> <span>Linker Audio</span></a>
+                    <a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> <span>Analyse Audio</span></a>
+                </div>
+            </div>
+
+            <!-- Groupe Chronopost -->
+            <div class="nav-group">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Chronopost</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="suivi_colis.html" class="nav-item"><i data-lucide="search"></i> <span>Suivi Colis</span></a>
+                    <a href="chrono_generateur.html" class="nav-item"><i data-lucide="list-ordered"></i> <span>Générateur</span></a>
+                    <a href="chrono_pattern.html" class="nav-item"><i data-lucide="filter"></i> <span>Pattern</span></a>
+                    <a href="chrono_counter.html" class="nav-item"><i data-lucide="bar-chart-3"></i> <span>Counter</span></a>
+                </div>
+            </div>
+
+            <!-- Groupe Mixte -->
+            <div class="nav-group open">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Mixte</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a>
+                    <a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a>
+                    <a href="settings.html" class="nav-item active"><i data-lucide="settings"></i> <span>Configuration</span></a>
                 </div>
             </div>
         </nav>
@@ -65,13 +124,6 @@
                         <input type="checkbox" id="maintenance_mode">
                         <span class="slider"></span>
                     </label>
-                </div>
-                <div class="settings-row">
-                    <div class="info">
-                        <span class="title">Nom du Site</span>
-                        <span class="desc">Le nom affiché dans les headers et titres.</span>
-                    </div>
-                    <input type="text" id="site_name" class="input-text" value="Chez Rheyy">
                 </div>
             </div>
 
@@ -116,7 +168,14 @@
 
             <!-- Revendeurs -->
             <div class="settings-group">
-                <h3><i data-lucide="users"></i> Support & Contact</h3>
+                <h3><i data-lucide="users"></i> Support & Dashboard</h3>
+                <div class="settings-row">
+                    <div class="info">
+                        <span class="title">Titre du Dashboard</span>
+                        <span class="desc">Nom affiché dans les headers et titres du panel revendeur.</span>
+                    </div>
+                    <input type="text" id="site_name" class="input-text" value="Chez Rheyy">
+                </div>
                 <div class="settings-row">
                     <div class="info">
                         <span class="title">Support Telegram</span>
@@ -124,27 +183,40 @@
                     </div>
                     <input type="text" id="tg_support" class="input-text" value="https://t.me/RheyyFonda">
                 </div>
-                <div class="settings-row">
-                    <div class="info">
-                        <span class="title">Nom du Site</span>
-                        <span class="desc">Nom affiché sur toute la plateforme.</span>
-                    </div>
-                    <input type="text" id="site_name" class="input-text" value="Chez Rheyy">
-                </div>
             </div>
 
             <button class="btn-save" onclick="saveSettings()">Enregistrer les modifications</button>
         </div>
     </div>
 
+    <div id="toast-container"></div>
+
     <script>
-        const API_BASE = "https://rheyy-services-production.up.railway.app"; // À adapter si besoin
+        const API_BASE = "https://rheyy-services-production.up.railway.app"; 
         const token = localStorage.getItem('adminToken');
 
         document.addEventListener('DOMContentLoaded', () => { 
             lucide.createIcons(); 
             loadSettings(); 
         });
+
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const iconName = type === 'success' ? 'check-circle' : (type === 'error' ? 'alert-circle' : 'info');
+            toast.innerHTML = `<i data-lucide="${iconName}"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }, 4000);
+        }
 
         async function loadSettings() {
             try {
@@ -188,12 +260,12 @@
                     body: JSON.stringify(data)
                 });
                 if (r.ok) {
-                    alert("Paramètres enregistrés avec succès !");
+                    showToast("Paramètres enregistrés avec succès !", "success");
                 } else {
-                    alert("Erreur lors de l'enregistrement.");
+                    showToast("Erreur lors de l'enregistrement.", "error");
                 }
             } catch (e) {
-                alert("Erreur réseau.");
+                showToast("Erreur réseau.", "error");
             }
         }
     </script>

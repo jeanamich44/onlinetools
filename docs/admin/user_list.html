@@ -154,19 +154,19 @@
         <div class="stats-grid">
             <div class="stat-small-card">
                 <h4>Total Resellers</h4>
-                <span>124</span>
+                <span id="stat-total">-</span>
             </div>
             <div class="stat-small-card">
                 <h4>Utilisateurs Actifs</h4>
-                <span style="color: #22c55e;">118</span>
+                <span id="stat-active" style="color: #22c55e;">-</span>
             </div>
             <div class="stat-small-card">
                 <h4>Bannis</h4>
-                <span style="color: #ef4444;">6</span>
+                <span id="stat-banned" style="color: #ef4444;">-</span>
             </div>
             <div class="stat-small-card">
-                <h4>Volume Total</h4>
-                <span>12,450 €</span>
+                <h4>Balance Totale</h4>
+                <span id="stat-balance">- €</span>
             </div>
         </div>
 
@@ -174,14 +174,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
                 <div style="position: relative; width: 300px;">
                     <i data-lucide="search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; color: #4b5563;"></i>
-                    <input type="text" placeholder="Rechercher un utilisateur..." class="form-input" style="padding-left: 40px; margin-bottom: 0;">
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <select class="form-input" style="width: 150px; margin-bottom: 0;">
-                        <option>Tous les statuts</option>
-                        <option>Actif</option>
-                        <option>Banni</option>
-                    </select>
+                    <input type="text" id="searchInput" placeholder="Rechercher par username..." class="form-input" style="padding-left: 40px; margin-bottom: 0;">
                 </div>
             </div>
 
@@ -190,73 +183,108 @@
                     <tr>
                         <th>Utilisateur</th>
                         <th>Statut</th>
-                        <th>Plan</th>
+                        <th>Rôle</th>
                         <th>Solde</th>
-                        <th>Inscrit le</th>
+                        <th>Créé le</th>
                         <th style="text-align: right;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="userTableBody">
-                    <!-- Données factices -->
-                    <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div class="user-avatar" style="background: #3b82f6;">JS</div>
-                                <div>
-                                    <div style="font-weight: 600; color: #fff;">Jean-Sébastien</div>
-                                    <div style="font-size: 0.75rem; color: #4b5563;">js@example.com</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="user-status status-active">Actif</span></td>
-                        <td>Premium</td>
-                        <td style="font-weight: 600; color: #fff;">450.00 €</td>
-                        <td>12/04/2026</td>
-                        <td>
-                            <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                                <button class="action-icon edit" title="Modifier"><i data-lucide="edit-3" style="width: 16px;"></i></button>
-                                <button class="action-icon" title="Historique"><i data-lucide="history" style="width: 16px;"></i></button>
-                                <button class="action-icon ban" title="Bannir"><i data-lucide="user-x" style="width: 16px;"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <div class="user-avatar" style="background: #ef4444;">TR</div>
-                                <div>
-                                    <div style="font-weight: 600; color: #fff;">TheReaper</div>
-                                    <div style="font-size: 0.75rem; color: #4b5563;">reaper@dark.io</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="user-status status-banned">Banni</span></td>
-                        <td>Starter</td>
-                        <td style="font-weight: 600; color: #fff;">0.00 €</td>
-                        <td>08/04/2026</td>
-                        <td>
-                            <div style="display: flex; justify-content: flex-end; gap: 8px;">
-                                <button class="action-icon edit" title="Modifier"><i data-lucide="edit-3" style="width: 16px;"></i></button>
-                                <button class="action-icon" title="Historique"><i data-lucide="history" style="width: 16px;"></i></button>
-                                <button class="action-icon" title="Réactiver" style="color: #22c55e;"><i data-lucide="user-check" style="width: 16px;"></i></button>
-                            </div>
-                        </td>
-                    </tr>
-                    <!-- Remplissage automatique via JS plus tard -->
+                    <tr><td colspan="6" style="text-align:center; padding: 40px; color: #94a3b8;">Chargement des utilisateurs...</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        lucide.createIcons();
-        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        const API_BASE = "https://rheyy-services-production.up.railway.app";
         const token = localStorage.getItem('adminToken');
-        if (!isLocal && !token) window.location.href = 'index.html';
+        let allUsers = [];
 
-        function showAddUserModal() {
-            showToast("Fonctionnalité de création en cours de développement", "info");
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+            if (!isLocal && !token) {
+                window.location.href = 'index.html';
+                return;
+            }
+            loadUsers();
+        });
+
+        async function loadUsers() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/resellers`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error("Erreur API");
+                allUsers = await res.json();
+                renderUsers(allUsers);
+                updateStats(allUsers);
+            } catch (e) {
+                showToast("Échec du chargement des utilisateurs", "error");
+                document.getElementById('userTableBody').innerHTML = '<tr><td colspan="6" style="text-align:center; color:#ef4444;">Erreur de connexion</td></tr>';
+            }
         }
+
+        function renderUsers(users) {
+            const body = document.getElementById('userTableBody');
+            body.innerHTML = '';
+            
+            if (users.length === 0) {
+                body.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">Aucun utilisateur trouvé</td></tr>';
+                return;
+            }
+
+            users.forEach(u => {
+                const tr = document.createElement('tr');
+                const initial = u.username.charAt(0).toUpperCase();
+                const date = new Date(u.created_at).toLocaleDateString();
+                
+                tr.innerHTML = `
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div class="user-avatar" style="background: ${u.is_active ? '#3b82f6' : '#ef4444'};">${initial}</div>
+                            <div>
+                                <div style="font-weight: 600; color: #fff;">${u.username}</div>
+                                <div style="font-size: 0.75rem; color: #4b5563;">ID: ${u.id}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td><span class="user-status ${u.is_active ? 'status-active' : 'status-banned'}">${u.is_active ? 'Actif' : 'Banni'}</span></td>
+                    <td>${u.role.toUpperCase()}</td>
+                    <td style="font-weight: 600; color: #fff;">${u.balance.toFixed(2)} €</td>
+                    <td>${date}</td>
+                    <td>
+                        <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                            <button class="action-icon edit" onclick="editUser(${u.id})" title="Modifier"><i data-lucide="edit-3" style="width: 16px;"></i></button>
+                            <button class="action-icon" title="Historique"><i data-lucide="history" style="width: 16px;"></i></button>
+                            ${u.is_active ? 
+                                `<button class="action-icon ban" onclick="toggleUser(${u.id}, false)" title="Bannir"><i data-lucide="user-x" style="width: 16px;"></i></button>` :
+                                `<button class="action-icon" onclick="toggleUser(${u.id}, true)" title="Réactiver" style="color: #22c55e;"><i data-lucide="user-check" style="width: 16px;"></i></button>`
+                            }
+                        </div>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+            lucide.createIcons();
+        }
+
+        function updateStats(users) {
+            document.getElementById('stat-total').textContent = users.length;
+            document.getElementById('stat-active').textContent = users.filter(u => u.is_active).length;
+            document.getElementById('stat-banned').textContent = users.filter(u => !u.is_active).length;
+            const totalBal = users.reduce((acc, u) => acc + u.balance, 0);
+            document.getElementById('stat-balance').textContent = totalBal.toFixed(2) + " €";
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const val = e.target.value.toLowerCase();
+            const filtered = allUsers.filter(u => u.username.toLowerCase().includes(val));
+            renderUsers(filtered);
+        });
+
+        function showAddUserModal() { window.location.href = 'reseller_add.html'; }
 
         function showToast(msg, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -270,5 +298,7 @@
 
         function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
     </script>
+</body>
+</html>
 </body>
 </html>
