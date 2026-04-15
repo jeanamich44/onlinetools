@@ -13,7 +13,7 @@ import shutil
 import os
 import subprocess
 
-from script.database import init_db, get_db, Payment, Admin, Setting, Reseller
+from script.database import init_db, get_db, Payment, Admin, Setting, Reseller, Transaction
 from script.security import (
     get_password_hash, 
     verify_password, 
@@ -581,6 +581,23 @@ async def list_resellers(db: Session = Depends(get_db), admin: str = Depends(get
         "created_at": str(r.created_at),
         "last_login": str(r.last_login) if r.last_login else None
     } for r in resellers]
+
+# [ ENDPOINTS RESELLERS ] ======================================================
+
+@app.get("/reseller/history")
+async def get_reseller_history(db: Session = Depends(get_db), current_reseller: Reseller = Depends(get_current_reseller)):
+    transactions = db.query(Transaction).filter(Transaction.reseller_id == current_reseller.id).order_by(Transaction.date.desc()).all()
+    return transactions
+
+@app.post("/reseller/recharge")
+async def recharge_reseller(amount: float, db: Session = Depends(get_db), current_reseller: Reseller = Depends(get_current_reseller)):
+    if amount <= 0:
+        raise HTTPException(status_code=400, detail="Montant invalide")
+    current_reseller.balance += amount
+    new_transaction = Transaction(reseller_id=current_reseller.id, amount=amount, type="recharge")
+    db.add(new_transaction)
+    db.commit()
+    return {"status": "success", "new_balance": current_reseller.balance}
 
 # [ MAIN - SERVER ] ============================================================
 

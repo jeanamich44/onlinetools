@@ -27,7 +27,36 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+from sqlalchemy.orm import relationship
+
 # ==============================================================================
+
+class Reseller(Base):
+    __tablename__ = "resellers"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    is_active = Column(Boolean, default=True)
+    balance = Column(Float, default=0.0)
+    categories = Column(Text, default="")
+    role = Column(String, default="standard")
+    total_purchases = Column(Integer, default=0)
+    total_payment_requests = Column(Integer, default=0)
+    total_requests = Column(Integer, default=0)
+    note = Column(Text, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_login = Column(DateTime, nullable=True)
+    transactions = relationship("Transaction", back_populates="reseller")
+
+class Transaction(Base):
+    __tablename__ = "transactions"
+    id = Column(Integer, primary_key=True, index=True)
+    reseller_id = Column(Integer, ForeignKey("resellers.id"))
+    amount = Column(Float)
+    type = Column(String)
+    date = Column(DateTime, default=datetime.utcnow)
+    status = Column(String, default="completed")
+    reseller = relationship("Reseller", back_populates="transactions")
 
 class Admin(Base):
     __tablename__ = "admins"
@@ -55,22 +84,6 @@ class Setting(Base):
     __tablename__ = "settings"
     key = Column(String, primary_key=True)
     value = Column(String)
-
-class Reseller(Base):
-    __tablename__ = "resellers"
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
-    is_active = Column(Boolean, default=True)
-    balance = Column(Float, default=0.0)
-    categories = Column(Text, default="")
-    role = Column(String, default="standard")
-    total_purchases = Column(Integer, default=0)
-    total_payment_requests = Column(Integer, default=0)
-    total_requests = Column(Integer, default=0)
-    note = Column(Text, default="")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    last_login = Column(DateTime, nullable=True)
 
 # ==============================================================================
 
