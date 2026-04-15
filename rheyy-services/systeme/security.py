@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from typing import Optional, List
 from fastapi import Request, HTTPException, Security, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from sqlalchemy.orm import Session
 import hashlib
 import base64
 from jose import JWTError, jwt
@@ -93,9 +94,9 @@ async def get_current_admin(
 
 async def get_current_reseller(
     auth: HTTPAuthorizationCredentials = Security(security),
-    db: Session = Depends(get_db)
+    db: Session = Depends(lambda: __import__('systeme.database', fromlist=['get_db']).get_db())
 ):
-    from script.database import Reseller
+    from systeme.database import Reseller
     token = auth.credentials
     credentials_exception = HTTPException(
         status_code=401,

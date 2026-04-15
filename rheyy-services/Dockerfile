@@ -15,12 +15,12 @@ WORKDIR /app
 
 # 4. Copie des fichiers de dépendances
 COPY requirements.txt .
-COPY package.json .
+COPY systeme/package.json ./systeme/
 
 # 5. Installation des librairies
 RUN pip install --no-cache-dir -r requirements.txt
-RUN npm install
-RUN npx playwright install --with-deps chromium
+RUN cd systeme && npm install
+RUN cd systeme && npx playwright install --with-deps chromium
 
 # 6. Copie de tout le code source
 COPY . .

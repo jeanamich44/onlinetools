@@ -13,8 +13,8 @@ import shutil
 import os
 import subprocess
 
-from script.database import init_db, get_db, Payment, Admin, Setting, Reseller, Transaction
-from script.security import (
+from systeme.database import init_db, get_db, Payment, Admin, Setting, Reseller, Transaction
+from systeme.security import (
     get_password_hash, 
     verify_password, 
     create_access_token, 
@@ -31,7 +31,7 @@ from script.audio_analyse import (
     perform_full_analysis_stream, 
     perform_retry_analysis_stream
 )
-from script.ssh_utils import (
+from systeme.utils import (
     fetch_remote_file_content, 
     get_ssh_client, 
     REMOTE_FILE_CARDS,
