@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import logging
@@ -55,6 +55,22 @@ class Setting(Base):
     __tablename__ = "settings"
     key = Column(String, primary_key=True)
     value = Column(String)
+
+class Reseller(Base):
+    __tablename__ = "resellers"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    is_active = Column(Boolean, default=True)
+    balance = Column(Float, default=0.0)
+    categories = Column(Text, default="")
+    role = Column(String, default="standard")
+    total_purchases = Column(Integer, default=0)
+    total_payment_requests = Column(Integer, default=0)
+    total_requests = Column(Integer, default=0)
+    note = Column(Text, default="")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_login = Column(DateTime, nullable=True)
 
 # ==============================================================================
 

@@ -13,13 +13,14 @@ import shutil
 import os
 import subprocess
 
-from script.database import init_db, get_db, Payment, Admin, Setting
+from script.database import init_db, get_db, Payment, Admin, Setting, Reseller
 from script.security import (
     get_password_hash, 
     verify_password, 
     create_access_token, 
     get_current_admin,
-    check_ip_whitelist
+    check_ip_whitelist,
+    ACCESS_TOKEN_EXPIRE_MINUTES
 )
 from script.mrz import generate_mrz, generate_random_data
 from script.qr_zip import generate_qr_zip
@@ -482,6 +483,104 @@ async def zip_endpoint(req: dict = Body(...), bg: BackgroundTasks = None, admin:
     zip_path = generate_qr_zip(lines)
     if bg: bg.add_task(os.remove, zip_path)
     return FileResponse(zip_path, media_type="application/zip", filename="qr_codes.zip")
+
+# [ RESELLER ] =================================================================
+
+@app.post("/reseller/login")
+async def reseller_login(req: dict = Body(...), db: Session = Depends(get_db)):
+    username = req.get("username", "").strip()
+    password = req.get("password", "")
+    
+    if not username or not password:
+        return JSONResponse(status_code=403, content={})
+    
+    reseller = db.query(Reseller).filter(Reseller.username == username).first()
+    
+    if not reseller or not verify_password(password, reseller.hashed_password):
+        return JSONResponse(status_code=403, content={})
+    
+    if not reseller.is_active:
+        return JSONResponse(status_code=403, content={})
+    
+    reseller.last_login = datetime.utcnow()
+    reseller.total_requests += 1
+    db.commit()
+    
+    token = create_access_token(
+        data={"sub": reseller.username, "role": "reseller"},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+    
+    return {
+        "status": "success",
+        "token": token,
+        "username": reseller.username,
+        "balance": reseller.balance,
+        "categories": reseller.categories,
+        "role": reseller.role
+    }
+
+@app.post("/admin/resellers")
+async def create_reseller(req: dict = Body(...), db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
+    username = req.get("username", "").strip()
+    password = req.get("password", "")
+    role = req.get("role", "standard")
+    categories = req.get("categories", "")
+    balance = float(req.get("balance", 0))
+    note = req.get("note", "")
+    
+    if not username or not password:
+        raise HTTPException(status_code=400, detail="Username et password requis")
+    
+    if len(password) < 4:
+        raise HTTPException(status_code=400, detail="Password trop court (min 4)")
+    
+    existing = db.query(Reseller).filter(Reseller.username == username).first()
+    if existing:
+        raise HTTPException(status_code=409, detail="Ce username existe déjà")
+    
+    reseller = Reseller(
+        username=username,
+        hashed_password=get_password_hash(password),
+        role=role,
+        categories=categories,
+        balance=balance,
+        note=note
+    )
+    db.add(reseller)
+    db.commit()
+    db.refresh(reseller)
+    
+    return {
+        "status": "success",
+        "reseller": {
+            "id": reseller.id,
+            "username": reseller.username,
+            "role": reseller.role,
+            "balance": reseller.balance,
+            "categories": reseller.categories,
+            "is_active": reseller.is_active,
+            "created_at": str(reseller.created_at)
+        }
+    }
+
+@app.get("/admin/resellers")
+async def list_resellers(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
+    resellers = db.query(Reseller).order_by(Reseller.created_at.desc()).all()
+    return [{
+        "id": r.id,
+        "username": r.username,
+        "role": r.role,
+        "balance": r.balance,
+        "categories": r.categories,
+        "is_active": r.is_active,
+        "total_purchases": r.total_purchases,
+        "total_payment_requests": r.total_payment_requests,
+        "total_requests": r.total_requests,
+        "note": r.note,
+        "created_at": str(r.created_at),
+        "last_login": str(r.last_login) if r.last_login else None
+    } for r in resellers]
 
 # [ MAIN - SERVER ] ============================================================
 

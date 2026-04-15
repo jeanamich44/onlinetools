@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Reseller | ChezRheyy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .add-grid { display: grid; grid-template-columns: 420px 1fr; gap: 25px; margin-top: 30px; }
+        .add-panel { background: var(--surface-secondary); border: 1px solid var(--border-primary); border-radius: 20px; padding: 28px; height: fit-content; }
+        .add-panel .form-group { margin-bottom: 18px; }
+        .add-panel label { display: block; color: #94a3b8; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        .add-panel .form-input { width: 100%; box-sizing: border-box; }
+        .history-panel { background: var(--surface-secondary); border: 1px solid var(--border-primary); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; min-height: 500px; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border-primary); }
+        .history-scroll { flex: 1; overflow-y: auto; padding: 0; }
+        .reseller-row { display: grid; grid-template-columns: 1fr 80px 80px 70px; gap: 10px; padding: 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.03); align-items: center; transition: background 0.15s; }
+        .reseller-row:hover { background: rgba(59, 130, 246, 0.03); }
+        .reseller-row .name { font-weight: 700; color: #e2e8f0; font-size: 0.9rem; }
+        .reseller-row .sub { color: #64748b; font-size: 0.7rem; margin-top: 2px; }
+        .badge { padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; }
+        .badge.active { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .badge.banned { background: rgba(248, 81, 73, 0.1); color: #f85149; }
+        .badge.vip { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .badge.standard { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .stat-pill { background: rgba(59, 130, 246, 0.1); color: var(--primary); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+        .role-select { display: flex; gap: 8px; }
+        .role-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #1f2937; background: #0b0f19; color: #64748b; text-align: center; cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; }
+        .role-btn.selected { border-color: var(--primary); color: var(--primary); background: rgba(59, 130, 246, 0.08); }
+        .role-btn:hover { border-color: #374151; color: #94a3b8; }
+        .pass-group { position: relative; }
+        .pass-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; cursor: pointer; padding: 4px; }
+        .gen-pass { background: #1f2937; color: #94a3b8; border: 1px solid #374151; padding: 6px 12px; border-radius: 8px; font-size: 0.7rem; cursor: pointer; transition: all 0.2s; margin-top: 6px; }
+        .gen-pass:hover { background: #374151; color: #fff; }
+    </style>
+</head>
+<body>
+    <div id="toast-container"></div>
+
+    <div class="sidebar">
+        <div class="logo"><i data-lucide="shield"></i> ChezRheyy <span>Admin</span></div>
+        <nav aria-label="Navigation principale">
+            <a href="dashboard.html" class="nav-item"><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
+            <a href="payments.html" class="nav-item"><i data-lucide="credit-card"></i> <span>Paiements</span></a>
+            <div class="nav-group open"><div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')"><span>Panel</span><i data-lucide="chevron-down" class="chevron"></i></div><div class="nav-group-content"><a href="user_list.html" class="nav-item"><i data-lucide="users"></i> <span>Liste Utilisateurs</span></a><a href="reseller_add.html" class="nav-item active"><i data-lucide="user-plus"></i> <span>Add New</span></a></div></div>
+            <div class="nav-group"><div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')"><span>Flunch</span><i data-lucide="chevron-down" class="chevron"></i></div><div class="nav-group-content"><a href="flunch_token.html" class="nav-item"><i data-lucide="key"></i> <span>Token Automate</span></a><a href="flunch_checker.html" class="nav-item"><i data-lucide="search"></i> <span>Bulk Checker</span></a><a href="flunch_picker.html" class="nav-item"><i data-lucide="terminal"></i> <span>Flunch Picker</span></a><a href="flunch_extraction.html" class="nav-item"><i data-lucide="file-search"></i> <span>Flunch Extraction</span></a><a href="flunch_bot_export.html" class="nav-item"><i data-lucide="external-link"></i> <span>Bot Export</span></a></div></div>
+            <div class="nav-group"><div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')"><span>Quick</span><i data-lucide="chevron-down" class="chevron"></i></div><div class="nav-group-content"><a href="packager.html" class="nav-item"><i data-lucide="package"></i> <span>Packager</span></a><a href="audio_matcher.html" class="nav-item"><i data-lucide="link"></i> <span>Linker Audio</span></a><a href="audio_analyse.html" class="nav-item"><i data-lucide="mic"></i> <span>Analyse Audio</span></a></div></div>
+            <div class="nav-group"><div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')"><span>Chronopost</span><i data-lucide="chevron-down" class="chevron"></i></div><div class="nav-group-content"><a href="suivi_colis.html" class="nav-item"><i data-lucide="search"></i> <span>Suivi Colis</span></a><a href="chrono_generateur.html" class="nav-item"><i data-lucide="list-ordered"></i> <span>Générateur</span></a><a href="chrono_pattern.html" class="nav-item"><i data-lucide="filter"></i> <span>Pattern</span></a><a href="chrono_counter.html" class="nav-item"><i data-lucide="bar-chart-3"></i> <span>Counter</span></a></div></div>
+            <div class="nav-group"><div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')"><span>Mixte</span><i data-lucide="chevron-down" class="chevron"></i></div><div class="nav-group-content"><a href="mrz.html" class="nav-item"><i data-lucide="file-text"></i> <span>MRZ</span></a><a href="qr_zip.html" class="nav-item"><i data-lucide="archive"></i> <span>QR ZIP</span></a></div></div>
+        </nav>
+    </div>
+
+    <div class="main">
+        <header>
+            <div class="header-content"><h1>Add New Reseller</h1><p>Création de comptes reseller avec accès au panel.</p></div>
+            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        </header>
+
+        <div class="add-grid">
+            <div class="add-panel">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="newUser" class="form-input" placeholder="ex: reseller01" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="pass-group">
+                        <input type="password" id="newPass" class="form-input" placeholder="Min 4 caractères" autocomplete="new-password" style="padding-right: 40px;">
+                        <button class="pass-toggle" onclick="togglePass()"><i data-lucide="eye" id="eyeIcon" style="width:16px;"></i></button>
+                    </div>
+                    <button class="gen-pass" onclick="generatePass()"><i data-lucide="shuffle" style="width:12px; display:inline; vertical-align:middle; margin-right:4px;"></i> Générer un mot de passe</button>
+                </div>
+                <div class="form-group">
+                    <label>Rôle</label>
+                    <div class="role-select">
+                        <div class="role-btn selected" data-role="standard" onclick="selectRole(this)">Standard</div>
+                        <div class="role-btn" data-role="vip" onclick="selectRole(this)">VIP</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Catégories accessibles</label>
+                    <input type="text" id="newCat" class="form-input" placeholder="flunch,quick (séparées par virgule)">
+                </div>
+                <div class="form-group">
+                    <label>Solde initial (€)</label>
+                    <input type="number" id="newBalance" class="form-input" value="0" min="0" step="0.01" style="font-family: monospace;">
+                </div>
+                <div class="form-group">
+                    <label>Note interne</label>
+                    <textarea id="newNote" class="form-input" rows="2" placeholder="Optionnel..." style="resize: vertical;"></textarea>
+                </div>
+                <button class="btn-action" style="width: 100%; height: 50px; margin-top: 5px;" onclick="createReseller()">
+                    <i data-lucide="user-plus"></i> Créer le compte
+                </button>
+            </div>
+
+            <div class="history-panel">
+                <div class="history-header">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i data-lucide="users" style="width: 16px; color: var(--primary-accent);"></i>
+                        <span style="font-size: 0.8rem; font-weight: 700; color: #fff;">RESELLERS</span>
+                        <span id="resellerCount" class="stat-pill">0</span>
+                    </div>
+                    <button class="btn-action" style="padding: 6px 14px; font-size: 0.7rem; height: auto;" onclick="loadResellers()"><i data-lucide="refresh-cw" style="width:12px;"></i> Refresh</button>
+                </div>
+                <div class="history-scroll" id="resellerList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        const API_BASE = isLocal ? "http://localhost:8080" : "https://rheyy-services.up.railway.app";
+        const token = localStorage.getItem('adminToken');
+        if (!isLocal && !token) window.location.href = 'index.html';
+
+        let selectedRole = "standard";
+
+        function selectRole(el) {
+            document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedRole = el.dataset.role;
+        }
+
+        function togglePass() {
+            const inp = document.getElementById('newPass');
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+        }
+
+        function generatePass() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$';
+            let pass = '';
+            for (let i = 0; i < 12; i++) pass += chars[Math.floor(Math.random() * chars.length)];
+            const inp = document.getElementById('newPass');
+            inp.value = pass;
+            inp.type = 'text';
+            showToast("Mot de passe généré", "success");
+        }
+
+        async function createReseller() {
+            const username = document.getElementById('newUser').value.trim();
+            const password = document.getElementById('newPass').value;
+            const categories = document.getElementById('newCat').value.trim();
+            const balance = parseFloat(document.getElementById('newBalance').value) || 0;
+            const note = document.getElementById('newNote').value.trim();
+
+            if (!username) return showToast("Username requis", "error");
+            if (password.length < 4) return showToast("Password trop court (min 4)", "error");
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/resellers`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, role: selectedRole, categories, balance, note })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    showToast(`Reseller "${data.reseller.username}" créé !`, "success");
+                    document.getElementById('newUser').value = '';
+                    document.getElementById('newPass').value = '';
+                    document.getElementById('newCat').value = '';
+                    document.getElementById('newBalance').value = '0';
+                    document.getElementById('newNote').value = '';
+                    loadResellers();
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail || "Erreur", "error");
+                }
+            } catch(e) { showToast("Erreur réseau", "error"); }
+        }
+
+        async function loadResellers() {
+            try {
+                const res = await fetch(`${API_BASE}/admin/resellers`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                document.getElementById('resellerCount').textContent = data.length;
+                const container = document.getElementById('resellerList');
+                container.innerHTML = '';
+
+                if (data.length === 0) {
+                    container.innerHTML = '<div style="padding: 40px; text-align: center; color: #475569; font-size: 0.85rem;">Aucun reseller créé</div>';
+                    return;
+                }
+
+                data.forEach(r => {
+                    const statusBadge = r.is_active ? '<span class="badge active">Actif</span>' : '<span class="badge banned">Banni</span>';
+                    const roleBadge = `<span class="badge ${r.role}">${r.role}</span>`;
+                    const lastLogin = r.last_login ? new Date(r.last_login).toLocaleDateString('fr-FR') : 'Jamais';
+                    const row = document.createElement('div');
+                    row.className = 'reseller-row';
+                    row.innerHTML = `
+                        <div>
+                            <div class="name">${r.username}</div>
+                            <div class="sub">${r.categories || 'Aucune catégorie'} · Dernière co: ${lastLogin} · Req: ${r.total_requests}</div>
+                        </div>
+                        <div style="text-align:center;">${roleBadge}</div>
+                        <div style="text-align:center; font-family:monospace; font-weight:700; color:#10b981;">${r.balance.toFixed(2)}€</div>
+                        <div style="text-align:center;">${statusBadge}</div>
+                    `;
+                    container.appendChild(row);
+                });
+            } catch(e) { showToast("Erreur chargement", "error"); }
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type} show`;
+            toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check' : 'alert-circle'}"></i><span>${msg}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
+
+        loadResellers();
+    </script>
+</body>
+</html>
