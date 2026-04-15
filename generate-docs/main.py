@@ -413,6 +413,53 @@ async def create_payment_endpoint(request: Request, data: dict, background_tasks
         raise_500()
 
 # =================================================================================
+# ENDPOINTS: COMMUNICATION INTER-SERVICES (RECHARGE)
+# =================================================================================
+
+class RechargeRequest(BaseModel):
+    amount: float
+    user_id: str
+    
+@app.post("/api/services/create-recharge")
+async def create_recharge_checkout(req: RechargeRequest, db: Session = Depends(get_db)):
+    url, ref, checkout_id = await create_checkout(
+        db=db, 
+        amount=req.amount, 
+        ip_address="internal_service", 
+        product_name="recharge", 
+        user_data=json.dumps({"user_id": req.user_id})
+    )
+    return {
+        "checkout_id": checkout_id,
+        "checkout_ref": ref,
+        "url": url
+    }
+
+@app.get("/api/services/verify-recharge/{checkout_ref}")
+async def verify_recharge_status(checkout_ref: str, db: Session = Depends(get_db)):
+    from payments.payment import get_access_token
+    import aiohttp
+    
+    payment = db.query(Payment).filter(Payment.checkout_ref == checkout_ref).first()
+    if not payment:
+         raise HTTPException(status_code=404, detail="Paiement introuvable")
+         
+    token = await get_access_token()
+    headers = {"Authorization": f"Bearer {token}"}
+    url = f"https://api.sumup.com/v0.1/checkouts/{payment.checkout_id}"
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=headers) as sumup_res:
+            if sumup_res.status == 200:
+                data = await sumup_res.json()
+                new_status = data.get("status")
+                if new_status and new_status != payment.status:
+                    payment.status = new_status
+                    db.commit()
+
+    return {"status": payment.status, "amount": float(payment.amount)}
+
+# =================================================================================
 # STATUS PAIEMENT
 # =================================================================================
 

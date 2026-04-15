@@ -607,67 +607,50 @@ async def get_reseller_history(db: Session = Depends(get_db), current_reseller: 
     transactions = db.query(Transaction).filter(Transaction.reseller_id == current_reseller.id).order_by(Transaction.date.desc()).all()
     return transactions
 
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "generate-docs")))
-from payments.payment import create_checkout, get_access_token
-from payments.database import Payment as SumUpPayment, SessionLocal as SumUpSessionLocal
 
 class RechargeInitRequest(BaseModel):
     amount: float
 
 @app.post("/reseller/create-checkout")
 async def create_checkout_reseller(req: RechargeInitRequest, db: Session = Depends(get_db), current_reseller: Reseller = Depends(get_current_reseller)):
-    try:
-        url, ref, checkout_id = await create_checkout(
-            db=None, 
-            amount=req.amount, 
-            ip_address="reseller", 
-            product_name="recharge", 
-            user_data=current_reseller.username
-        )
-        return {"status": "success", "checkout_id": checkout_id, "checkout_ref": ref}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    API_DOCS_URL = "https://generate-docs-production.up.railway.app/api/services/create-recharge"
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.post(API_DOCS_URL, json={"amount": req.amount, "user_id": current_reseller.username}) as resp:
+            if resp.status != 200:
+                raise HTTPException(status_code=500, detail="Erreur création checkout")
+            data = await resp.json()
+            return {"status": "success", "checkout_id": data["checkout_id"], "checkout_ref": data["checkout_ref"]}
 
 class RechargeVerifyRequest(BaseModel):
     checkout_ref: str
 
 @app.post("/reseller/verify-recharge")
 async def verify_recharge_reseller(req: RechargeVerifyRequest, db: Session = Depends(get_db), current_reseller: Reseller = Depends(get_current_reseller)):
-    sumup_db = SumUpSessionLocal()
-    try:
-        payment = sumup_db.query(SumUpPayment).filter(SumUpPayment.checkout_ref == req.checkout_ref).first()
-        if not payment:
-             raise HTTPException(status_code=404, detail="Paiement introuvable")
-             
-        token = await get_access_token()
-        headers = {"Authorization": f"Bearer {token}"}
-        url = f"https://api.sumup.com/v0.1/checkouts/{payment.checkout_id}"
-        
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers) as sumup_res:
-                if sumup_res.status == 200:
-                    data = await sumup_res.json()
-                    new_status = data.get("status")
-                    if new_status and new_status != payment.status:
-                        payment.status = new_status
-                        sumup_db.commit()
-
-        if payment.status == "PAID":
-            amount = float(payment.amount)
-            existing = db.query(Transaction).filter(Transaction.reseller_id == current_reseller.id, Transaction.amount == amount, Transaction.type == f"recharge_{req.checkout_ref}").first()
-            if not existing:
-                current_reseller.balance += amount
-                db.add(current_reseller)
-                new_transaction = Transaction(reseller_id=current_reseller.id, amount=amount, type=f"recharge_{req.checkout_ref}", status="completed")
-                db.add(new_transaction)
-                db.commit()
-                return {"status": "success", "new_balance": current_reseller.balance, "message": "Compte crédité"}
-            return {"status": "success", "new_balance": current_reseller.balance, "message": "Déjà crédité"}
-        return {"status": "pending", "payment_status": payment.status}
-    finally:
-        sumup_db.close()
+    API_DOCS_URL = f"https://generate-docs-production.up.railway.app/api/services/verify-recharge/{req.checkout_ref}"
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.get(API_DOCS_URL) as resp:
+            if resp.status != 200:
+                raise HTTPException(status_code=404, detail="Paiement introuvable")
+            data = await resp.json()
+            
+            if data["status"] == "PAID":
+                amount = float(data["amount"])
+                # Vérifier si on a déjà traité cette transaction (évite les doubles crédits)
+                existing = db.query(Transaction).filter(Transaction.reseller_id == current_reseller.id, Transaction.amount == amount, Transaction.type == f"recharge_{req.checkout_ref}").first()
+                
+                if not existing:
+                    current_reseller.balance += amount
+                    db.add(current_reseller)
+                    new_transaction = Transaction(reseller_id=current_reseller.id, amount=amount, type=f"recharge_{req.checkout_ref}", status="completed")
+                    db.add(new_transaction)
+                    db.commit()
+                    return {"status": "success", "new_balance": current_reseller.balance, "message": "Compte crédité"}
+                else:
+                    return {"status": "success", "new_balance": current_reseller.balance, "message": "Déjà crédité"}
+            else:
+                return {"status": "pending", "payment_status": data["status"]}
 
 
 # [ MAIN - SERVER ] ============================================================
