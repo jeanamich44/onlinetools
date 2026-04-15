@@ -97,6 +97,10 @@ def get_access_token_sync():
         raise Exception(f"Erreur Récupération Token (Sync): {str(e)}")
 
 async def create_checkout(db: Session, amount, currency="EUR", ip_address=None, product_name=None, user_data=None):
+    amount = float(amount)
+    if amount < 1 or amount > 70:
+        raise Exception("Error")
+
     checkout_ref = str(uuid.uuid4())
     
     db = SessionLocal()
