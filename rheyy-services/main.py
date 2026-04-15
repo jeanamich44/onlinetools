@@ -595,6 +595,7 @@ async def recharge_reseller(amount: float, db: Session = Depends(get_db), curren
     if amount <= 0:
         raise HTTPException(status_code=400, detail="Montant invalide")
     current_reseller.balance += amount
+    db.add(current_reseller)
     new_transaction = Transaction(reseller_id=current_reseller.id, amount=amount, type="recharge")
     db.add(new_transaction)
     db.commit()

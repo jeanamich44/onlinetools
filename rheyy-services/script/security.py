@@ -90,3 +90,29 @@ async def get_current_admin(
         raise credentials_exception
         
     return username
+
+async def get_current_reseller(
+    auth: HTTPAuthorizationCredentials = Security(security),
+    db: Session = Depends(get_db)
+):
+    from script.database import Reseller
+    token = auth.credentials
+    credentials_exception = HTTPException(
+        status_code=401,
+        detail="Session revendeur invalide",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    reseller = db.query(Reseller).filter(Reseller.username == username).first()
+
+    if reseller is None or not reseller.is_active:
+        raise credentials_exception
+        
+    return reseller
