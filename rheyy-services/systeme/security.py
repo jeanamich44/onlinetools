@@ -11,6 +11,7 @@ from passlib.context import CryptContext
 from dotenv import load_dotenv
 
 load_dotenv()
+from systeme.database import get_db, Reseller
 
 # =========================
 # CONFIGURATION
@@ -94,9 +95,8 @@ async def get_current_admin(
 
 async def get_current_reseller(
     auth: HTTPAuthorizationCredentials = Security(security),
-    db: Session = Depends(lambda: __import__('systeme.database', fromlist=['get_db']).get_db())
+    db: Session = Depends(get_db)
 ):
-    from systeme.database import Reseller
     token = auth.credentials
     credentials_exception = HTTPException(
         status_code=401,
