@@ -11,7 +11,7 @@ from passlib.context import CryptContext
 from dotenv import load_dotenv
 
 load_dotenv()
-from systeme.database import get_db, revendeur
+from systeme.database import get_db, Revendeur
 
 # =========================
 # CONFIGURATION
@@ -100,7 +100,7 @@ async def get_current_revendeur(
     token = auth.credentials
     credentials_exception = HTTPException(
         status_code=401,
-        detail="Session revendeur invalide",
+        detail="Session Revendeur invalide",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
@@ -111,7 +111,7 @@ async def get_current_revendeur(
     except JWTError:
         raise credentials_exception
 
-    revendeur = db.query(revendeur).filter(revendeur.username == username).first()
+    revendeur = db.query(Revendeur).filter(Revendeur.username == username).first()
 
     if revendeur is None or not revendeur.is_active:
         raise credentials_exception

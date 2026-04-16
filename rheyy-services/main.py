@@ -14,7 +14,7 @@ import os
 import subprocess
 import aiohttp
 
-from systeme.database import init_db, get_db, Payment, Admin, Setting, revendeur
+from systeme.database import init_db, get_db, Payment, Admin, Setting, Revendeur
 from systeme.security import (
     get_password_hash, 
     verify_password, 
@@ -468,8 +468,8 @@ async def update_settings(data: dict = Body(...), db: Session = Depends(get_db),
 
 @app.get("/public/settings")
 async def get_public_settings(db: Session = Depends(get_db)):
-    # On renvoie uniquement ce qui est utile au client/revendeur
-    keys = ["site_name", "tg_support", "min_recharge", "max_recharge", "recharge_revendeur_enabled"]
+    # On renvoie uniquement ce qui est utile au client/Revendeur
+    keys = ["site_name", "tg_support", "min_recharge", "max_recharge", "recharge_Revendeur_enabled"]
     settings = db.query(Setting).filter(Setting.key.in_(keys)).all()
     return {s.key: s.value for s in settings}
 
@@ -512,40 +512,40 @@ async def zip_endpoint(req: dict = Body(...), bg: BackgroundTasks = None, admin:
     if bg: bg.add_task(os.remove, zip_path)
     return FileResponse(zip_path, media_type="application/zip", filename="qr_codes.zip")
 
-# [ revendeur ] =================================================================
+# [ Revendeur ] =================================================================
 
 @app.post("/revendeur/login")
-async def revendeur_login(req: dict = Body(...), db: Session = Depends(get_db)):
+async def Revendeur_login(req: dict = Body(...), db: Session = Depends(get_db)):
     username = req.get("username", "").strip()
     password = req.get("password", "")
     
     if not username or not password:
         return JSONResponse(status_code=403, content={})
     
-    revendeur = db.query(revendeur).filter(revendeur.username == username).first()
+    revendeur = db.query(Revendeur).filter(Revendeur.username == username).first()
     
-    if not revendeur or not verify_password(password, revendeur.hashed_password):
+    if not Revendeur or not verify_password(password, Revendeur.hashed_password):
         return JSONResponse(status_code=403, content={})
     
-    if not revendeur.is_active:
+    if not Revendeur.is_active:
         return JSONResponse(status_code=403, content={})
     
-    revendeur.last_login = datetime.utcnow()
-    revendeur.total_requests += 1
+    Revendeur.last_login = datetime.utcnow()
+    Revendeur.total_requests += 1
     db.commit()
     
     token = create_access_token(
-        data={"sub": revendeur.username, "role": "revendeur"},
+        data={"sub": Revendeur.username, "role": "revendeur"},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     
     return {
         "status": "success",
         "token": token,
-        "username": revendeur.username,
-        "balance": revendeur.balance,
-        "categories": revendeur.categories,
-        "role": revendeur.role
+        "username": Revendeur.username,
+        "balance": Revendeur.balance,
+        "categories": Revendeur.categories,
+        "role": Revendeur.role
     }
 
 @app.post("/admin/revendeurs")
@@ -563,11 +563,11 @@ async def create_revendeur(req: dict = Body(...), db: Session = Depends(get_db),
     if len(password) < 4:
         raise HTTPException(status_code=400, detail="Password trop court (min 4)")
     
-    existing = db.query(revendeur).filter(revendeur.username == username).first()
+    existing = db.query(Revendeur).filter(Revendeur.username == username).first()
     if existing:
         raise HTTPException(status_code=409, detail="Ce username existe déjà")
     
-    revendeur = revendeur(
+    revendeur = Revendeur(
         username=username,
         hashed_password=get_password_hash(password),
         role=role,
@@ -594,7 +594,7 @@ async def create_revendeur(req: dict = Body(...), db: Session = Depends(get_db),
 
 @app.get("/admin/revendeurs")
 async def list_revendeurs(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
-    revendeurs = db.query(revendeur).order_by(revendeur.created_at.desc()).all()
+    revendeurs = db.query(Revendeur).order_by(Revendeur.created_at.desc()).all()
     return [{
         "id": r.id,
         "username": r.username,
@@ -608,17 +608,17 @@ async def list_revendeurs(db: Session = Depends(get_db), admin: str = Depends(ge
         "note": r.note,
         "created_at": str(r.created_at),
         "last_login": str(r.last_login) if r.last_login else None
-    } for r in revendeurs]
+    } for r in Revendeurs]
 
 @app.get("/admin/transactions")
 async def list_all_transactions(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
     transactions = db.query(Transaction).order_by(Transaction.date.desc()).all()
     res = []
     for t in transactions:
-        revendeur = db.query(revendeur).filter(revendeur.id == t.revendeur_id).first()
+        revendeur = db.query(Revendeur).filter(Revendeur.id == t.Revendeur_id).first()
         res.append({
             "id": t.id,
-            "revendeur_username": revendeur.username if revendeur else "Inconnu",
+            "revendeur_username": Revendeur.username if Revendeur else "Inconnu",
             "amount": t.amount,
             "type": t.type,
             "date": str(t.date),
@@ -626,10 +626,10 @@ async def list_all_transactions(db: Session = Depends(get_db), admin: str = Depe
         })
     return res
 
-# [ ENDPOINTS revendeurS ] ======================================================
+# [ ENDPOINTS RevendeurS ] ======================================================
 
 @app.get("/revendeur/history")
-async def get_revendeur_history(db: Session = Depends(get_db), current_revendeur: revendeur = Depends(get_current_revendeur)):
+async def get_Revendeur_history(db: Session = Depends(get_db), current_revendeur: Revendeur = Depends(get_current_revendeur)):
     payments = db.query(Payment).filter(
         Payment.user_data == current_revendeur.username, 
         Payment.status == "PAID"
@@ -641,12 +641,12 @@ class RechargeInitRequest(BaseModel):
     amount: float
 
 @app.post("/revendeur/create-checkout")
-async def create_checkout_revendeur(req: RechargeInitRequest, db: Session = Depends(get_db), current_revendeur: revendeur = Depends(get_current_revendeur)):
+async def create_checkout_Revendeur(req: RechargeInitRequest, db: Session = Depends(get_db), current_revendeur: Revendeur = Depends(get_current_revendeur)):
     # Récupération des réglages
     settings = {s.key: s.value for s in db.query(Setting).all()}
     
     # Vérification si activé
-    if settings.get("recharge_revendeur_enabled") == "false":
+    if settings.get("recharge_Revendeur_enabled") == "false":
         raise HTTPException(status_code=403, detail="Le rechargement par SumUp est temporairement désactivé.")
         
     # Vérification des limites
@@ -680,7 +680,7 @@ class RechargeVerifyRequest(BaseModel):
     checkout_ref: str
 
 @app.post("/revendeur/verify-recharge")
-async def verify_recharge_revendeur(req: RechargeVerifyRequest, db: Session = Depends(get_db), current_revendeur: revendeur = Depends(get_current_revendeur)):
+async def verify_recharge_Revendeur(req: RechargeVerifyRequest, db: Session = Depends(get_db), current_revendeur: Revendeur = Depends(get_current_revendeur)):
     # 1. Vérifier si on a déjà validé ce paiement en local
     local_payment = db.query(Payment).filter(Payment.checkout_ref == req.checkout_ref).first()
     
