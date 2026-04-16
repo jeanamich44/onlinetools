@@ -11,7 +11,7 @@ from passlib.context import CryptContext
 from dotenv import load_dotenv
 
 load_dotenv()
-from systeme.database import get_db, Reseller
+from systeme.database import get_db, revendeur
 
 # =========================
 # CONFIGURATION
@@ -93,7 +93,7 @@ async def get_current_admin(
         
     return username
 
-async def get_current_reseller(
+async def get_current_revendeur(
     auth: HTTPAuthorizationCredentials = Security(security),
     db: Session = Depends(get_db)
 ):
@@ -111,9 +111,9 @@ async def get_current_reseller(
     except JWTError:
         raise credentials_exception
 
-    reseller = db.query(Reseller).filter(Reseller.username == username).first()
+    revendeur = db.query(revendeur).filter(revendeur.username == username).first()
 
-    if reseller is None or not reseller.is_active:
+    if revendeur is None or not revendeur.is_active:
         raise credentials_exception
         
-    return reseller
+    return revendeur

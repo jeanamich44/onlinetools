@@ -14,13 +14,13 @@ import os
 import subprocess
 import aiohttp
 
-from systeme.database import init_db, get_db, Payment, Admin, Setting, Reseller
+from systeme.database import init_db, get_db, Payment, Admin, Setting, revendeur
 from systeme.security import (
     get_password_hash, 
     verify_password, 
     create_access_token, 
     get_current_admin,
-    get_current_reseller,
+    get_current_revendeur,
     check_ip_whitelist,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
@@ -468,8 +468,8 @@ async def update_settings(data: dict = Body(...), db: Session = Depends(get_db),
 
 @app.get("/public/settings")
 async def get_public_settings(db: Session = Depends(get_db)):
-    # On renvoie uniquement ce qui est utile au client/reseller
-    keys = ["site_name", "tg_support", "min_recharge", "max_recharge", "recharge_reseller_enabled"]
+    # On renvoie uniquement ce qui est utile au client/revendeur
+    keys = ["site_name", "tg_support", "min_recharge", "max_recharge", "recharge_revendeur_enabled"]
     settings = db.query(Setting).filter(Setting.key.in_(keys)).all()
     return {s.key: s.value for s in settings}
 
@@ -512,44 +512,44 @@ async def zip_endpoint(req: dict = Body(...), bg: BackgroundTasks = None, admin:
     if bg: bg.add_task(os.remove, zip_path)
     return FileResponse(zip_path, media_type="application/zip", filename="qr_codes.zip")
 
-# [ RESELLER ] =================================================================
+# [ revendeur ] =================================================================
 
-@app.post("/reseller/login")
-async def reseller_login(req: dict = Body(...), db: Session = Depends(get_db)):
+@app.post("/revendeur/login")
+async def revendeur_login(req: dict = Body(...), db: Session = Depends(get_db)):
     username = req.get("username", "").strip()
     password = req.get("password", "")
     
     if not username or not password:
         return JSONResponse(status_code=403, content={})
     
-    reseller = db.query(Reseller).filter(Reseller.username == username).first()
+    revendeur = db.query(revendeur).filter(revendeur.username == username).first()
     
-    if not reseller or not verify_password(password, reseller.hashed_password):
+    if not revendeur or not verify_password(password, revendeur.hashed_password):
         return JSONResponse(status_code=403, content={})
     
-    if not reseller.is_active:
+    if not revendeur.is_active:
         return JSONResponse(status_code=403, content={})
     
-    reseller.last_login = datetime.utcnow()
-    reseller.total_requests += 1
+    revendeur.last_login = datetime.utcnow()
+    revendeur.total_requests += 1
     db.commit()
     
     token = create_access_token(
-        data={"sub": reseller.username, "role": "reseller"},
+        data={"sub": revendeur.username, "role": "revendeur"},
         expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     
     return {
         "status": "success",
         "token": token,
-        "username": reseller.username,
-        "balance": reseller.balance,
-        "categories": reseller.categories,
-        "role": reseller.role
+        "username": revendeur.username,
+        "balance": revendeur.balance,
+        "categories": revendeur.categories,
+        "role": revendeur.role
     }
 
-@app.post("/admin/resellers")
-async def create_reseller(req: dict = Body(...), db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
+@app.post("/admin/revendeurs")
+async def create_revendeur(req: dict = Body(...), db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
     username = req.get("username", "").strip()
     password = req.get("password", "")
     role = req.get("role", "standard")
@@ -563,11 +563,11 @@ async def create_reseller(req: dict = Body(...), db: Session = Depends(get_db), 
     if len(password) < 4:
         raise HTTPException(status_code=400, detail="Password trop court (min 4)")
     
-    existing = db.query(Reseller).filter(Reseller.username == username).first()
+    existing = db.query(revendeur).filter(revendeur.username == username).first()
     if existing:
         raise HTTPException(status_code=409, detail="Ce username existe déjà")
     
-    reseller = Reseller(
+    revendeur = revendeur(
         username=username,
         hashed_password=get_password_hash(password),
         role=role,
@@ -575,26 +575,26 @@ async def create_reseller(req: dict = Body(...), db: Session = Depends(get_db), 
         balance=balance,
         note=note
     )
-    db.add(reseller)
+    db.add(revendeur)
     db.commit()
-    db.refresh(reseller)
+    db.refresh(revendeur)
     
     return {
         "status": "success",
-        "reseller": {
-            "id": reseller.id,
-            "username": reseller.username,
-            "role": reseller.role,
-            "balance": reseller.balance,
-            "categories": reseller.categories,
-            "is_active": reseller.is_active,
-            "created_at": str(reseller.created_at)
+        "revendeur": {
+            "id": revendeur.id,
+            "username": revendeur.username,
+            "role": revendeur.role,
+            "balance": revendeur.balance,
+            "categories": revendeur.categories,
+            "is_active": revendeur.is_active,
+            "created_at": str(revendeur.created_at)
         }
     }
 
-@app.get("/admin/resellers")
-async def list_resellers(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
-    resellers = db.query(Reseller).order_by(Reseller.created_at.desc()).all()
+@app.get("/admin/revendeurs")
+async def list_revendeurs(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
+    revendeurs = db.query(revendeur).order_by(revendeur.created_at.desc()).all()
     return [{
         "id": r.id,
         "username": r.username,
@@ -608,17 +608,17 @@ async def list_resellers(db: Session = Depends(get_db), admin: str = Depends(get
         "note": r.note,
         "created_at": str(r.created_at),
         "last_login": str(r.last_login) if r.last_login else None
-    } for r in resellers]
+    } for r in revendeurs]
 
 @app.get("/admin/transactions")
 async def list_all_transactions(db: Session = Depends(get_db), admin: str = Depends(get_current_admin)):
     transactions = db.query(Transaction).order_by(Transaction.date.desc()).all()
     res = []
     for t in transactions:
-        reseller = db.query(Reseller).filter(Reseller.id == t.reseller_id).first()
+        revendeur = db.query(revendeur).filter(revendeur.id == t.revendeur_id).first()
         res.append({
             "id": t.id,
-            "reseller_username": reseller.username if reseller else "Inconnu",
+            "revendeur_username": revendeur.username if revendeur else "Inconnu",
             "amount": t.amount,
             "type": t.type,
             "date": str(t.date),
@@ -626,12 +626,12 @@ async def list_all_transactions(db: Session = Depends(get_db), admin: str = Depe
         })
     return res
 
-# [ ENDPOINTS RESELLERS ] ======================================================
+# [ ENDPOINTS revendeurS ] ======================================================
 
-@app.get("/reseller/history")
-async def get_reseller_history(db: Session = Depends(get_db), current_reseller: Reseller = Depends(get_current_reseller)):
+@app.get("/revendeur/history")
+async def get_revendeur_history(db: Session = Depends(get_db), current_revendeur: revendeur = Depends(get_current_revendeur)):
     payments = db.query(Payment).filter(
-        Payment.user_data == current_reseller.username, 
+        Payment.user_data == current_revendeur.username, 
         Payment.status == "PAID"
     ).order_by(Payment.created_at.desc()).all()
     return payments
@@ -640,13 +640,13 @@ async def get_reseller_history(db: Session = Depends(get_db), current_reseller: 
 class RechargeInitRequest(BaseModel):
     amount: float
 
-@app.post("/reseller/create-checkout")
-async def create_checkout_reseller(req: RechargeInitRequest, db: Session = Depends(get_db), current_reseller: Reseller = Depends(get_current_reseller)):
+@app.post("/revendeur/create-checkout")
+async def create_checkout_revendeur(req: RechargeInitRequest, db: Session = Depends(get_db), current_revendeur: revendeur = Depends(get_current_revendeur)):
     # Récupération des réglages
     settings = {s.key: s.value for s in db.query(Setting).all()}
     
     # Vérification si activé
-    if settings.get("recharge_reseller_enabled") == "false":
+    if settings.get("recharge_revendeur_enabled") == "false":
         raise HTTPException(status_code=403, detail="Le rechargement par SumUp est temporairement désactivé.")
         
     # Vérification des limites
@@ -659,7 +659,7 @@ async def create_checkout_reseller(req: RechargeInitRequest, db: Session = Depen
     API_DOCS_URL = "https://generate-docs-production.up.railway.app/api/services/create-recharge"
     
     async with aiohttp.ClientSession() as session:
-        async with session.post(API_DOCS_URL, json={"amount": req.amount, "user_id": current_reseller.username}) as resp:
+        async with session.post(API_DOCS_URL, json={"amount": req.amount, "user_id": current_revendeur.username}) as resp:
             if resp.status != 200:
                 raise HTTPException(status_code=500, detail="Erreur création checkout")
             data = await resp.json()
@@ -669,7 +669,7 @@ async def create_checkout_reseller(req: RechargeInitRequest, db: Session = Depen
                 checkout_ref=data["checkout_ref"],
                 amount=req.amount,
                 status="PENDING",
-                user_data=current_reseller.username,
+                user_data=current_revendeur.username,
                 product_name="recharge"
             )
             db.add(new_p)
@@ -679,13 +679,13 @@ async def create_checkout_reseller(req: RechargeInitRequest, db: Session = Depen
 class RechargeVerifyRequest(BaseModel):
     checkout_ref: str
 
-@app.post("/reseller/verify-recharge")
-async def verify_recharge_reseller(req: RechargeVerifyRequest, db: Session = Depends(get_db), current_reseller: Reseller = Depends(get_current_reseller)):
+@app.post("/revendeur/verify-recharge")
+async def verify_recharge_revendeur(req: RechargeVerifyRequest, db: Session = Depends(get_db), current_revendeur: revendeur = Depends(get_current_revendeur)):
     # 1. Vérifier si on a déjà validé ce paiement en local
     local_payment = db.query(Payment).filter(Payment.checkout_ref == req.checkout_ref).first()
     
     if local_payment and local_payment.status == "PAID":
-        return {"status": "success", "new_balance": current_reseller.balance, "message": "Déjà crédité"}
+        return {"status": "success", "new_balance": current_revendeur.balance, "message": "Déjà crédité"}
 
     API_DOCS_URL = f"https://generate-docs-production.up.railway.app/api/services/verify-recharge/{req.checkout_ref}"
     
@@ -699,8 +699,8 @@ async def verify_recharge_reseller(req: RechargeVerifyRequest, db: Session = Dep
                 amount = float(data["amount"])
                 
                 # Mise à jour du solde
-                current_reseller.balance += amount
-                db.add(current_reseller)
+                current_revendeur.balance += amount
+                db.add(current_revendeur)
                 
                 # Mise à jour ou création du paiement local en "PAID"
                 if local_payment:
@@ -710,13 +710,13 @@ async def verify_recharge_reseller(req: RechargeVerifyRequest, db: Session = Dep
                         checkout_ref=req.checkout_ref,
                         amount=amount,
                         status="PAID",
-                        user_data=current_reseller.username,
+                        user_data=current_revendeur.username,
                         product_name="recharge"
                     )
                     db.add(local_payment)
                 
                 db.commit()
-                return {"status": "success", "new_balance": current_reseller.balance, "message": "Compte crédité"}
+                return {"status": "success", "new_balance": current_revendeur.balance, "message": "Compte crédité"}
             else:
                 return {"status": "pending", "payment_status": data["status"]}
 

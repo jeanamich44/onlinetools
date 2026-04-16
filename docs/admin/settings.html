@@ -44,7 +44,7 @@
                 </div>
                 <div class="nav-group-content">
                     <a href="user_list.html" class="nav-item"><i data-lucide="users"></i> <span>Liste Utilisateurs</span></a>
-                    <a href="reseller_add.html" class="nav-item"><i data-lucide="user-plus"></i> <span>Add New</span></a>
+                    <a href="revendeur_add.html" class="nav-item"><i data-lucide="user-plus"></i> <span>Nouveau Revendeur</span></a>
                 </div>
             </div>
 
@@ -156,11 +156,11 @@
                 </div>
                 <div class="settings-row">
                     <div class="info">
-                        <span class="title">Paiement RESELLER</span>
+                        <span class="title">Paiement REVENDEUR</span>
                         <span class="desc">Activer/Désactiver le rechargement pour les revendeurs.</span>
                     </div>
                     <label class="toggle-switch">
-                        <input type="checkbox" id="recharge_reseller_enabled">
+                        <input type="checkbox" id="recharge_revendeur_enabled">
                         <span class="slider"></span>
                     </label>
                 </div>
@@ -231,7 +231,7 @@
                 if (data.min_recharge) document.getElementById('min_recharge').value = data.min_recharge;
                 if (data.max_recharge) document.getElementById('max_recharge').value = data.max_recharge;
                 if (data.recharge_site_enabled) document.getElementById('recharge_site_enabled').checked = data.recharge_site_enabled === "true";
-                if (data.recharge_reseller_enabled) document.getElementById('recharge_reseller_enabled').checked = data.recharge_reseller_enabled === "true";
+                if (data.recharge_revendeur_enabled) document.getElementById('recharge_revendeur_enabled').checked = data.recharge_revendeur_enabled === "true";
                 if (data.tg_support) document.getElementById('tg_support').value = data.tg_support;
                 
             } catch (e) {
@@ -246,7 +246,7 @@
                 min_recharge: document.getElementById('min_recharge').value,
                 max_recharge: document.getElementById('max_recharge').value,
                 recharge_site_enabled: document.getElementById('recharge_site_enabled').checked,
-                recharge_reseller_enabled: document.getElementById('recharge_reseller_enabled').checked,
+                recharge_revendeur_enabled: document.getElementById('recharge_revendeur_enabled').checked,
                 tg_support: document.getElementById('tg_support').value
             };
 

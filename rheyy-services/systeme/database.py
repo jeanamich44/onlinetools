@@ -31,7 +31,7 @@ from sqlalchemy.orm import relationship
 
 # ==============================================================================
 
-class Reseller(Base):
+class Revendeur(Base):
     __tablename__ = "resellers"
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
