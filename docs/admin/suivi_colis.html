@@ -32,7 +32,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            min-height: 600px;
+            height: 700px;
         }
 
         .mode-selector {
@@ -146,6 +146,39 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
+        }
+
+        .summary-panel {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(16, 185, 129, 0.05);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 12px;
+            display: none;
+        }
+
+        .summary-title {
+            color: #10b981;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .hit-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
         }
     </style>
 </head>
@@ -317,6 +350,13 @@
                 </div>
             </div>
         </div>
+
+        <div id="hit-summary" class="summary-panel">
+            <div class="summary-title">
+                <i data-lucide="check-circle"></i> RÉCAPITULATIF DES HITS
+            </div>
+            <div id="hit-list" class="hit-grid"></div>
+        </div>
     </div>
 
     <script>
@@ -331,6 +371,7 @@
         let isRunning = false;
         let selectedFile = null;
         let abortController = null;
+        let currentHits = [];
 
         function setMode(mode) {
             currentMode = mode;
@@ -432,6 +473,9 @@
             document.getElementById('btnStop').style.display = 'flex';
             
             addLog('info', `Démarrage de l'analyse... (Mode: ${currentMode})`);
+            currentHits = [];
+            document.getElementById('hit-summary').style.display = 'none';
+            document.getElementById('hit-list').innerHTML = '';
             
             abortController = new AbortController();
 
@@ -491,11 +535,38 @@
             } else if (data.status === 'result' || data.status === 'error') {
                 const type = data.result_status === 'HIT' ? 'hit' : (data.result_status === 'FAILED' ? 'fail' : 'info');
                 const msg = data.status === 'error' ? `ERROR: ${data.number} - ${data.message}` : `${data.result_status}: ${data.number}`;
+                
+                if (data.result_status === 'HIT') {
+                    currentHits.push({
+                        number: data.number,
+                        details: data.details
+                    });
+                }
+                
                 addLog(type, msg);
                 updateStats(data.stats, data.index, data.total);
             } else if (data.status === 'completed') {
                 addLog('info', `Terminé. Hits: ${data.stats.HIT}, Fails: ${data.stats.FAILED}`);
+                showHitSummary();
             }
+        }
+
+        function showHitSummary() {
+            if (currentHits.length === 0) return;
+            const container = document.getElementById('hit-summary');
+            const list = document.getElementById('hit-list');
+            container.style.display = 'block';
+            
+            currentHits.forEach(hit => {
+                const card = document.createElement('div');
+                card.className = 'hit-card';
+                let detailHtml = hit.details ? `<div style="color:rgba(255,255,255,0.4);font-size:0.7rem;margin-top:4px;">${hit.details.status_text} - ${hit.details.location}</div>` : '';
+                card.innerHTML = `<div style="color:#10b981;font-weight:700;">${hit.number}</div>${detailHtml}`;
+                list.appendChild(card);
+            });
+            
+            lucide.createIcons();
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
 
         function stopProcess() {
