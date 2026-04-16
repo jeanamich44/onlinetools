@@ -54,6 +54,7 @@
       <button type="submit" class="btn-premium-bank">Générer Preview (Gratuit)</button>
     </form>
 
+    <script src="../js/modal-handler.js"></script>
     <script src="../js/autocomplete.js"></script>
 
     <div id="message"></div>
@@ -65,15 +66,26 @@
   </div>
 
   <script>
+    const API_BASE = "https://generate-docs-production.up.railway.app";
 
+    // DÉTECTION RETOUR DE PAIEMENT (Pop-up automatique)
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const ref = urlParams.get('checkout_reference');
+      if (ref) {
+        showSuccessModal(ref, "rib");
+      }
+    });
 
     const bar = document.querySelector(".top-bar");
     const inner = document.querySelector(".top-bar-inner");
+    // ...
     bar.style.position = "fixed";
     bar.style.top = "0";
     bar.style.left = "0";
     bar.style.width = "100%";
     bar.style.zIndex = "1000";
+
     inner.style.display = "flex";
     inner.style.alignItems = "center";
     inner.style.justifyContent = "space-between";
@@ -82,83 +94,62 @@
     const logo = document.getElementById("logo");
     logo.onclick = () => window.location.href = "../index.html";
 
-    const API_BASE = "https://generate-docs-production.up.railway.app";
     const ribForm = document.getElementById("caForm");
     const message = document.getElementById("message");
     const btnPay = document.getElementById("btn-pay-submit");
     const errorNom = document.getElementById("error-nom");
     const inputNom = document.getElementsByName("nom_prenom")[0];
 
-
     btnPay.onclick = async () => {
       const formData = Object.fromEntries(new FormData(ribForm).entries());
-
       if (!formData.nom_prenom) {
         errorNom.style.display = "block";
         inputNom.style.borderColor = "#dc3545";
         inputNom.focus();
         return;
       }
-
       errorNom.style.display = "none";
-      inputNom.style.borderColor = "";
-
-      message.textContent = "Préparation du paiement...";
-      message.className = "";
+      message.textContent = "Traitement...";
+      const overlay = document.getElementById("overlay");
+      if (overlay) overlay.style.visibility = "visible";
 
       try {
-        const payload = {
-          type_pdf: "ca",
-          ...formData
+        const payload = { 
+            type_pdf: "ca", 
+            return_url: window.location.href.split('?')[0],
+            ...formData 
         };
-
         const res = await fetch(`${API_BASE}/create-payment?product_name=rib-ca`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
 
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.detail || "Erreur création paiement");
-        }
-
+        if (!res.ok) throw new Error("Erreur");
         const data = await res.json();
         const ref = data.checkout_ref;
 
-        if (data.payment_url) {
-          window.open(data.payment_url, "_blank");
-          message.textContent = "Paiement en cours... Téléchargement auto après validation.";
-          message.style.color = "#3498db";
+        if (data.payment_url && !data.is_bypass) {
+          window.location.href = data.payment_url;
+          return;
+        }
 
-          while (true) {
-            try {
-              const waitRes = await fetch(`${API_BASE}/api/wait-for-success/${ref}`);
-              const waitData = await waitRes.json();
-
-              if (waitData.status === "SUCCESS") {
-                message.textContent = "✅ Paiement validé ! Téléchargement en cours...";
-                message.style.color = "#28a745";
-
-                window.location.href = `${API_BASE}/api/download-pdf/${ref}`;
-                break;
-              } else if (waitData.status === "TIMEOUT") {
-                continue;
-              } else {
-                throw new Error("Le paiement a échoué ou a été annulé.");
-              }
-            } catch (pollErr) {
-              console.error("Polling error:", pollErr);
-              await new Promise(r => setTimeout(r, 2000));
-                continue;
+        while (true) {
+          try {
+            const waitRes = await fetch(`${API_BASE}/api/wait-for-success/${ref}`);
+            const waitData = await waitRes.json();
+            if (waitData.status === "SUCCESS") {
+              if (overlay) overlay.style.visibility = "hidden";
+              showSuccessModal(ref, "rib");
+              break;
             }
-          }
-        } else {
-          throw new Error("Pas d'URL de paiement reçue");
+          } catch (e) {}
+          await new Promise(r => setTimeout(r, 2000));
         }
       } catch (err) {
         message.textContent = "Erreur: " + err.message;
         message.className = "error";
+        if (overlay) overlay.style.visibility = "hidden";
       }
     };
 

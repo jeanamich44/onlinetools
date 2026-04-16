@@ -1,8 +1,3 @@
-/**
- * price-dynamic.js
- * Gère le calcul dynamique du prix sur les formulaires de service
- */
-
 (function() {
     const config = {
         carrier: window.PRICE_CONFIG?.carrier || 'chronopost',

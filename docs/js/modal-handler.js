@@ -24,25 +24,40 @@ function showSuccessModal(ref, productType) {
         fileName = 'Facture';
     }
     
-    modalMessage.textContent = `Votre ${fileName} a été généré avec succès. Cliquez ci-dessous pour le télécharger (un seul téléchargement possible).`;
+    modalMessage.textContent = `Votre ${fileName} est prêt ! Cliquez ici pour le télécharger (limite : 1 seul essai).`;
     
     if (ref) {
         downloadBtn.style.display = "inline-block";
         downloadBtn.href = `${API_BASE}/api/download-pdf/${ref}`;
         downloadBtn.onclick = () => {
+             // On laisse le temps au téléchargement de démarrer
              setTimeout(() => {
-                 closeModal();
-             }, 1500);
+                 closeModal(true);
+             }, 1000);
         };
     } else {
         downloadBtn.style.display = "none";
     }
     
-    modal.style.display = "flex";
+    modal.style.display = "block"; // Utilisation de block pour le toast
+
+    // Auto-fermeture après 10 secondes
+    setTimeout(() => {
+        closeModal(false);
+    }, 10000);
 }
 
-function closeModal() {
+function closeModal(shouldReload = false) {
     const modal = document.getElementById("successModal");
-    if (modal) modal.style.display = "none";
-    window.location.reload();
+    if (modal) {
+        modal.style.display = "none";
+        // On nettoie l'URL pour ne pas réafficher la pop-up au refresh manuel
+        if (window.location.search.includes('checkout_reference')) {
+            const newUrl = window.location.origin + window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        }
+    }
+    if (shouldReload) {
+        window.location.reload();
+    }
 }
