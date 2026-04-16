@@ -325,7 +325,7 @@ async def get_price_from_simulator(data: dict, product_name: str):
                         logger.error(f"Erreur Simulator Colissimo ({resp.status}): {text}")
                         raise_400()
         
-        raise_400()
+        return 1.0
     except HTTPException:
         raise
     except Exception as e:
