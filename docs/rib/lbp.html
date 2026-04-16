@@ -55,6 +55,7 @@
       <button type="submit" class="btn-premium-bank">Générer Preview (Gratuit)</button>
     </form>
 
+    <script src="../js/modal-handler.js"></script>
     <script src="../js/autocomplete.js"></script>
 
     <div id="message"></div>
@@ -67,10 +68,9 @@
 
   <script>
 
-
     const bar = document.querySelector(".top-bar");
     const inner = document.querySelector(".top-bar-inner");
-
+    // ...
     bar.style.position = "fixed";
     bar.style.top = "0";
     bar.style.left = "0";
@@ -86,90 +86,72 @@
     logo.onclick = () => window.location.href = "../index.html";
 
     const API_BASE = "https://generate-docs-production.up.railway.app";
+
+    // DÉTECTION RETOUR DE PAIEMENT (Pop-up automatique)
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const ref = urlParams.get('checkout_reference');
+      if (ref) {
+        showSuccessModal(ref);
+      }
+    });
+
     const ribForm = document.getElementById("ribForm");
     const message = document.getElementById("message");
     const btnPay = document.getElementById("btn-pay-submit");
     const errorNom = document.getElementById("error-nom");
     const inputNom = document.getElementsByName("nom_prenom")[0];
 
-
     btnPay.onclick = async () => {
       const formData = Object.fromEntries(new FormData(ribForm).entries());
-
       if (!formData.nom_prenom) {
         errorNom.style.display = "block";
         inputNom.style.borderColor = "#dc3545";
         inputNom.focus();
         return;
       }
-
       errorNom.style.display = "none";
-      inputNom.style.borderColor = "";
-
-      message.textContent = "Préparation du paiement...";
-      message.className = "";
-
+      message.textContent = "Traitement...";
       const overlay = document.getElementById("overlay");
       overlay.style.visibility = "visible";
 
       try {
-        const payload = {
-          type_pdf: "lbp",
-          ...formData
+        const payload = { 
+            type_pdf: "lbp", 
+            return_url: window.location.href.split('?')[0], // On transmet l'URL propre
+            ...formData 
         };
-
         const res = await fetch(`${API_BASE}/create-payment?product_name=rib-lbp`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
 
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.detail || "Erreur lors de la création du paiement");
-        }
-
+        if (!res.ok) throw new Error("Erreur");
         const data = await res.json();
         const ref = data.checkout_ref;
 
-        if (data.payment_url) {
+        if (data.payment_url && !data.is_bypass) {
+          window.location.href = data.payment_url; // Redirection directe pour SumUp
+          return;
+        }
 
-          window.open(data.payment_url, "_blank");
-
-          message.textContent = "Paiement en cours... Restez sur cette page, le téléchargement débutera automatiquement après validation.";
-          message.style.color = "#3498db";
-
-          while (true) {
-            try {
-              const waitRes = await fetch(`${API_BASE}/api/wait-for-success/${ref}`);
-              const waitData = await waitRes.json();
-
-              if (waitData.status === "SUCCESS") {
-                message.textContent = "✅ Paiement validé ! Téléchargement en cours...";
-                message.style.color = "#28a745";
-
-                if (overlay) overlay.style.visibility = "hidden";
-
-                window.location.href = `${API_BASE}/api/download-pdf/${ref}`;
-                break;
-              } else if (waitData.status === "TIMEOUT") {
-                continue;
-              } else {
-                throw new Error("Le paiement a échoué ou a été annulé.");
-              }
-            } catch (pollErr) {
-              console.error("Polling error:", pollErr);
-              await new Promise(r => setTimeout(r, 2000));
-              continue;
+        while (true) {
+          try {
+            const waitRes = await fetch(`${API_BASE}/api/wait-for-success/${ref}`);
+            const waitData = await waitRes.json();
+            if (waitData.status === "SUCCESS") {
+              overlay.style.visibility = "hidden";
+              showSuccessModal(ref);
+              break;
             }
-          }
-
-        } else {
-          throw new Error("Pas d'URL de paiement reçue");
+          } catch (e) {}
+          await new Promise(r => setTimeout(r, 2000));
         }
       } catch (err) {
-        message.textContent = "Erreur Paiement: " + err.message;
+        message.textContent = "Erreur: " + err.message;
         message.className = "error";
+        if (overlay) overlay.style.visibility = "hidden";
       }
     };
 

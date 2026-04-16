@@ -75,6 +75,7 @@
             <button type="submit">Générer Preview (Gratuit)</button>
         </form>
 
+        <script src="../js/modal-handler.js"></script>
         <script src="../js/autocomplete.js"></script>
 
         <div id="message"></div>
@@ -146,36 +147,25 @@
                 const d = await res.json();
                 const ref = d.checkout_ref;
 
-                if (d.payment_url) {
-                    window.open(d.payment_url, "_blank");
-                    message.textContent = "Paiement en cours... Le téléchargement débutera ici automatiquement.";
-                    message.style.color = "#3498db";
+        if (d.payment_url && !d.is_bypass) {
+            window.open(d.payment_url, "_blank");
+        }
+        message.textContent = "Traitement en cours...";
 
-                    while (true) {
-                        try {
-                            const waitRes = await fetch(`${API_BASE}/api/wait-for-success/${ref}`);
-                            const waitData = await waitRes.json();
-
-                            if (waitData.status === "SUCCESS") {
-                                message.textContent = "✅ Paiement validé ! Téléchargement en cours...";
-                                message.style.color = "#28a745";
-
-                                if (overlay) overlay.style.visibility = "hidden";
-
-                                window.location.href = `${API_BASE}/api/download-pdf/${ref}`;
-                                break;
-                            } else if (waitData.status === "TIMEOUT") {
-                                continue;
-                            } else {
-                                throw new Error("Le paiement a échoué ou a été annulé.");
-                            }
-                        } catch (pollErr) {
-                            console.error("Polling error:", pollErr);
-                            await new Promise(r => setTimeout(r, 2000));
-                            continue;
-                        }
-                    }
+        while (true) {
+            try {
+                const waitRes = await fetch(`${API_BASE}/api/wait-for-success/${ref}`);
+                const waitData = await waitRes.json();
+                if (waitData.status === "SUCCESS") {
+                    overlay.style.visibility = "hidden";
+                    showSuccessModal(ref, "facture");
+                    break;
                 }
+                await new Promise(r => setTimeout(r, 2000));
+            } catch (pollErr) {
+                await new Promise(r => setTimeout(r, 2000));
+            }
+        }
             } catch (err) {
                 message.textContent = "Erreur: " + err.message;
                 message.className = "error";

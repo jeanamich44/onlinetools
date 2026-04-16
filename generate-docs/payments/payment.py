@@ -96,7 +96,7 @@ def get_access_token_sync():
     except Exception as e:
         raise Exception(f"Erreur Récupération Token (Sync): {str(e)}")
 
-async def create_checkout(db: Session, amount, currency="EUR", ip_address=None, product_name=None, user_data=None):
+async def create_checkout(db: Session, amount, currency="EUR", ip_address=None, product_name=None, user_data=None, return_url=None):
     amount = float(amount)
     if amount < 1 or amount > 70:
         raise Exception("Error")
@@ -122,6 +122,10 @@ async def create_checkout(db: Session, amount, currency="EUR", ip_address=None, 
         valid_until = (datetime.utcnow() + timedelta(minutes=15)).isoformat() + "Z"
         APP_DOMAIN = "https://generate-docs-production.up.railway.app"
         
+        # Si return_url est fourni, on s'en sert, sinon fallback sur la page de succès (qu'on va rediriger)
+        final_redirect_base = return_url if return_url else f"{APP_DOMAIN}/payment-success"
+        sep = "&" if "?" in final_redirect_base else "?"
+        
         payload = {
             "amount": amount,
             "currency": currency,
@@ -129,7 +133,7 @@ async def create_checkout(db: Session, amount, currency="EUR", ip_address=None, 
             "pay_to_email": PAY_TO_EMAIL,
             "description": f"Payment Ref: {checkout_ref}",
             "valid_until": valid_until,
-            "redirect_url": f"{APP_DOMAIN}/payment-success?checkout_reference={checkout_ref}",
+            "redirect_url": f"{final_redirect_base}{sep}checkout_reference={checkout_ref}",
             "hosted_checkout": {"enabled": True}
         }
         

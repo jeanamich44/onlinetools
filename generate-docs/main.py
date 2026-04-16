@@ -34,7 +34,7 @@ from script.maxance import generate_maxance_pdf, generate_maxance_preview
 from script.nike import generate_nike_pdf, generate_nike_preview
 from payments.reconcile import start_reconciliation_loop
 from payments.polling import poll_sumup_status
-from script.responses import chrono_redirect_url, success_download_page, waiting_spinner_page, payment_not_found_page, error_page, raise_400, raise_402, raise_404, raise_429, raise_500
+from script.responses import chrono_redirect_url, waiting_spinner_page, payment_not_found_page, error_page, raise_400, raise_402, raise_404, raise_429, raise_500
 
 # ==============================================================================
 # CONSTANTES
@@ -372,6 +372,7 @@ async def create_payment_endpoint(request: Request, data: dict, background_tasks
                 else: data["destinationCountry"] = "FR"
 
         user_data_str = json.dumps(data)
+        return_url = data.get("return_url")
 
         # =========== SYSTÈME DE BYPASS DES PAIEMENTS ===========
         if DIRECT_FREE_PROCESS:
@@ -394,12 +395,14 @@ async def create_payment_endpoint(request: Request, data: dict, background_tasks
             logger.info(f"⚡ [BYPASS MODE] Paiement simulé pour {checkout_ref}. Lancement automatique de la génération...")
             background_tasks.add_task(_run_bypass_async, checkout_ref)
 
-            APP_DOMAIN = "https://generate-docs-production.up.railway.app"
-            bypass_url = f"{APP_DOMAIN}/payment-success?checkout_reference={checkout_ref}"
-            return {"payment_url": bypass_url, "checkout_ref": checkout_ref}
+            return {
+                "payment_url": None, 
+                "checkout_ref": checkout_ref, 
+                "is_bypass": True
+            }
         # =======================================================
 
-        url, ref, checkout_id = await create_checkout(db=db, amount=amount, ip_address=client_ip, product_name=product_name, user_data=user_data_str)
+        url, ref, checkout_id = await create_checkout(db=db, amount=amount, ip_address=client_ip, product_name=product_name, user_data=user_data_str, return_url=return_url)
         
         if checkout_id:
              background_tasks.add_task(poll_sumup_status, checkout_id)
@@ -495,14 +498,21 @@ async def download_paid_pdf(checkout_reference: str, db: Session = Depends(get_d
     if not payment or payment.status != "PAID":
         raise_402()
     
+    if payment.is_generated != 1:
+        raise HTTPException(status_code=403, detail="Ce document a déjà été téléchargé ou n'est pas prêt.")
+    
     file_path = os.path.join("paid_pdfs", f"{checkout_reference}.pdf")
     if os.path.exists(file_path):
+        payment.is_generated = 0
+        db.commit()
         return FileResponse(file_path, filename=f"document_{checkout_reference}.pdf", media_type="application/pdf")
 
     try:
         data = json.loads(payment.user_data)
         if "proforma_b64" in data:
             pdf_bytes = base64.b64decode(data["proforma_b64"])
+            payment.is_generated = 0
+            db.commit()
             return StreamingResponse(BytesIO(pdf_bytes), media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=proforma_{checkout_reference}.pdf"})
     except:
         pass
@@ -534,45 +544,26 @@ async def payment_success(request: Request, checkout_reference: str):
                 
             type_pdf = user_data_parsed.get("type_pdf", "")
             
-            if type_pdf.startswith("chrono"):
-                email = user_data_parsed.get("sendToThirdPersonInfo", "")
-                return RedirectResponse(url=chrono_redirect_url(type_pdf, email))
-
-            return HTMLResponse(success_download_page(checkout_reference))
-
-        token = await get_access_token()
-        headers = {"Authorization": f"Bearer {token}"}
-        url = f"https://api.sumup.com/v0.1/checkouts/{payment.checkout_id}"
-        
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers) as sumup_res:
-                if sumup_res.status == 200:
-                    data = await sumup_res.json()
-                    new_status = data.get("status")
-                    if new_status and new_status != payment.status:
-                        payment.status = new_status
-                        db.commit()
-
         if payment.status == "PAID":
-            user_data = json.loads(payment.user_data)
-            type_pdf = user_data.get("type_pdf")
+            # Si le PDF est déjà prêt, on tente de le renvoyer
             storage_dir = "paid_pdfs"
-            os.makedirs(storage_dir, exist_ok=True)
             output_path = os.path.join(storage_dir, f"{checkout_reference}.pdf")
-            
-            data_obj = PDFRequest(**user_data)
-            
-            if type_pdf in GENERATORS:
-                if not os.path.exists(output_path):
-                    GENERATORS[type_pdf](data_obj, output_path)
-                
-                payment.is_generated = 1
-                db.commit()
-                
-                logger.info(f"SERVICE DIRECT PDF (Permanent): {type_pdf} pour {checkout_reference}")
-                return FileResponse(output_path, filename=f"document_{checkout_reference}.pdf", media_type="application/pdf")
-        
-        return HTMLResponse(waiting_spinner_page())
+            if os.path.exists(output_path):
+                 return FileResponse(output_path, filename=f"document_{checkout_reference}.pdf", media_type="application/pdf")
+
+        # REDIRECTION VERS LE FORMULAIRE (Pour afficher la Pop-up)
+        # On tente de trouver l'URL de retour dans les données
+        try:
+            user_data_parsed = json.loads(payment.user_data)
+            return_url = user_data_parsed.get("return_url")
+            if return_url:
+                sep = "&" if "?" in return_url else "?"
+                return RedirectResponse(url=f"{return_url}{sep}checkout_reference={checkout_reference}")
+        except:
+            pass
+
+        # Fallback si pas d'URL
+        return RedirectResponse(url=f"https://transporteur.up.railway.app/?checkout_reference={checkout_reference}")
 
     except Exception as e:
         logger.error(f"Erreur Success Direct: {e}")

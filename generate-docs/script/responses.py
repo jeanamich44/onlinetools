@@ -23,38 +23,7 @@ def chrono_redirect_url(type_pdf, email):
 # PAGES HTML
 # ==============================================================================
 
-def success_download_page(checkout_ref):
-    return f"""
-    <html>
-    <head>
-        <title>Achat Réussi !</title>
-        <meta charset='UTF-8'>
-        <style>
-            body {{ font-family: sans-serif; text-align: center; padding-top: 50px; background-color: #121212; color: #fff; }}
-            h1 {{ color: #28a745; }}
-            .btn {{ display: inline-block; margin-top: 20px; padding: 12px 24px; background-color: #3498db; color: #fff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.3); transition: transform 0.2s, background-color 0.2s; }}
-            .btn:hover {{ background-color: #2980b9; transform: scale(1.05); }}
-            .home-link {{ display: inline-block; margin-top: 30px; color: #aaa; text-decoration: none; }}
-            .home-link:hover {{ color: #fff; }}
-        </style>
-    </head>
-    <body>
-        <h1>✅ Paiement Validé !</h1>
-        <p>Votre étiquette de transport a été générée avec succès.</p>
-        <p>Si le téléchargement n'a pas démarré, cliquez sur le bouton ci-dessous :</p>
-        <a class="btn" href="/api/download-pdf/{checkout_ref}">⬇️ Télécharger mon Étiquette</a>
-        <br>
-        <a class="home-link" href="{FRONT_DOMAIN}/">Retour à l'accueil</a>
-        
-        <script>
-            setTimeout(function() {{
-                window.location.href = '/api/download-pdf/{checkout_ref}';
-            }}, 1500);
-        </script>
-    </body>
-    </html>
-    """
-
+# Les pages de succès HTML ont été supprimées au profit des Pop-up dynamiques.
 def waiting_spinner_page():
     return """
     <!DOCTYPE html>
