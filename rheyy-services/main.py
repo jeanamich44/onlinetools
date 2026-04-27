@@ -451,23 +451,25 @@ async def public_flunch_generate_list(count: int = 50):
     API publique pour générer une liste de HITS Flunch.
     Extrait des IDs du RDP, les vérifie en temps réel et renvoie les valides.
     """
-    if count > 100: count = 100
+    if count > 50: count = 50 # On réduit pour la vitesse
     try:
         from script.flunch_checker import fetch_flunch_data
-        # 1. Extraction d'un échantillon (on prend x2 pour compenser les fails)
-        raw_ids = await run_in_threadpool(fetch_random_lines_remote, REMOTE_FILE_DBFLUNCH, count * 2)
+        # 1. Extraction d'un échantillon plus petit pour aller vite
+        raw_ids = await run_in_threadpool(fetch_random_lines_remote, REMOTE_FILE_DBFLUNCH, count * 3)
+        
+        if not raw_ids:
+            return StreamingResponse(iter(["ERREUR: Impossible de lire le fichier sur le RDP ou fichier vide."]), media_type="text/plain")
+
         clean_ids = []
         for l in raw_ids:
             if not l.strip(): continue
             parts = l.strip().split('|')
-            # Si format flunch|ID:0|... on prend le 2ème segment, sinon le 1er
             token_part = parts[1] if len(parts) > 1 and 'flunch' in parts[0].lower() else parts[0]
-            # On garde ce qui est avant le ":" (pour virer le :0)
             clean_ids.append(token_part.split(':')[0].strip())
         
-        clean_ids = list(set(clean_ids))
+        clean_ids = list(set(clean_ids))[:count*2]
         
-        # 2. Check asynchrone en parallèle
+        # 2. Check asynchrone
         async def check_id(card_id):
             try:
                 res = await fetch_flunch_data(card_id)
@@ -476,15 +478,17 @@ async def public_flunch_generate_list(count: int = 50):
             except: pass
             return None
 
-        tasks = [check_id(cid) for cid in clean_ids[:count*2]]
+        tasks = [check_id(cid) for cid in clean_ids]
         checked_results = await asyncio.gather(*tasks)
         
-        # 3. Filtrage des hits et limitation au nombre demandé
         hits = [r for r in checked_results if r][:count]
         
+        if not hits:
+            return StreamingResponse(iter(["INFO: Aucun HIT trouvé dans l'échantillon pioché. Réessayez."]), media_type="text/plain")
+            
         return StreamingResponse(iter(["\n".join(hits)]), media_type="text/plain")
     except Exception as e:
-        return JSONResponse(status_code=500, content={"detail": str(e)})
+        return JSONResponse(status_code=500, content={"detail": f"Erreur: {str(e)}"})
 
 # [ CHRONOPOST ] ===============================================================
 
