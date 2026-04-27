@@ -473,11 +473,11 @@ async def public_flunch_generate_list(count: int = 50):
         
         clean_ids = list(set(clean_ids))[:count*2]
         
-        # 2. Check asynchrone
+        # 2. Check asynchrone (sur fonction synchrone via threadpool)
         debug_raw = []
         async def check_id(card_id):
             try:
-                res = await fetch_flunch_data(card_id)
+                res = await run_in_threadpool(fetch_flunch_data, card_id)
                 if len(debug_raw) < 1: debug_raw.append(str(res))
                 
                 # fetch_flunch_data renvoie un dict avec "SOLDE" et "ID" majuscules si c'est un HIT
