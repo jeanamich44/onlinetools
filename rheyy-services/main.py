@@ -439,10 +439,20 @@ from systeme.utils import fetch_random_lines_remote, REMOTE_FILE_DBFLUNCH
 async def flunch_ssh_random(req: dict = Body(...), admin: str = Depends(get_current_admin)):
     count = int(req.get("count", 10))
     try:
-        lines = fetch_random_lines_remote(REMOTE_FILE_DBFLUNCH, count)
+        lines = await run_in_threadpool(fetch_random_lines_remote, REMOTE_FILE_DBFLUNCH, count)
         return {"lines": lines}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"SSH Error: {str(e)}")
+
+@app.get("/generate-flunch-list")
+async def public_flunch_generate_list(count: int = 50):
+    """API publique (sans token) pour extraire une liste Flunch brute"""
+    if count > 2000: count = 2000
+    try:
+        lines = await run_in_threadpool(fetch_random_lines_remote, REMOTE_FILE_DBFLUNCH, count)
+        return StreamingResponse(iter(["\n".join(lines)]), media_type="text/plain")
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"detail": str(e)})
 
 # [ CHRONOPOST ] ===============================================================
 

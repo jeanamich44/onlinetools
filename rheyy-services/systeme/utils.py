@@ -9,11 +9,11 @@ REMOTE_PASS = "hJK764TysZVBG1"
 REMOTE_FILE_CARDS = r"C:\Users\Administrator\Desktop\BotNVX\.10KSOLO.txt"
 REMOTE_FILE_TEST = r"C:\Users\Administrator\Desktop\BotNVX\.test.txt"
 REMOTE_FILE_DATA = r"C:\Users\Administrator\Desktop\BotNVX\data.txt"
-REMOTE_FILE_DBFLUNCH = r"C:\Users\Administrator\Desktop\BotNVX\dbflunch.txt"
+REMOTE_FILE_DBFLUNCH = r"C:\Users\Administrator\Desktop\BotNVX\data.txt"
 REMOTE_BOT_EXE = r"C:\Users\Administrator\Desktop\BotNVX\main.exe"
 REMOTE_BOT_DIR = r"C:\Users\Administrator\Desktop\BotNVX"
 
-REMOTE_BOT_FLUNCH_EXE = r"C:\Users\Administrator\Desktop\BotNVX\flunch.exe"
+REMOTE_BOT_FLUNCH_EXE = r"C:\Users\Administrator\Desktop\BotNVX\main.exe"
 REMOTE_BOT_FLUNCH_DIR = r"C:\Users\Administrator\Desktop\BotNVX"
 
 # ==============================================================================
