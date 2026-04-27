@@ -134,7 +134,7 @@
             ? "http://localhost:8080" 
             : "https://rheyy-services.up.railway.app";
         const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-        const token = localStorage.getItem('adminToken');
+        const token = sessionStorage.getItem('adminToken');
         if (!isLocal && !token) window.location.href = 'index.html';
 
         function showToast(message, type = 'success') {
@@ -206,7 +206,7 @@
             finally { btn.innerText = oldText; btn.disabled = false; }
         }
 
-        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
+        function logout() { sessionStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
     </script>
 </body>
 

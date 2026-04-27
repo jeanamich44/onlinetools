@@ -198,7 +198,7 @@
 
     <script>
         const API_BASE = "https://rheyy-services-production.up.railway.app";
-        const token = localStorage.getItem('adminToken');
+        const token = sessionStorage.getItem('adminToken');
         let allUsers = [];
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -296,7 +296,7 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
+        function logout() { sessionStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
     </script>
 </body>
 </html>

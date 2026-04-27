@@ -156,7 +156,7 @@
         const API_BASE = isLocal 
             ? "http://localhost:8080" 
             : "https://rheyy-services.up.railway.app";
-        const token = localStorage.getItem('adminToken');
+        const token = sessionStorage.getItem('adminToken');
 
         if (!isLocal && !token) window.location.href = 'index.html';
 
@@ -237,7 +237,7 @@
             }
         }
 
-        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
+        function logout() { sessionStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
     </script>
 </body>
 

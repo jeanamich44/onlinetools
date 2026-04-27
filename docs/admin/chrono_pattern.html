@@ -90,7 +90,7 @@
     <script>
         lucide.createIcons();
         const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
-        const token = localStorage.getItem('adminToken');
+        const token = sessionStorage.getItem('adminToken');
         if (!isLocal && !token) window.location.href = 'index.html';
 
         function runPattern() {
@@ -161,7 +161,7 @@
             setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
-        function logout() { localStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
+        function logout() { sessionStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
     </script>
 </body>
 </html>
