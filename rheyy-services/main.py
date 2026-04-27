@@ -12,6 +12,8 @@ import uuid
 import shutil
 import os
 import subprocess
+import asyncio
+from fastapi.concurrency import run_in_threadpool
 import aiohttp
 
 from systeme.database import init_db, get_db, Payment, Admin, Setting, Revendeur
@@ -357,19 +359,22 @@ async def stop_flunch_automation(admin: str = Depends(get_current_admin)):
 
 @app.post("/admin/flunch/check")
 async def check_flunch_batch(req: dict = Body(...)):
-    id_string = req.get("ids", "")
+    ids_raw = req.get("ids", "")
     export_type = req.get("export", "").lower()
     
-    if not id_string:
+    if not ids_raw:
         raise HTTPException(status_code=400, detail="Aucun ID fourni")
-        
-    cleaned_ids = id_string.replace("\n", ",").replace("\r", ",")
-    id_list = [i.strip() for i in cleaned_ids.split(",") if i.strip()]
     
-    results = []
-    for client_id in id_list:
+    if isinstance(ids_raw, list):
+        id_list = [str(i).strip() for i in ids_raw if str(i).strip()]
+    else:
+        id_string = str(ids_raw)
+        cleaned_ids = id_string.replace("\n", ",").replace("\r", ",")
+        id_list = [i.strip() for i in cleaned_ids.split(",") if i.strip()]
+    
+    async def process_single_id(client_id):
         try:
-            data = fetch_flunch_data(client_id)
+            data = await run_in_threadpool(fetch_flunch_data, client_id)
             
             if export_type == "bot" and isinstance(data, dict) and "SOLDE" in data:
                 try:
@@ -388,13 +393,14 @@ async def check_flunch_batch(req: dict = Body(...)):
                 elif 210 <= balance <= 299: px = 5
                 elif balance >= 300: px = 6
                 
-                line = f"flunch|{card}:0|{balance}|{px}"
-                results.append(line)
+                return f"flunch|{card}:0|{balance}|{px}"
             else:
-                # Si pas en mode bot, ou si erreur/absence de solde, on garde le format d'origine
-                results.append({"id": client_id, "data": data})
+                return {"id": client_id, "data": data}
         except Exception as e:
-            results.append({"id": client_id, "data": {"status": "error", "message": str(e)}})
+            return {"id": client_id, "data": {"status": "error", "message": str(e)}}
+
+    # Exécution en parallèle (limitation possible si besoin, mais ici gather suffit)
+    results = await asyncio.gather(*[process_single_id(cid) for cid in id_list])
             
     if export_type == "bot":
         # On ne trie que les chaînes de caractères (les succès formatés)
