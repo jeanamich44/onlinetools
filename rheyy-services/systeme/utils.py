@@ -111,8 +111,8 @@ def run_remote_bot(exe_path=None, work_dir=None):
     try:
         target_exe = exe_path or REMOTE_BOT_EXE
         target_dir = work_dir or REMOTE_BOT_DIR
-        # Utilisation de Start-Process avec WorkingDirectory explicite pour garantir le contexte
-        cmd = f'powershell -Command "Start-Process -FilePath \'{target_exe}\' -WorkingDirectory \'{target_dir}\'"'
+        # Utilisation de WMI pour s'assurer que le processus se lance correctement (même sans session GUI active)
+        cmd = f'powershell -Command "Invoke-WmiMethod -Class Win32_Process -Name Create -ArgumentList \\"{target_exe}\\""'
         ssh.exec_command(cmd)
     finally:
         ssh.close()
