@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flunch Bot Launcher | ChezRheyy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="../css/admin.css">
+    <style>
+        .launcher-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .input-section {
+            background: #12141c;
+            border: 1px solid #1e2230;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .info-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .status-card {
+            background: #12141c;
+            border: 1px solid #1e2230;
+            border-radius: 20px;
+            padding: 25px;
+        }
+
+        .status-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #10b981;
+        }
+
+        .rdp-info {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            line-height: 1.6;
+        }
+
+        .rdp-info code {
+            background: #1e2230;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #3b82f6;
+        }
+
+        .ids-textarea {
+            width: 100%;
+            height: 450px;
+            background: #06070a;
+            border: 1.5px solid #1e2230;
+            border-radius: 12px;
+            padding: 20px;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .ids-textarea:focus {
+            border-color: #3b82f6;
+        }
+
+        .btn-launch {
+            width: 100%;
+            height: 60px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 800;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            margin-top: 25px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-launch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-launch:disabled {
+            background: #1e2230;
+            color: #4b5563;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .format-hint {
+            margin-top: 15px;
+            font-size: 0.8rem;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from {transform: rotate(0deg)} to {transform: rotate(360deg)} }
+    </style>
+</head>
+<body>
+    <div id="toast-container"></div>
+
+    <div class="sidebar">
+        <div class="logo">
+            <i data-lucide="shield"></i> ChezRheyy <span>Admin</span>
+        </div>
+                <nav aria-label="Navigation principale">
+            <a href="dashboard.html" class="nav-item "><i data-lucide="layout-dashboard"></i> <span>Dashboard</span></a>
+            <a href="payments.html" class="nav-item "><i data-lucide="credit-card"></i> <span>Paiements</span></a>
+            
+            <div class="nav-group ">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Panel</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="user_list.html" class="nav-item "><i data-lucide="users"></i> <span>Liste Utilisateurs</span></a>
+                    <a href="revendeur_add.html" class="nav-item "><i data-lucide="user-plus"></i> <span>Nouveau Revendeur</span></a>
+                </div>
+            </div>
+
+            <div class="nav-group open">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Flunch</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="flunch_token.html" class="nav-item "><i data-lucide="key"></i> <span>Token Automate</span></a>
+                    <a href="flunch_checker.html" class="nav-item "><i data-lucide="search"></i> <span>Bulk Checker</span></a>
+                    <a href="flunch_picker.html" class="nav-item "><i data-lucide="terminal"></i> <span>Flunch Picker</span></a>
+                    <a href="flunch_bot_launcher.html" class="nav-item active"><i data-lucide="play"></i> <span>Bot Launcher</span></a>
+                    <a href="flunch_extraction.html" class="nav-item "><i data-lucide="file-search"></i> <span>Flunch Extraction</span></a>
+                    <a href="flunch_bot_export.html" class="nav-item "><i data-lucide="external-link"></i> <span>Bot Export</span></a>
+                </div>
+            </div>
+
+            <div class="nav-group ">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Quick</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="packager.html" class="nav-item "><i data-lucide="package"></i> <span>Packager</span></a>
+                    <a href="audio_matcher.html" class="nav-item "><i data-lucide="link"></i> <span>Linker Audio</span></a>
+                    <a href="audio_analyse.html" class="nav-item "><i data-lucide="mic"></i> <span>Analyse Audio</span></a>
+                </div>
+            </div>
+
+            <div class="nav-group ">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Chronopost</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="suivi_colis.html" class="nav-item "><i data-lucide="search"></i> <span>Suivi Colis</span></a>
+                    <a href="chrono_generateur.html" class="nav-item "><i data-lucide="list-ordered"></i> <span>Générateur</span></a>
+                    <a href="chrono_pattern.html" class="nav-item "><i data-lucide="filter"></i> <span>Pattern</span></a>
+                    <a href="chrono_counter.html" class="nav-item "><i data-lucide="bar-chart-3"></i> <span>Counter</span></a>
+                </div>
+            </div>
+
+            <div class="nav-group ">
+                <div class="nav-group-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span>Mixte</span>
+                    <i data-lucide="chevron-down" class="chevron"></i>
+                </div>
+                <div class="nav-group-content">
+                    <a href="mrz.html" class="nav-item "><i data-lucide="file-text"></i> <span>MRZ</span></a>
+                    <a href="qr_zip.html" class="nav-item "><i data-lucide="archive"></i> <span>QR ZIP</span></a>
+                    <a href="settings.html" class="nav-item "><i data-lucide="settings"></i> <span>Configuration</span></a>
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <div class="main">
+        <header>
+            <div class="header-content">
+                <h1>Flunch Bot Launcher</h1>
+                <p>Envoyez une liste de cartes directement au robot RDP pour traitement.</p>
+            </div>
+            <button class="btn-logout" onclick="logout()">Déconnexion</button>
+        </header>
+
+        <div class="launcher-grid">
+            <div class="input-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <span style="font-weight: 700; color: #fff;">Liste des Cartes</span>
+                    <span id="line-count" style="font-size: 0.8rem; color: #4b5563;">0 ligne(s)</span>
+                </div>
+                <textarea id="ids-input" class="ids-textarea" placeholder="flunch|CARTE:0|SOLDE|PX\n..." oninput="updateCount()"></textarea>
+                <div class="format-hint">
+                    <i data-lucide="info" style="width: 14px;"></i>
+                    Format recommandé : <code>flunch|CARTE:0|SOLDE|PX</code>
+                </div>
+                
+                <button id="btnLaunch" class="btn-launch" onclick="launchBot()">
+                    <i data-lucide="zap"></i> ENVOYER ET LANCER LE BOT
+                </button>
+            </div>
+
+            <div class="info-section">
+                <div class="status-card">
+                    <div class="status-header">
+                        <div class="status-dot"></div>
+                        Connexion SSH RDP
+                    </div>
+                    <div class="rdp-info">
+                        Serveur : <code>137.74.113.52</code><br>
+                        Destination : <code>dbflunch.txt</code><br>
+                        Exécutable : <code>flunch.exe</code>
+                    </div>
+                </div>
+
+                <div class="status-card" style="background: rgba(59, 130, 246, 0.05); border-color: rgba(59, 130, 246, 0.2);">
+                    <div class="status-header" style="color: #3b82f6;">
+                        <i data-lucide="help-circle" style="width: 18px;"></i>
+                        Comment ça marche ?
+                    </div>
+                    <div class="rdp-info" style="color: #64748b;">
+                        1. Collez votre liste formatée.<br>
+                        2. Le serveur se connecte en SSH au RDP.<br>
+                        3. Le fichier <code>dbflunch.txt</code> est mis à jour.<br>
+                        4. Le bot <code>flunch.exe</code> est démarré via PowerShell.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        const API_BASE = isLocal ? 'http://localhost:8080' : "https://rheyy-services.up.railway.app";
+        const token = sessionStorage.getItem('adminToken');
+        if (!isLocal && !token) window.location.href = 'index.html';
+
+        function updateCount() {
+            const text = document.getElementById('ids-input').value.trim();
+            const count = text ? text.split('\n').length : 0;
+            document.getElementById('line-count').innerText = `${count} ligne(s)`;
+        }
+
+        async function launchBot() {
+            const input = document.getElementById('ids-input');
+            const text = input.value.trim();
+            if (!text) return showToast("Veuillez entrer une liste", "error");
+
+            const btn = document.getElementById('btnLaunch');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="refresh-cw" class="spin"></i> ENVOI EN COURS...';
+            lucide.createIcons();
+
+            const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+
+            try {
+                const res = await fetch(`${API_BASE}/admin/flunch/launch-bot`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ results: lines })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(data.message, "success");
+                    input.value = '';
+                    updateCount();
+                } else {
+                    throw new Error(data.detail || "Erreur lors de l'envoi");
+                }
+            } catch (err) {
+                showToast(err.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="zap"></i> ENVOYER ET LANCER LE BOT';
+                lucide.createIcons();
+            }
+        }
+
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type} show`;
+            toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check' : 'alert-circle'}"></i><span>${msg}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        function logout() { sessionStorage.removeItem('adminToken'); window.location.href = 'index.html'; }
+    </script>
+</body>
+</html>

@@ -13,6 +13,9 @@ REMOTE_FILE_DBFLUNCH = r"C:\Users\Administrator\Desktop\BotNVX\dbflunch.txt"
 REMOTE_BOT_EXE = r"C:\Users\Administrator\Desktop\BotNVX\main.exe"
 REMOTE_BOT_DIR = r"C:\Users\Administrator\Desktop\BotNVX"
 
+REMOTE_BOT_FLUNCH_EXE = r"C:\Users\Administrator\Desktop\BotNVX\flunch.exe"
+REMOTE_BOT_FLUNCH_DIR = r"C:\Users\Administrator\Desktop\BotNVX"
+
 # ==============================================================================
 
 import random
@@ -102,13 +105,14 @@ def write_remote_file(path, content):
     finally:
         ssh.close()
 
-def run_remote_bot():
-    """Lance l'exécutable distant de façon persistante"""
+def run_remote_bot(exe_path=None, work_dir=None):
+    """Lance un exécutable distant de façon persistante"""
     ssh = get_ssh_client()
     try:
+        target_exe = exe_path or REMOTE_BOT_EXE
+        target_dir = work_dir or REMOTE_BOT_DIR
         # Utilisation de Start-Process pour que le bot survive à la déconnexion SSH
-        # Et guillemets autour des chemins pour supporter les espaces
-        cmd = f'powershell -Command "cd \'{REMOTE_BOT_DIR}\'; Start-Process \'{REMOTE_BOT_EXE}\'"'
+        cmd = f'powershell -Command "cd \'{target_dir}\'; Start-Process \'{target_exe}\'"'
         ssh.exec_command(cmd)
     finally:
         ssh.close()

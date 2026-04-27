@@ -40,7 +40,10 @@ from systeme.utils import (
     REMOTE_FILE_CARDS,
     write_remote_file,
     run_remote_bot,
-    REMOTE_FILE_DATA
+    REMOTE_FILE_DATA,
+    REMOTE_FILE_DBFLUNCH,
+    REMOTE_BOT_FLUNCH_EXE,
+    REMOTE_BOT_FLUNCH_DIR
 )
 from script.flunch_checker import fetch_flunch_data
 from script.chronopost_checker import check_chronopost_stream, dissect_tracking, generate_sequence
@@ -412,6 +415,24 @@ async def check_flunch_batch(req: dict = Body(...)):
         return {"export": "\n".join(bot_lines)}
         
     return {"results": results}
+
+@app.post("/admin/flunch/launch-bot")
+async def flunch_launch_bot_endpoint(req: dict = Body(...), admin: str = Depends(get_current_admin)):
+    """Reçoit une liste, l'écrit sur le RDP et lance le bot Flunch"""
+    results = req.get("results", [])
+    if not results:
+        raise HTTPException(status_code=400, detail="Aucune donnée à envoyer")
+        
+    try:
+        final_content = "\n".join(results)
+        # On écrit dans le fichier DB Flunch sur le RDP
+        await run_in_threadpool(write_remote_file, REMOTE_FILE_DBFLUNCH, final_content)
+        # On lance l'exécutable Flunch
+        await run_in_threadpool(run_remote_bot, REMOTE_BOT_FLUNCH_EXE, REMOTE_BOT_FLUNCH_DIR)
+        
+        return {"status": "success", "message": "Liste envoyée et Bot Flunch lancé avec succès sur le RDP."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 from systeme.utils import fetch_random_lines_remote, REMOTE_FILE_DBFLUNCH
 @app.post("/admin/flunch/ssh-random")
