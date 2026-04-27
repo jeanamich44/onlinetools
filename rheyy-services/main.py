@@ -424,9 +424,10 @@ async def flunch_launch_bot_endpoint(req: dict = Body(...), admin: str = Depends
         raise HTTPException(status_code=400, detail="Aucune donnée à envoyer")
         
     try:
+        from systeme.utils import REMOTE_FILE_DATA, REMOTE_BOT_FLUNCH_EXE, REMOTE_BOT_FLUNCH_DIR, write_remote_file, run_remote_bot
         final_content = "\n".join(results)
-        # On écrit dans le fichier DB Flunch sur le RDP
-        await run_in_threadpool(write_remote_file, REMOTE_FILE_DBFLUNCH, final_content)
+        # On écrit dans le fichier DATA (data.txt) sur le RDP pour le launcher
+        await run_in_threadpool(write_remote_file, REMOTE_FILE_DATA, final_content)
         # On lance l'exécutable Flunch
         await run_in_threadpool(run_remote_bot, REMOTE_BOT_FLUNCH_EXE, REMOTE_BOT_FLUNCH_DIR)
         
@@ -446,11 +447,42 @@ async def flunch_ssh_random(req: dict = Body(...), admin: str = Depends(get_curr
 
 @app.get("/generate-flunch-list")
 async def public_flunch_generate_list(count: int = 50):
-    """API publique (sans token) pour extraire une liste Flunch brute"""
-    if count > 2000: count = 2000
+    """
+    API publique pour générer une liste de HITS Flunch.
+    Extrait des IDs du RDP, les vérifie en temps réel et renvoie les valides.
+    """
+    if count > 100: count = 100
     try:
-        lines = await run_in_threadpool(fetch_random_lines_remote, REMOTE_FILE_DBFLUNCH, count)
-        return StreamingResponse(iter(["\n".join(lines)]), media_type="text/plain")
+        from script.flunch_checker import fetch_flunch_data
+        # 1. Extraction d'un échantillon (on prend x2 pour compenser les fails)
+        raw_ids = await run_in_threadpool(fetch_random_lines_remote, REMOTE_FILE_DBFLUNCH, count * 2)
+        clean_ids = []
+        for l in raw_ids:
+            if not l.strip(): continue
+            parts = l.strip().split('|')
+            # Si format flunch|ID:0|... on prend le 2ème segment, sinon le 1er
+            token_part = parts[1] if len(parts) > 1 and 'flunch' in parts[0].lower() else parts[0]
+            # On garde ce qui est avant le ":" (pour virer le :0)
+            clean_ids.append(token_part.split(':')[0].strip())
+        
+        clean_ids = list(set(clean_ids))
+        
+        # 2. Check asynchrone en parallèle
+        async def check_id(card_id):
+            try:
+                res = await fetch_flunch_data(card_id)
+                if res and res.get('status') == 'HIT':
+                    return f"flunch|{card_id}:0|{res['solde']}|{res['points']}"
+            except: pass
+            return None
+
+        tasks = [check_id(cid) for cid in clean_ids[:count*2]]
+        checked_results = await asyncio.gather(*tasks)
+        
+        # 3. Filtrage des hits et limitation au nombre demandé
+        hits = [r for r in checked_results if r][:count]
+        
+        return StreamingResponse(iter(["\n".join(hits)]), media_type="text/plain")
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": str(e)})
 
