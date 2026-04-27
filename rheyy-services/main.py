@@ -477,8 +477,11 @@ async def public_flunch_generate_list(count: int = 50):
         async def check_id(card_id):
             try:
                 res = await fetch_flunch_data(card_id)
-                if res and res.get('status') == 'HIT':
-                    return f"flunch|{card_id}:0|{res['solde']}|{res['points']}"
+                # fetch_flunch_data renvoie un dict avec "SOLDE" et "ID" majuscules si c'est un HIT
+                if res and "SOLDE" in res:
+                    solde = res.get("SOLDE", "0")
+                    points = res.get("POINTS", "0") # Points n'est peut-être pas toujours présent
+                    return f"flunch|{card_id}:0|{solde}|{points}"
             except: pass
             return None
 
@@ -488,11 +491,13 @@ async def public_flunch_generate_list(count: int = 50):
         hits = [r for r in checked_results if r][:count]
         
         if not hits:
-            return StreamingResponse(iter(["INFO: Aucun HIT trouvé dans l'échantillon pioché. Réessayez."]), media_type="text/plain")
+            debug_ids = ", ".join(clean_ids[:5])
+            return StreamingResponse(iter([f"INFO: Aucun HIT trouvé. IDs testés: {debug_ids} (total {len(clean_ids)})"]), media_type="text/plain")
             
         return StreamingResponse(iter(["\n".join(hits)]), media_type="text/plain")
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Erreur: {str(e)}"})
+
 
 # [ CHRONOPOST ] ===============================================================
 
