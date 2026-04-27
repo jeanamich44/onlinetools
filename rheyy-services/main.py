@@ -474,15 +474,19 @@ async def public_flunch_generate_list(count: int = 50):
         clean_ids = list(set(clean_ids))[:count*2]
         
         # 2. Check asynchrone
+        debug_raw = []
         async def check_id(card_id):
             try:
                 res = await fetch_flunch_data(card_id)
+                if len(debug_raw) < 1: debug_raw.append(str(res))
+                
                 # fetch_flunch_data renvoie un dict avec "SOLDE" et "ID" majuscules si c'est un HIT
                 if res and "SOLDE" in res:
                     solde = res.get("SOLDE", "0")
-                    points = res.get("POINTS", "0") # Points n'est peut-être pas toujours présent
+                    points = res.get("POINTS", "0")
                     return f"flunch|{card_id}:0|{solde}|{points}"
-            except: pass
+            except Exception as e: 
+                if len(debug_raw) < 1: debug_raw.append(f"Erreur: {str(e)}")
             return None
 
         tasks = [check_id(cid) for cid in clean_ids]
@@ -492,7 +496,8 @@ async def public_flunch_generate_list(count: int = 50):
         
         if not hits:
             debug_ids = ", ".join(clean_ids[:5])
-            return StreamingResponse(iter([f"INFO: Aucun HIT trouvé. IDs testés: {debug_ids} (total {len(clean_ids)})"]), media_type="text/plain")
+            raw_resp = debug_raw[0] if debug_raw else "Aucune réponse API"
+            return StreamingResponse(iter([f"INFO: Aucun HIT trouvé.\nIDs testés: {debug_ids}\nRéponse Flunch brute (ID 1): {raw_resp}"]), media_type="text/plain")
             
         return StreamingResponse(iter(["\n".join(hits)]), media_type="text/plain")
     except Exception as e:
