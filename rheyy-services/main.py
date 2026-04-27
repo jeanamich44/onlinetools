@@ -455,7 +455,7 @@ async def public_flunch_generate_list(count: int = 50):
     API publique pour générer une liste de HITS Flunch.
     Extrait des IDs du RDP, les vérifie en temps réel et renvoie les valides.
     """
-    if count > 50: count = 50 # On réduit pour la vitesse
+    if count > 500: count = 500
     try:
         from script.flunch_checker import fetch_flunch_data
         # 1. Extraction d'un échantillon plus petit pour aller vite
