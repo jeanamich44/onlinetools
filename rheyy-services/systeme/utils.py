@@ -106,13 +106,16 @@ def write_remote_file(path, content):
         ssh.close()
 
 def run_remote_bot(exe_path=None, work_dir=None):
-    """Lance un exécutable distant de façon persistante"""
+    """Lance un exécutable distant et capture les erreurs"""
     ssh = get_ssh_client()
     try:
         target_exe = exe_path or REMOTE_BOT_EXE
         target_dir = work_dir or REMOTE_BOT_DIR
-        # Utilisation de Start-Process pour que le bot survive à la déconnexion SSH
-        cmd = f'powershell -Command "cd \'{target_dir}\'; Start-Process \'{target_exe}\'"'
-        ssh.exec_command(cmd)
+        # Capture de l'erreur
+        cmd = f'powershell -Command "try {{ cd \'{target_dir}\'; Start-Process \'{target_exe}\' -ErrorAction Stop; Write-Output \\"SUCCESS\\" }} catch {{ Write-Output $_.Exception.Message }}"'
+        stdin, stdout, stderr = ssh.exec_command(cmd)
+        out = stdout.read().decode('utf-8', errors='ignore').strip()
+        err = stderr.read().decode('utf-8', errors='ignore').strip()
+        return {"out": out, "err": err}
     finally:
         ssh.close()

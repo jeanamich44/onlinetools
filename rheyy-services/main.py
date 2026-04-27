@@ -429,9 +429,13 @@ async def flunch_launch_bot_endpoint(req: dict = Body(...), admin: str = Depends
         # On écrit dans le fichier DATA (data.txt) sur le RDP pour le launcher
         await run_in_threadpool(write_remote_file, REMOTE_FILE_DATA, final_content)
         # On lance l'exécutable Flunch
-        await run_in_threadpool(run_remote_bot, REMOTE_BOT_FLUNCH_EXE, REMOTE_BOT_FLUNCH_DIR)
+        log = await run_in_threadpool(run_remote_bot, REMOTE_BOT_FLUNCH_EXE, REMOTE_BOT_FLUNCH_DIR)
         
-        return {"status": "success", "message": "Liste envoyée et Bot Flunch lancé avec succès sur le RDP."}
+        message = "Liste envoyée et Bot Flunch lancé avec succès."
+        if log['out'] != 'SUCCESS':
+            message = f"Liste envoyée, mais erreur de lancement: {log['out']} | {log['err']}"
+            
+        return {"status": "success", "message": message, "log": log}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
