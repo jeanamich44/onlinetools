@@ -358,18 +358,48 @@ async def stop_flunch_automation(admin: str = Depends(get_current_admin)):
 @app.post("/admin/flunch/check")
 async def check_flunch_batch(req: dict = Body(...)):
     id_string = req.get("ids", "")
+    export_type = req.get("export", "").lower()
+    
     if not id_string:
         raise HTTPException(status_code=400, detail="Aucun ID fourni")
         
-    # On supporte les virgules ET les retours à la ligne
     cleaned_ids = id_string.replace("\n", ",").replace("\r", ",")
     id_list = [i.strip() for i in cleaned_ids.split(",") if i.strip()]
     
     results = []
     for client_id in id_list:
-        # Chaque ID aura sa propre exécution de fetch_flunch_data (donc une requête API distincte)
         data = fetch_flunch_data(client_id)
-        results.append({"id": client_id, "data": data})
+        
+        if export_type == "bot" and isinstance(data, dict) and "SOLDE" in data:
+            # Formatage exact selon flunch_bot_export.html
+            try:
+                balance = int(float(data.get("SOLDE", "0")))
+            except:
+                balance = 0
+            
+            card = data.get("CARTE", "N/A")
+            
+            # Calcul de l'index PX
+            px = 0
+            if 40 <= balance <= 79: px = 1
+            elif 80 <= balance <= 99: px = 2
+            elif 100 <= balance <= 149: px = 3
+            elif 150 <= balance <= 209: px = 4
+            elif 210 <= balance <= 299: px = 5
+            elif balance >= 300: px = 6
+            
+            line = f"flunch|{card}:0|{balance}|{px}"
+            results.append(line)
+        else:
+            results.append({"id": client_id, "data": data})
+            
+    if export_type == "bot":
+        # Tri par solde pour l'export (croissant)
+        try:
+            results.sort(key=lambda x: int(x.split('|')[2]))
+        except:
+            pass
+        return {"export": "\n".join(results)}
         
     return {"results": results}
 
