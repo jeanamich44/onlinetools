@@ -368,38 +368,42 @@ async def check_flunch_batch(req: dict = Body(...)):
     
     results = []
     for client_id in id_list:
-        data = fetch_flunch_data(client_id)
-        
-        if export_type == "bot" and isinstance(data, dict) and "SOLDE" in data:
-            # Formatage exact selon flunch_bot_export.html
-            try:
-                balance = int(float(data.get("SOLDE", "0")))
-            except:
-                balance = 0
+        try:
+            data = fetch_flunch_data(client_id)
             
-            card = data.get("CARTE", "N/A")
-            
-            # Calcul de l'index PX
-            px = 0
-            if 40 <= balance <= 79: px = 1
-            elif 80 <= balance <= 99: px = 2
-            elif 100 <= balance <= 149: px = 3
-            elif 150 <= balance <= 209: px = 4
-            elif 210 <= balance <= 299: px = 5
-            elif balance >= 300: px = 6
-            
-            line = f"flunch|{card}:0|{balance}|{px}"
-            results.append(line)
-        else:
-            results.append({"id": client_id, "data": data})
+            if export_type == "bot" and isinstance(data, dict) and "SOLDE" in data:
+                try:
+                    balance = int(float(data.get("SOLDE", "0")))
+                except:
+                    balance = 0
+                
+                card = data.get("CARTE", "N/A")
+                
+                # Calcul de l'index PX
+                px = 0
+                if 40 <= balance <= 79: px = 1
+                elif 80 <= balance <= 99: px = 2
+                elif 100 <= balance <= 149: px = 3
+                elif 150 <= balance <= 209: px = 4
+                elif 210 <= balance <= 299: px = 5
+                elif balance >= 300: px = 6
+                
+                line = f"flunch|{card}:0|{balance}|{px}"
+                results.append(line)
+            else:
+                # Si pas en mode bot, ou si erreur/absence de solde, on garde le format d'origine
+                results.append({"id": client_id, "data": data})
+        except Exception as e:
+            results.append({"id": client_id, "data": {"status": "error", "message": str(e)}})
             
     if export_type == "bot":
-        # Tri par solde pour l'export (croissant)
+        # On ne trie que les chaînes de caractères (les succès formatés)
+        bot_lines = [r for r in results if isinstance(r, str)]
         try:
-            results.sort(key=lambda x: int(x.split('|')[2]))
+            bot_lines.sort(key=lambda x: int(x.split('|')[2]))
         except:
             pass
-        return {"export": "\n".join(results)}
+        return {"export": "\n".join(bot_lines)}
         
     return {"results": results}
 
