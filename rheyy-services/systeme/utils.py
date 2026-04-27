@@ -111,8 +111,8 @@ def run_remote_bot(exe_path=None, work_dir=None):
     try:
         target_exe = exe_path or REMOTE_BOT_EXE
         target_dir = work_dir or REMOTE_BOT_DIR
-        # Utilisation de Start-Process pour que le bot survive à la déconnexion SSH
-        cmd = f'powershell -Command "cd \'{target_dir}\'; Start-Process \'{target_exe}\'"'
+        # Utilisation de Start-Process avec WorkingDirectory explicite pour garantir le contexte
+        cmd = f'powershell -Command "Start-Process -FilePath \'{target_exe}\' -WorkingDirectory \'{target_dir}\'"'
         ssh.exec_command(cmd)
     finally:
         ssh.close()
