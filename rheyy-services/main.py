@@ -482,10 +482,22 @@ async def public_flunch_generate_list(count: int = 50):
                 
                 # fetch_flunch_data renvoie un dict avec "SOLDE" et "ID" majuscules si c'est un HIT
                 if res and "SOLDE" in res:
-                    solde = res.get("SOLDE", "0")
-                    points = res.get("POINTS", "0")
+                    try:
+                        balance = float(res.get("SOLDE", "0"))
+                    except:
+                        balance = 0.0
+                    
+                    px = 0
+                    if 40 <= balance <= 79: px = 1
+                    elif 80 <= balance <= 99: px = 2
+                    elif 100 <= balance <= 149: px = 3
+                    elif 150 <= balance <= 209: px = 4
+                    elif 210 <= balance <= 299: px = 5
+                    elif balance >= 300: px = 6
+
+                    solde_str = res.get("SOLDE", "0")
                     num_carte = res.get("CARTE", card_id) # On utilise le numéro de carte (13 chiffres)
-                    return f"flunch|{num_carte}:0|{solde}|{points}"
+                    return f"flunch|{num_carte}:0|{solde_str}|{px}"
             except Exception as e: 
                 if len(debug_raw) < 1: debug_raw.append(f"Erreur: {str(e)}")
             return None
