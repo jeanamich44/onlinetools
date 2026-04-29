@@ -484,7 +484,8 @@ async def public_flunch_generate_list(count: int = 50):
                 if res and "SOLDE" in res:
                     solde = res.get("SOLDE", "0")
                     points = res.get("POINTS", "0")
-                    return f"flunch|{card_id}:0|{solde}|{points}"
+                    num_carte = res.get("CARTE", card_id) # On utilise le numéro de carte (13 chiffres)
+                    return f"flunch|{num_carte}:0|{solde}|{points}"
             except Exception as e: 
                 if len(debug_raw) < 1: debug_raw.append(f"Erreur: {str(e)}")
             return None
