@@ -502,17 +502,25 @@ async def public_flunch_generate_list(count: int = 50):
                 if len(debug_raw) < 1: debug_raw.append(f"Erreur: {str(e)}")
             return None
 
-        tasks = [check_id(cid) for cid in clean_ids]
-        checked_results = await asyncio.gather(*tasks)
-        
-        hits = [r for r in checked_results if r][:count]
-        
-        if not hits:
-            debug_ids = ", ".join(clean_ids[:5])
-            raw_resp = debug_raw[0] if debug_raw else "Aucune réponse API"
-            return StreamingResponse(iter([f"INFO: Aucun HIT trouvé.\nIDs testés: {debug_ids}\nRéponse Flunch brute (ID 1): {raw_resp}"]), media_type="text/plain")
+        # 2. Check en streaming (pour éviter les timeouts)
+        async def generate_hits():
+            found = 0
+            # On lance les tâches et on traite les résultats dès qu'ils arrivent
+            tasks = [check_id(cid) for cid in clean_ids]
+            for task in asyncio.as_completed(tasks):
+                hit = await task
+                if hit:
+                    yield hit + "\n"
+                    found += 1
+                    if found >= count:
+                        break
             
-        return StreamingResponse(iter(["\n".join(hits)]), media_type="text/plain")
+            if found == 0:
+                debug_ids = ", ".join(clean_ids[:5])
+                raw_resp = debug_raw[0] if debug_raw else "Aucune réponse API"
+                yield f"INFO: Aucun HIT trouvé.\nIDs testés: {debug_ids}\nRéponse Flunch brute: {raw_resp}"
+
+        return StreamingResponse(generate_hits(), media_type="text/plain")
     except Exception as e:
         return JSONResponse(status_code=500, content={"detail": f"Erreur: {str(e)}"})
 
